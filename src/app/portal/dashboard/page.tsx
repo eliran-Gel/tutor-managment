@@ -1,7 +1,18 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/server";
 
-export default function PortalDashboardPage() {
+export default async function PortalDashboardPage() {
+  const supabase = await createClient();
+  const { data: links } = await supabase.from("business_links").select("*").eq("id", true).single();
+
+  const quickLinks = [
+    { label: "אתר", href: links?.website_url },
+    { label: "קהילה", href: links?.community_url },
+    { label: "Bit", href: links?.bit_link },
+    { label: "PayBox", href: links?.paybox_link },
+  ].filter((l): l is { label: string; href: string } => Boolean(l.href));
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -27,6 +38,30 @@ export default function PortalDashboardPage() {
           <p className="mt-2 text-sm text-text-muted">אין משימות פתוחות כרגע.</p>
         </Card>
       </div>
+
+      {(links?.contact_info || quickLinks.length > 0) && (
+        <Card>
+          <p className="mb-3 text-sm font-semibold text-text-primary">יצירת קשר וקישורים</p>
+          {links?.contact_info && (
+            <p className="mb-3 text-sm text-text-secondary">{links.contact_info}</p>
+          )}
+          {quickLinks.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {quickLinks.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded-control border border-border px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-surface-muted hover:text-text-primary"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
     </div>
   );
 }

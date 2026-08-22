@@ -39,6 +39,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      business_links: {
+        Row: {
+          bit_link: string | null
+          community_url: string | null
+          contact_info: string | null
+          id: boolean
+          paybox_link: string | null
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          bit_link?: string | null
+          community_url?: string | null
+          contact_info?: string | null
+          id?: boolean
+          paybox_link?: string | null
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          bit_link?: string | null
+          community_url?: string | null
+          contact_info?: string | null
+          id?: boolean
+          paybox_link?: string | null
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       parent_students: {
         Row: {
           created_at: string
@@ -221,6 +251,27 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      tutor_settings: {
+        Row: {
+          default_lesson_duration: number
+          id: boolean
+          payment_reminder_days: number
+          updated_at: string
+        }
+        Insert: {
+          default_lesson_duration?: number
+          id?: boolean
+          payment_reminder_days?: number
+          updated_at?: string
+        }
+        Update: {
+          default_lesson_duration?: number
+          id?: boolean
+          payment_reminder_days?: number
+          updated_at?: string
         }
         Relationships: []
       }
