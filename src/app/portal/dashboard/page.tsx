@@ -52,7 +52,7 @@ export default async function PortalDashboardPage() {
           </p>
           <Link
             href="/portal/profile"
-            className="mt-2 inline-block text-sm font-semibold text-status-pending underline"
+            className="mt-2 inline-block text-sm font-semibold text-status-pending underline transition-transform duration-150 active:scale-95"
           >
             מעבר לפרופיל
           </Link>
@@ -107,7 +107,7 @@ export default async function PortalDashboardPage() {
                   href={link.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded-control border border-border px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-surface-muted hover:text-text-primary"
+                  className="rounded-control border border-border px-3 py-1.5 text-sm font-medium text-text-secondary transition-transform duration-150 hover:bg-surface-muted hover:text-text-primary active:scale-95"
                 >
                   {link.label}
                 </a>

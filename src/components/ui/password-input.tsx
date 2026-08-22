@@ -24,7 +24,7 @@ export function PasswordInput({
         type="button"
         onClick={() => setVisible((v) => !v)}
         aria-label={visible ? "הסתרת סיסמה" : "הצגת סיסמה"}
-        className="absolute inset-y-0 start-0 flex w-9 items-center justify-center text-text-muted hover:text-text-secondary"
+        className="absolute inset-y-0 start-0 flex w-9 items-center justify-center text-text-muted transition-transform duration-150 hover:text-text-secondary active:scale-90"
       >
         {visible ? (
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">

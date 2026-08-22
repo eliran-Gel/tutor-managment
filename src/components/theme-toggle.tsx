@@ -40,7 +40,7 @@ export function ThemeToggle() {
         setIsDark(next);
         applyTheme(next ? "dark" : "light");
       }}
-      className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-surface-muted"
+      className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary transition duration-150 hover:bg-surface-muted active:scale-90"
     >
       {isDark ? (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">

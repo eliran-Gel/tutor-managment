@@ -40,7 +40,7 @@ export function Modal({
             type="button"
             onClick={onClose}
             aria-label="סגור"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-text-muted hover:bg-surface-muted"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-text-muted transition-transform duration-150 hover:bg-surface-muted active:scale-90"
           >
             ✕
           </button>

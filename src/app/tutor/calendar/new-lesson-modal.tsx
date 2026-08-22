@@ -208,7 +208,7 @@ export function NewLessonModal({ students, subjects }: { students: Student[]; su
                   <button
                     type="button"
                     onClick={() => removeParticipantRow(i)}
-                    className="shrink-0 text-status-destructive"
+                    className="shrink-0 text-status-destructive transition-transform duration-150 active:scale-90"
                     aria-label="הסרה"
                   >
                     ✕
@@ -220,7 +220,7 @@ export function NewLessonModal({ students, subjects }: { students: Student[]; su
               <button
                 type="button"
                 onClick={addParticipantRow}
-                className="self-start text-sm font-medium text-brand-accent hover:underline"
+                className="self-start text-sm font-medium text-brand-accent transition-transform duration-150 hover:underline active:scale-95"
               >
                 + הוספת תלמיד/ה
               </button>

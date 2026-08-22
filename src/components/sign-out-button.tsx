@@ -19,7 +19,7 @@ export function SignOutButton() {
         router.push("/login");
         router.refresh();
       }}
-      className="text-sm font-medium text-text-secondary transition-colors hover:text-status-destructive disabled:opacity-50"
+      className="text-sm font-medium text-text-secondary transition duration-150 hover:text-status-destructive active:scale-95 disabled:opacity-50"
     >
       {loading ? "מתנתק..." : "התנתקות"}
     </button>

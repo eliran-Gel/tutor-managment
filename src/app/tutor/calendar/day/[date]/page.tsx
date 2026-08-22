@@ -44,7 +44,10 @@ export default async function CalendarDayPage({ params }: { params: Promise<{ da
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <Link href="/tutor/calendar" className="text-sm font-medium text-text-secondary hover:text-text-primary">
+          <Link
+            href="/tutor/calendar"
+            className="inline-block text-sm font-medium text-text-secondary transition-transform duration-150 hover:text-text-primary active:scale-95"
+          >
             ‹ חזרה ליומן החודשי
           </Link>
           <h1 className="mt-1 text-xl font-bold text-text-primary">
@@ -54,14 +57,14 @@ export default async function CalendarDayPage({ params }: { params: Promise<{ da
         <div className="flex items-center gap-1">
           <Link
             href={`/tutor/calendar/day/${prevDate}`}
-            className="flex h-8 w-8 items-center justify-center rounded-control border border-border text-text-secondary hover:bg-surface-muted"
+            className="flex h-8 w-8 items-center justify-center rounded-control border border-border text-text-secondary transition-transform duration-150 hover:bg-surface-muted active:scale-90"
             aria-label="יום קודם"
           >
             ‹
           </Link>
           <Link
             href={`/tutor/calendar/day/${nextDate}`}
-            className="flex h-8 w-8 items-center justify-center rounded-control border border-border text-text-secondary hover:bg-surface-muted"
+            className="flex h-8 w-8 items-center justify-center rounded-control border border-border text-text-secondary transition-transform duration-150 hover:bg-surface-muted active:scale-90"
             aria-label="יום הבא"
           >
             ›

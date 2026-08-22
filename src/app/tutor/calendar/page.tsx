@@ -78,7 +78,7 @@ export default async function CalendarPage({
             href="/tutor/calendar"
             aria-disabled={isViewingCurrentMonth}
             className={cn(
-              "rounded-control border border-border px-3 py-1.5 text-sm font-medium text-text-secondary hover:bg-surface-muted",
+              "rounded-control border border-border px-3 py-1.5 text-sm font-medium text-text-secondary transition-transform duration-150 hover:bg-surface-muted active:scale-95",
               isViewingCurrentMonth && "pointer-events-none opacity-40",
             )}
           >
@@ -89,7 +89,7 @@ export default async function CalendarPage({
             <Link
               href={`/tutor/calendar?year=${prevMonth.year}&month=${prevMonth.month}`}
               aria-label="חודש קודם"
-              className="flex h-8 w-8 items-center justify-center rounded-control border border-border text-text-secondary hover:bg-surface-muted"
+              className="flex h-8 w-8 items-center justify-center rounded-control border border-border text-text-secondary transition-transform duration-150 hover:bg-surface-muted active:scale-90"
             >
               ‹
             </Link>
@@ -99,7 +99,7 @@ export default async function CalendarPage({
             <Link
               href={`/tutor/calendar?year=${nextMonth.year}&month=${nextMonth.month}`}
               aria-label="חודש הבא"
-              className="flex h-8 w-8 items-center justify-center rounded-control border border-border text-text-secondary hover:bg-surface-muted"
+              className="flex h-8 w-8 items-center justify-center rounded-control border border-border text-text-secondary transition-transform duration-150 hover:bg-surface-muted active:scale-90"
             >
               ›
             </Link>
@@ -129,7 +129,7 @@ export default async function CalendarPage({
                   key={day.toISOString()}
                   href={`/tutor/calendar/day/${toIsoDate(day)}`}
                   className={cn(
-                    "min-h-24 bg-surface p-2 hover:bg-surface-muted",
+                    "min-h-24 bg-surface p-2 transition duration-150 hover:bg-surface-muted active:scale-[0.97] active:bg-surface-muted",
                     !inMonth && "opacity-40",
                     dayBlocks.length > 0 && "bg-status-destructive-bg",
                   )}
