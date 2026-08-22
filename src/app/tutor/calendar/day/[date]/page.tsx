@@ -7,10 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { LESSON_STATUS_LABELS, LESSON_STATUS_TONE, DELIVERY_MODE_LABELS } from "@/lib/lessons";
 import { blocksForDate } from "@/lib/availability";
 import { formatAppTime } from "@/lib/dates/timezone";
-import { formatIsoDate } from "@/lib/dates/format";
+import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 import { LessonDayActions } from "./lesson-day-actions";
-
-const HEBREW_WEEKDAYS_FULL = ["יום ראשון", "יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "יום שבת"];
 
 function toIsoDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -28,7 +26,7 @@ export default async function CalendarDayPage({ params }: { params: Promise<{ da
     supabase
       .from("lessons")
       .select(
-        "id, start_time, end_time, status, delivery_mode, topic, subjects(name), lesson_participants(students(display_name))",
+        "id, start_time, end_time, status, delivery_mode, topic, subjects(name), lesson_participants(students(display_name)), requester:profiles!lessons_created_by_fkey(full_name, email)",
       )
       .eq("date", date)
       .in("status", ["confirmed", "completed", "requested"])
@@ -50,9 +48,7 @@ export default async function CalendarDayPage({ params }: { params: Promise<{ da
           >
             ‹ חזרה ליומן החודשי
           </Link>
-          <h1 className="mt-1 text-xl font-bold text-text-primary">
-            {HEBREW_WEEKDAYS_FULL[dayLocal.getDay()]}, {formatIsoDate(date)}
-          </h1>
+          <h1 className="mt-1 text-xl font-bold text-text-primary">{formatIsoDateWithWeekday(date)}</h1>
         </div>
         <div className="flex items-center gap-1">
           <Link
@@ -92,6 +88,14 @@ export default async function CalendarDayPage({ params }: { params: Promise<{ da
           const studentNames = lesson.lesson_participants
             .map((lp) => lp.students?.display_name)
             .filter((name): name is string => Boolean(name));
+          // A still-pending request has no lesson_participants row yet
+          // (that's only created on approval) - fall back to who asked.
+          const displayNames =
+            studentNames.length > 0
+              ? studentNames
+              : [lesson.requester?.full_name ?? lesson.requester?.email].filter(
+                  (name): name is string => Boolean(name),
+                );
 
           return (
             <Card key={lesson.id} className="flex flex-wrap items-center justify-between gap-3">
@@ -100,7 +104,7 @@ export default async function CalendarDayPage({ params }: { params: Promise<{ da
                   {lesson.start_time.slice(0, 5)}–{lesson.end_time.slice(0, 5)} · {lesson.subjects?.name ?? "שיעור"}
                 </p>
                 <p className="mt-1 text-sm text-text-primary">
-                  {studentNames.length > 0 ? studentNames.join(", ") : "ללא תלמיד/ה משויכ/ת"}
+                  {displayNames.length > 0 ? displayNames.join(", ") : "ללא תלמיד/ה משויכ/ת"}
                 </p>
                 <p className="mt-1 text-sm text-text-muted">
                   {DELIVERY_MODE_LABELS[lesson.delivery_mode]}

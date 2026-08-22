@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DELIVERY_MODE_LABELS } from "@/lib/lessons";
-import { formatIsoDate } from "@/lib/dates/format";
+import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 
 export default async function TutorDashboardPage() {
   const supabase = await createClient();
@@ -59,7 +59,7 @@ export default async function TutorDashboardPage() {
                     {req.requester?.full_name ?? req.requester?.email}
                   </p>
                   <p className="break-words text-text-muted">
-                    {req.subjects?.name} · {formatIsoDate(req.date)} · {req.start_time.slice(0, 5)} ·{" "}
+                    {req.subjects?.name} · {formatIsoDateWithWeekday(req.date)} · {req.start_time.slice(0, 5)} ·{" "}
                     {DELIVERY_MODE_LABELS[req.delivery_mode]}
                   </p>
                 </li>

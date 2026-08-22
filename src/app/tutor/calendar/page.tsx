@@ -47,7 +47,7 @@ export default async function CalendarPage({
     supabase
       .from("lessons")
       .select("id, date, start_time, end_time, status, subjects(name)")
-      .in("status", ["confirmed", "completed"])
+      .in("status", ["confirmed", "completed", "requested"])
       .gte("date", toIsoDate(gridStart))
       .lte("date", toIsoDate(gridEnd)),
     supabase
@@ -124,6 +124,8 @@ export default async function CalendarPage({
             week.map((day) => {
               const dayBlocks = blocksForDate(blocks ?? [], day);
               const dayLessons = lessonsByDate.get(toIsoDate(day)) ?? [];
+              const confirmedLessons = dayLessons.filter((l) => l.status !== "requested");
+              const requestedLessons = dayLessons.filter((l) => l.status === "requested");
               const inMonth = isCurrentMonth(day);
               const isToday = day.toDateString() === now.toDateString();
 
@@ -148,10 +150,11 @@ export default async function CalendarPage({
                   </p>
 
                   {/* Mobile: dot indicators only, so the whole month still fits the screen at once. */}
-                  {(dayBlocks.length > 0 || dayLessons.length > 0) && (
+                  {(dayBlocks.length > 0 || confirmedLessons.length > 0 || requestedLessons.length > 0) && (
                     <div className="flex gap-0.5 sm:hidden">
                       {dayBlocks.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-status-destructive" />}
-                      {dayLessons.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-status-confirmed" />}
+                      {confirmedLessons.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-status-confirmed" />}
+                      {requestedLessons.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-status-pending" />}
                     </div>
                   )}
 
@@ -162,10 +165,17 @@ export default async function CalendarPage({
                         חסום {formatAppTime(block.start_at, "HH:mm")}–{formatAppTime(block.end_at, "HH:mm")}
                       </p>
                     ))}
-                    {dayLessons.map((lesson) => (
+                    {confirmedLessons.map((lesson) => (
                       <div key={lesson.id} className="mt-1 truncate rounded bg-status-confirmed-bg px-1 py-0.5">
                         <p className="truncate text-xs font-medium text-status-confirmed">
                           {lesson.start_time.slice(0, 5)} {lesson.subjects?.name ?? "שיעור"}
+                        </p>
+                      </div>
+                    ))}
+                    {requestedLessons.map((lesson) => (
+                      <div key={lesson.id} className="mt-1 truncate rounded bg-status-pending-bg px-1 py-0.5">
+                        <p className="truncate text-xs font-medium text-status-pending">
+                          {lesson.start_time.slice(0, 5)} {lesson.subjects?.name ?? "שיעור"} (ממתין)
                         </p>
                       </div>
                     ))}
@@ -177,9 +187,12 @@ export default async function CalendarPage({
         </div>
       </Card>
 
-      <div className="flex items-center gap-4 text-xs text-text-muted">
+      <div className="flex flex-wrap items-center gap-4 text-xs text-text-muted">
         <span className="flex items-center gap-1.5">
           <Badge tone="confirmed" className="h-3 w-3 rounded-full p-0" /> שיעור מאושר
+        </span>
+        <span className="flex items-center gap-1.5">
+          <Badge tone="pending" className="h-3 w-3 rounded-full p-0" /> בקשה ממתינה
         </span>
         <span className="flex items-center gap-1.5">
           <Badge tone="destructive" className="h-3 w-3 rounded-full p-0" /> זמן חסום

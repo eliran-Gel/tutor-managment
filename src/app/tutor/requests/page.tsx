@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { DELIVERY_MODE_LABELS } from "@/lib/lessons";
-import { formatIsoDate } from "@/lib/dates/format";
+import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 import { RequestRowActions } from "./request-row-actions";
 
 export default async function RequestsPage() {
@@ -33,7 +33,7 @@ export default async function RequestsPage() {
                 {req.requester?.full_name ?? req.requester?.email ?? "משתמש לא ידוע"}
               </p>
               <p className="mt-1 break-words text-sm text-text-secondary">
-                {req.subjects?.name ?? "ללא מקצוע"} · {formatIsoDate(req.date)} ·{" "}
+                {req.subjects?.name ?? "ללא מקצוע"} · {formatIsoDateWithWeekday(req.date)} ·{" "}
                 {req.start_time.slice(0, 5)}–{req.end_time.slice(0, 5)} ·{" "}
                 {DELIVERY_MODE_LABELS[req.delivery_mode]}
               </p>
