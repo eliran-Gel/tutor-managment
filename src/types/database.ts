@@ -486,6 +486,45 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      create_manual_lesson: {
+        Args: {
+          p_date: string
+          p_delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+          p_duration_minutes: number
+          p_end_time: string
+          p_forced: boolean
+          p_lesson_type: Database["public"]["Enums"]["lesson_type"]
+          p_online_url: string
+          p_participants: Json
+          p_start_time: string
+          p_subject_id: string
+          p_topic: string
+        }
+        Returns: {
+          created_at: string
+          created_by: string
+          date: string
+          delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+          duration_minutes: number
+          end_time: string
+          forced: boolean
+          id: string
+          lesson_type: Database["public"]["Enums"]["lesson_type"]
+          online_url: string | null
+          source: Database["public"]["Enums"]["lesson_source"]
+          start_time: string
+          status: Database["public"]["Enums"]["lesson_status"]
+          subject_id: string | null
+          topic: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lessons"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       is_parent_of: { Args: { target_student_id: string }; Returns: boolean }
       is_tutor: { Args: never; Returns: boolean }
       owns_student: { Args: { target_student_id: string }; Returns: boolean }

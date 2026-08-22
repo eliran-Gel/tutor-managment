@@ -3,9 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { toAppTime } from "@/lib/dates/timezone";
-import { blocksForDate } from "@/lib/availability";
 import { LESSON_DURATIONS } from "@/lib/lessons";
+import { checkLessonConflicts, addMinutesToTime } from "@/lib/lesson-conflicts";
 
 const requestSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "תאריך לא תקין"),
@@ -18,11 +17,6 @@ const requestSchema = z.object({
   delivery_mode: z.enum(["online", "in_person"]),
   topic: z.string().trim().nullable(),
 });
-
-function timeStrToMinutes(t: string) {
-  const [h, m] = t.split(":").map(Number);
-  return h * 60 + m;
-}
 
 export async function requestLesson(formData: FormData) {
   const supabase = await createClient();
@@ -53,45 +47,22 @@ export async function requestLesson(formData: FormData) {
   if (requestedDate < today) return { error: "לא ניתן לבקש שיעור בעבר" };
   if (requestedDate > maxDate) return { error: "ניתן לבקש שיעור עד חודש קדימה בלבד" };
 
-  const startLocal = new Date(`${input.date}T${input.start_time}:00`);
-  const endLocal = new Date(startLocal.getTime() + input.duration_minutes * 60000);
-  const endTimeStr = `${String(endLocal.getHours()).padStart(2, "0")}:${String(endLocal.getMinutes()).padStart(2, "0")}`;
+  const { endTime, crossesMidnight } = addMinutesToTime(input.start_time, input.duration_minutes);
+  if (crossesMidnight) return { error: "שיעור לא יכול לחצות חצות" };
 
-  if (endLocal.getDate() !== startLocal.getDate()) {
-    return { error: "שיעור לא יכול לחצות חצות" };
-  }
-
-  // Blocked-time check.
-  const { data: blocks } = await supabase.from("availability_blocks").select("*");
-  const dayBlocks = blocksForDate(blocks ?? [], startLocal);
-  const reqStartMin = timeStrToMinutes(input.start_time);
-  const reqEndMin = timeStrToMinutes(endTimeStr);
-  const isBlocked = dayBlocks.some((block) => {
-    const blockStart = toAppTime(block.start_at);
-    const blockEnd = toAppTime(block.end_at);
-    const blockStartMin = blockStart.getHours() * 60 + blockStart.getMinutes();
-    const blockEndMin = blockEnd.getHours() * 60 + blockEnd.getMinutes();
-    return reqStartMin < blockEndMin && reqEndMin > blockStartMin;
-  });
-  if (isBlocked) return { error: "הזמן המבוקש חסום ואינו זמין" };
-
-  // Double-booking check against already-confirmed lessons.
-  const { data: existing } = await supabase
-    .from("lessons")
-    .select("start_time, end_time")
-    .eq("date", input.date)
-    .eq("status", "confirmed");
-  const hasConflict = existing?.some((l) => {
-    const existingStart = timeStrToMinutes(l.start_time.slice(0, 5));
-    const existingEnd = timeStrToMinutes(l.end_time.slice(0, 5));
-    return reqStartMin < existingEnd && reqEndMin > existingStart;
-  });
-  if (hasConflict) return { error: "יש כבר שיעור מאושר בזמן הזה" };
+  const { blocked, doubleBooked } = await checkLessonConflicts(
+    supabase,
+    input.date,
+    input.start_time,
+    endTime,
+  );
+  if (blocked) return { error: "הזמן המבוקש חסום ואינו זמין" };
+  if (doubleBooked) return { error: "יש כבר שיעור מאושר בזמן הזה" };
 
   const { error } = await supabase.from("lessons").insert({
     date: input.date,
     start_time: `${input.start_time}:00`,
-    end_time: `${endTimeStr}:00`,
+    end_time: `${endTime}:00`,
     duration_minutes: input.duration_minutes,
     lesson_type: "individual",
     delivery_mode: input.delivery_mode,

@@ -6,6 +6,7 @@ import { buildMonthGrid, HEBREW_WEEKDAY_LABELS } from "@/lib/calendar-grid";
 import { blocksForDate } from "@/lib/availability";
 import { formatAppTime } from "@/lib/dates/timezone";
 import { cn } from "@/lib/cn";
+import { NewLessonModal } from "./new-lesson-modal";
 
 const HEBREW_MONTHS = [
   "ינואר",
@@ -41,7 +42,7 @@ export default async function CalendarPage({
   const gridEnd = weeks[weeks.length - 1][6];
 
   const supabase = await createClient();
-  const [{ data: blocks }, { data: lessons }] = await Promise.all([
+  const [{ data: blocks }, { data: lessons }, { data: students }, { data: subjects }] = await Promise.all([
     supabase.from("availability_blocks").select("*"),
     supabase
       .from("lessons")
@@ -49,6 +50,12 @@ export default async function CalendarPage({
       .in("status", ["confirmed", "completed"])
       .gte("date", toIsoDate(gridStart))
       .lte("date", toIsoDate(gridEnd)),
+    supabase
+      .from("students")
+      .select("id, display_name, default_price")
+      .is("archived_at", null)
+      .order("display_name"),
+    supabase.from("subjects").select("*").eq("active", true).order("name"),
   ]);
 
   const lessonsByDate = new Map<string, NonNullable<typeof lessons>>();
@@ -97,6 +104,8 @@ export default async function CalendarPage({
               ›
             </Link>
           </div>
+
+          <NewLessonModal students={students ?? []} subjects={subjects ?? []} />
         </div>
       </div>
 
