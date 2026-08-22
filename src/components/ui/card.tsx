@@ -5,7 +5,12 @@ export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
-        "rounded-card border border-border bg-surface p-5 shadow-card",
+        // min-w-0 matters because Card is almost always a flex/grid item -
+        // without it, one long unbreakable child (e.g. a raw URL) forces
+        // the whole row/column wider than the viewport, and since the app
+        // sets overflow-x:hidden globally, that overflow doesn't scroll -
+        // it just gets silently clipped off-screen.
+        "min-w-0 rounded-card border border-border bg-surface p-5 shadow-card",
         className,
       )}
       {...props}
