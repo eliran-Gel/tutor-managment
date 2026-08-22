@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { PasswordInput } from "@/components/ui/password-input";
 
 type Status = { type: "idle" } | { type: "loading" } | { type: "error"; message: string } | { type: "sent" };
 
@@ -101,13 +102,11 @@ export function LoginForm() {
             onChange={(e) => setEmail(e.target.value)}
             className="rounded-control border border-border bg-background px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-accent"
           />
-          <input
-            type="password"
+          <PasswordInput
             required
             placeholder="סיסמה"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="rounded-control border border-border bg-background px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-accent"
           />
           <Button type="submit" variant="primary" disabled={status.type === "loading"}>
             התחברות

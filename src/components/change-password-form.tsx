@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Field, TextInput } from "@/components/ui/field";
+import { Field } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { PasswordInput } from "@/components/ui/password-input";
 
 type Status = { type: "idle" } | { type: "loading" } | { type: "error"; message: string } | { type: "success" };
 
@@ -39,9 +40,8 @@ export function ChangePasswordForm() {
   return (
     <form className="flex flex-col gap-4" onSubmit={onSubmit}>
       <Field label="סיסמה חדשה" htmlFor="new-password">
-        <TextInput
+        <PasswordInput
           id="new-password"
-          type="password"
           minLength={8}
           required
           value={password}
@@ -49,9 +49,8 @@ export function ChangePasswordForm() {
         />
       </Field>
       <Field label="אימות סיסמה" htmlFor="confirm-password">
-        <TextInput
+        <PasswordInput
           id="confirm-password"
-          type="password"
           minLength={8}
           required
           value={confirm}
