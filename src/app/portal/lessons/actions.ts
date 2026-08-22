@@ -5,10 +5,14 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { LESSON_DURATIONS } from "@/lib/lessons";
 import { checkLessonConflicts, addMinutesToTime } from "@/lib/lesson-conflicts";
+import { isValidTimeSlot } from "@/lib/time-slots";
 
 const requestSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "תאריך לא תקין"),
-  start_time: z.string().regex(/^\d{2}:\d{2}$/, "שעה לא תקינה"),
+  start_time: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/, "שעה לא תקינה")
+    .refine(isValidTimeSlot, "השעה חייבת להיות בכפולות של רבע שעה"),
   duration_minutes: z.coerce
     .number()
     .int()

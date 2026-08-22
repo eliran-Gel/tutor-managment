@@ -44,9 +44,6 @@ export function AddStudentModal() {
           <Field label="כיתה / שכבה" htmlFor="grade_level">
             <TextInput id="grade_level" name="grade_level" placeholder='למשל: י"א' />
           </Field>
-          <Field label="מחיר ברירת מחדל לשיעור (₪)" htmlFor="default_price">
-            <TextInput id="default_price" name="default_price" type="number" min={0} step="0.01" />
-          </Field>
 
           {error && <p className="text-sm text-status-destructive">{error}</p>}
 

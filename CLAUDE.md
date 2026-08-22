@@ -32,11 +32,12 @@ If two requirements conflict, do not guess. Identify the conflict and ask.
 - The tutor can create forced/manual lessons even when no student request exists.
 - The tutor can block unavailable time slots.
 - Booking can be requested up to one month ahead.
-- Supported lesson durations are round increments only: 15, 30, 45, or 60 minutes.
+- Supported lesson durations are 60, 90, or 120 minutes.
+- Lessons can only start on the quarter hour (e.g. 16:00, 16:15, 16:30, 16:45), not at arbitrary minutes.
 - Group lessons support up to 3 students.
 - A group lesson must explicitly list its participating students.
-- Pricing may differ between students and between individual lessons.
-- The price actually charged is stored on the lesson/payment record and must not be retroactively changed by changing a student's default price.
+- Pricing is fixed by lesson type and duration, not per-student: individual lessons are ₪140/₪210/₪280 for 60/90/120 minutes; group lessons are ₪110/₪165/₪220 for 60/90/120 minutes.
+- The price actually charged is stored on the lesson/payment record at creation/approval time and must not be retroactively changed if the pricing table changes later.
 - Payment is tracked manually by the tutor.
 - Supported payment methods: cash, Bit, PayBox, other.
 - Bit/PayBox are external payment links, not integrated payment processing in the MVP.

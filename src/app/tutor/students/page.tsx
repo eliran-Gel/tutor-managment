@@ -15,7 +15,7 @@ export default async function StudentsPage({
   const supabase = await createClient();
   let query = supabase
     .from("students")
-    .select("id, display_name, is_guest, grade_level, default_price, archived_at")
+    .select("id, display_name, is_guest, grade_level, archived_at")
     .order("display_name");
 
   query = showArchived ? query.not("archived_at", "is", null) : query.is("archived_at", null);
@@ -62,10 +62,7 @@ export default async function StudentsPage({
                 <p className="min-w-0 truncate font-semibold text-text-primary">{student.display_name}</p>
                 {student.is_guest && <Badge tone="pending" className="shrink-0">אורח/ת</Badge>}
               </div>
-              <p className="mt-1 text-sm text-text-muted">
-                {student.grade_level ?? "ללא כיתה"}
-                {student.default_price != null && ` · ₪${student.default_price}`}
-              </p>
+              <p className="mt-1 text-sm text-text-muted">{student.grade_level ?? "ללא כיתה"}</p>
             </Card>
           </Link>
         ))}

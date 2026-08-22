@@ -33,16 +33,6 @@ export function EditStudentForm({ student }: { student: Tables<"students"> }) {
       <Field label="כיתה / שכבה" htmlFor="grade_level">
         <TextInput id="grade_level" name="grade_level" defaultValue={student.grade_level ?? ""} />
       </Field>
-      <Field label="מחיר ברירת מחדל לשיעור (₪)" htmlFor="default_price">
-        <TextInput
-          id="default_price"
-          name="default_price"
-          type="number"
-          min={0}
-          step="0.01"
-          defaultValue={student.default_price ?? ""}
-        />
-      </Field>
 
       {error && <p className="text-sm text-status-destructive">{error}</p>}
       {saved && !error && <p className="text-sm text-status-confirmed">נשמר בהצלחה.</p>}

@@ -5,8 +5,12 @@ import { Modal } from "@/components/ui/modal";
 import { Field, TextInput } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { LESSON_DURATIONS } from "@/lib/lessons";
+import { calculateLessonPrice } from "@/lib/pricing";
+import { generateTimeSlots } from "@/lib/time-slots";
 import { requestLesson } from "./actions";
 import type { Tables } from "@/types/database";
+
+const TIME_SLOTS = generateTimeSlots();
 
 export function RequestLessonModal({
   subjects,
@@ -16,6 +20,7 @@ export function RequestLessonModal({
   triggerClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [duration, setDuration] = useState(60);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -85,14 +90,27 @@ export function RequestLessonModal({
             </Field>
 
             <Field label="שעת התחלה" htmlFor="start_time">
-              <TextInput id="start_time" name="start_time" type="time" required />
+              <select
+                id="start_time"
+                name="start_time"
+                required
+                className="rounded-control border border-border bg-background px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-accent"
+              >
+                <option value="">בחר/י שעה</option>
+                {TIME_SLOTS.map((slot) => (
+                  <option key={slot} value={slot}>
+                    {slot}
+                  </option>
+                ))}
+              </select>
             </Field>
 
             <Field label="משך השיעור" htmlFor="duration_minutes">
               <select
                 id="duration_minutes"
                 name="duration_minutes"
-                defaultValue="60"
+                value={duration}
+                onChange={(e) => setDuration(Number(e.target.value))}
                 className="rounded-control border border-border bg-background px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-accent"
               >
                 {LESSON_DURATIONS.map((d) => (
@@ -102,6 +120,10 @@ export function RequestLessonModal({
                 ))}
               </select>
             </Field>
+
+            <p className="text-sm text-text-secondary">
+              מחיר: <span className="font-semibold text-text-primary">₪{calculateLessonPrice("individual", duration)}</span>
+            </p>
 
             <Field label="אופן השיעור" htmlFor="delivery_mode">
               <select

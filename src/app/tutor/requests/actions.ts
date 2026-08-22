@@ -15,15 +15,7 @@ export async function approveRequest(lessonId: string) {
   const { supabase } = await requireTutor();
 
   const { error } = await supabase.rpc("approve_lesson_request", { target_lesson_id: lessonId });
-  if (error) {
-    if (error.message.startsWith("no_default_price:")) {
-      const studentName = error.message.split(":")[1];
-      return {
-        error: `יש להגדיר קודם מחיר ברירת מחדל עבור ${studentName} (בעמוד התלמיד) לפני אישור השיעור.`,
-      };
-    }
-    return { error: error.message };
-  }
+  if (error) return { error: error.message };
 
   revalidateRequestPaths();
   return { success: true as const };

@@ -4,7 +4,9 @@ import { useState, useTransition } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Field, TextInput } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { TimeSlotSelect } from "@/components/ui/time-slot-select";
 import { LESSON_DURATIONS } from "@/lib/lessons";
+import { calculateLessonPrice } from "@/lib/pricing";
 import {
   createManualLesson,
   createGuestStudentQuick,
@@ -12,11 +14,11 @@ import {
 } from "@/app/tutor/lessons/actions";
 import type { Tables } from "@/types/database";
 
-type Student = Pick<Tables<"students">, "id" | "display_name" | "default_price">;
+type Student = Pick<Tables<"students">, "id" | "display_name">;
 type Subject = Tables<"subjects">;
 
 const NEW_STUDENT = "__new__";
-const emptyParticipant = { student_id: "", price: "", newName: "" };
+const emptyParticipant = { student_id: "", newName: "" };
 
 export function NewLessonModal({ students, subjects }: { students: Student[]; subjects: Subject[] }) {
   const [open, setOpen] = useState(false);
@@ -34,6 +36,8 @@ export function NewLessonModal({ students, subjects }: { students: Student[]; su
   const [submitAction, setSubmitAction] = useState<"create" | "force" | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const pricePerStudent = calculateLessonPrice(lessonType, duration);
+
   function reset() {
     setLessonType("individual");
     setParticipants([{ ...emptyParticipant }]);
@@ -49,15 +53,11 @@ export function NewLessonModal({ students, subjects }: { students: Student[]; su
     setSubmitAction(null);
   }
 
-  function updateParticipant(index: number, field: "student_id" | "price" | "newName", value: string) {
+  function updateParticipant(index: number, field: "student_id" | "newName", value: string) {
     setParticipants((prev) => {
       const next = [...prev];
       next[index] = { ...next[index], [field]: value };
-      if (field === "student_id") {
-        next[index].newName = "";
-        const student = students.find((s) => s.id === value);
-        next[index].price = student?.default_price != null ? String(student.default_price) : "";
-      }
+      if (field === "student_id" && value !== NEW_STUDENT) next[index].newName = "";
       return next;
     });
   }
@@ -71,7 +71,7 @@ export function NewLessonModal({ students, subjects }: { students: Student[]; su
   }
 
   function validateParticipants(): string | null {
-    const usable = participants.filter((p) => p.student_id && p.price !== "");
+    const usable = participants.filter((p) => p.student_id);
     if (!date || !startTime || !subjectId || usable.length === 0) {
       return "יש למלא את כל השדות הנדרשים ולבחור לפחות תלמיד/ה אחד/ת";
     }
@@ -93,28 +93,27 @@ export function NewLessonModal({ students, subjects }: { students: Student[]; su
 
     setSubmitAction(forced ? "force" : "create");
     startTransition(async () => {
-      const usable = participants.filter((p) => p.student_id && p.price !== "");
+      const usable = participants.filter((p) => p.student_id);
 
-      // Resolve any "new student" rows to real student ids first.
-      const resolved: { student_id: string; price: number }[] = [];
-      // Mirrors `participants` positionally so we can write resolved ids
-      // back to state - if a conflict prompt follows, a subsequent forced
-      // submit must reuse these ids rather than creating duplicate guest
-      // students for the same "new" rows.
+      // Resolve any "new student" rows to real student ids first, writing
+      // them back into state - if a conflict prompt follows, a subsequent
+      // forced submit must reuse these ids rather than creating duplicate
+      // guest students for the same rows.
+      const resolvedIds: string[] = [];
       const nextParticipants = [...participants];
 
       for (const p of usable) {
         const idx = participants.indexOf(p);
         if (p.student_id === NEW_STUDENT) {
-          const result = await createGuestStudentQuick(p.newName, Number(p.price));
+          const result = await createGuestStudentQuick(p.newName);
           if ("error" in result) {
             setError(`שגיאה ביצירת ${p.newName}: ${result.error}`);
             return;
           }
-          resolved.push({ student_id: result.id, price: Number(p.price) });
-          nextParticipants[idx] = { student_id: result.id, price: p.price, newName: "" };
+          resolvedIds.push(result.id);
+          nextParticipants[idx] = { student_id: result.id, newName: "" };
         } else {
-          resolved.push({ student_id: p.student_id, price: Number(p.price) });
+          resolvedIds.push(p.student_id);
         }
       }
       setParticipants(nextParticipants);
@@ -129,7 +128,7 @@ export function NewLessonModal({ students, subjects }: { students: Student[]; su
         topic: topic || null,
         online_url: deliveryMode === "online" ? onlineUrl || null : null,
         forced,
-        participants: resolved,
+        student_ids: resolvedIds,
       };
 
       const result = await createManualLesson(input);
@@ -186,7 +185,7 @@ export function NewLessonModal({ students, subjects }: { students: Student[]; su
           </Field>
 
           <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium text-text-secondary">תלמידים ומחיר</span>
+            <span className="text-sm font-medium text-text-secondary">תלמידים</span>
             {participants.map((p, i) => (
               <div key={i} className="flex flex-wrap gap-2">
                 <select
@@ -212,15 +211,6 @@ export function NewLessonModal({ students, subjects }: { students: Student[]; su
                     className="min-w-0 flex-1"
                   />
                 )}
-                <TextInput
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  placeholder="מחיר"
-                  value={p.price}
-                  onChange={(e) => updateParticipant(i, "price", e.target.value)}
-                  className="w-24 shrink-0"
-                />
                 {lessonType === "group" && participants.length > 1 && (
                   <button
                     type="button"
@@ -250,13 +240,7 @@ export function NewLessonModal({ students, subjects }: { students: Student[]; su
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="שעת התחלה" htmlFor="ml-start">
-              <TextInput
-                id="ml-start"
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                required
-              />
+              <TimeSlotSelect id="ml-start" value={startTime} onChange={setStartTime} required />
             </Field>
             <Field label="משך" htmlFor="ml-duration">
               <select
@@ -272,6 +256,16 @@ export function NewLessonModal({ students, subjects }: { students: Student[]; su
                 ))}
               </select>
             </Field>
+          </div>
+
+          <div className="rounded-control bg-surface-muted px-4 py-2 text-sm text-text-secondary">
+            מחיר לתלמיד/ה: <span className="font-semibold text-text-primary">₪{pricePerStudent}</span>
+            {lessonType === "group" && participants.filter((p) => p.student_id).length > 1 && (
+              <span>
+                {" "}
+                · סה&quot;כ ₪{pricePerStudent * participants.filter((p) => p.student_id).length}
+              </span>
+            )}
           </div>
 
           <Field label="מקצוע" htmlFor="ml-subject">

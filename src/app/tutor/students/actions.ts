@@ -7,14 +7,12 @@ import { requireTutor } from "@/lib/auth/require-tutor";
 const studentInputSchema = z.object({
   display_name: z.string().trim().min(1, "שם נדרש"),
   grade_level: z.string().trim().min(1).nullable(),
-  default_price: z.coerce.number().nonnegative().nullable(),
 });
 
 function readStudentInput(formData: FormData) {
   return studentInputSchema.parse({
     display_name: formData.get("display_name"),
     grade_level: (formData.get("grade_level") as string) || null,
-    default_price: (formData.get("default_price") as string) || null,
   });
 }
 

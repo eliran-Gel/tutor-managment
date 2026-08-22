@@ -23,8 +23,13 @@ export const LESSON_STATUS_TONE: Record<
   change_requested: "selected",
 };
 
-// Updated per tutor preference: round time increments only (was 60/120).
-export const LESSON_DURATIONS = [15, 30, 45, 60] as const;
+// Real lesson lengths (was mistakenly 15/30/45/60 - that was meant for
+// start-time granularity, not duration; see TIME_SLOT_MINUTES).
+export const LESSON_DURATIONS = [60, 90, 120] as const;
+
+// Lessons can only start on the quarter hour - the tutor doesn't book at
+// e.g. 16:27, so there's no reason to offer free-form minute entry.
+export const TIME_SLOT_MINUTES = 15;
 
 export const DELIVERY_MODE_LABELS: Record<Database["public"]["Enums"]["delivery_mode"], string> = {
   online: "מקוון",

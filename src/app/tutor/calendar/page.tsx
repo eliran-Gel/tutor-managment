@@ -52,7 +52,7 @@ export default async function CalendarPage({
       .lte("date", toIsoDate(gridEnd)),
     supabase
       .from("students")
-      .select("id, display_name, default_price")
+      .select("id, display_name")
       .is("archived_at", null)
       .order("display_name"),
     supabase.from("subjects").select("*").eq("active", true).order("name"),

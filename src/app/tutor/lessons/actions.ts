@@ -5,15 +5,14 @@ import { z } from "zod";
 import { requireTutor } from "@/lib/auth/require-tutor";
 import { checkLessonConflicts, addMinutesToTime } from "@/lib/lesson-conflicts";
 import { LESSON_DURATIONS } from "@/lib/lessons";
-
-const participantSchema = z.object({
-  student_id: z.string().uuid(),
-  price: z.coerce.number().nonnegative(),
-});
+import { isValidTimeSlot } from "@/lib/time-slots";
 
 const manualLessonSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "תאריך לא תקין"),
-  start_time: z.string().regex(/^\d{2}:\d{2}$/, "שעה לא תקינה"),
+  start_time: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/, "שעה לא תקינה")
+    .refine(isValidTimeSlot, "השעה חייבת להיות בכפולות של רבע שעה"),
   duration_minutes: z.coerce
     .number()
     .int()
@@ -24,8 +23,8 @@ const manualLessonSchema = z.object({
   topic: z.string().trim().nullable(),
   online_url: z.string().trim().nullable(),
   forced: z.boolean().optional(),
-  participants: z
-    .array(participantSchema)
+  student_ids: z
+    .array(z.string().uuid())
     .min(1, "יש לבחור לפחות תלמיד/ה אחד/ת")
     .max(3, "עד 3 תלמידים בשיעור"),
 });
@@ -47,11 +46,10 @@ export async function createManualLesson(input: ManualLessonInput) {
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "פרטים לא תקינים" };
   const data = parsed.data;
 
-  if (data.lesson_type === "individual" && data.participants.length !== 1) {
+  if (data.lesson_type === "individual" && data.student_ids.length !== 1) {
     return { error: "שיעור יחיד יכול לכלול תלמיד/ה אחד/ת בלבד" };
   }
-  const studentIds = new Set(data.participants.map((p) => p.student_id));
-  if (studentIds.size !== data.participants.length) {
+  if (new Set(data.student_ids).size !== data.student_ids.length) {
     return { error: "אותו תלמיד/ה נבחר/ה פעמיים" };
   }
 
@@ -86,7 +84,7 @@ export async function createManualLesson(input: ManualLessonInput) {
     p_topic: data.topic ?? "",
     p_online_url: data.online_url ?? "",
     p_forced: Boolean(data.forced),
-    p_participants: data.participants.map((p) => ({ student_id: p.student_id, price: p.price })),
+    p_student_ids: data.student_ids,
   });
   if (error) return { error: error.message };
 
@@ -98,8 +96,10 @@ export async function createManualLesson(input: ManualLessonInput) {
  * Creates a new guest student on the fly while booking a lesson (e.g. a
  * WhatsApp-arranged lesson for someone not yet in the roster), returning
  * its id so the caller can include it in the same createManualLesson call.
+ * No price is set here - pricing is a fixed table by lesson type/duration,
+ * not per-student.
  */
-export async function createGuestStudentQuick(displayName: string, defaultPrice: number) {
+export async function createGuestStudentQuick(displayName: string) {
   const { supabase } = await requireTutor();
 
   const name = displayName.trim();
@@ -107,7 +107,7 @@ export async function createGuestStudentQuick(displayName: string, defaultPrice:
 
   const { data, error } = await supabase
     .from("students")
-    .insert({ display_name: name, default_price: defaultPrice, is_guest: true })
+    .insert({ display_name: name, is_guest: true })
     .select("id")
     .single();
   if (error) return { error: error.message };

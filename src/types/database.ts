@@ -486,6 +486,13 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      calculate_lesson_price: {
+        Args: {
+          p_duration_minutes: number
+          p_lesson_type: Database["public"]["Enums"]["lesson_type"]
+        }
+        Returns: number
+      }
       create_manual_lesson: {
         Args: {
           p_date: string
@@ -495,8 +502,8 @@ export type Database = {
           p_forced: boolean
           p_lesson_type: Database["public"]["Enums"]["lesson_type"]
           p_online_url: string
-          p_participants: Json
           p_start_time: string
+          p_student_ids: string[]
           p_subject_id: string
           p_topic: string
         }
