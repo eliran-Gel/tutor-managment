@@ -502,6 +502,33 @@ export type Database = {
         }
         Returns: number
       }
+      cancel_lesson: {
+        Args: { target_lesson_id: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          date: string
+          delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+          duration_minutes: number
+          end_time: string
+          forced: boolean
+          id: string
+          lesson_type: Database["public"]["Enums"]["lesson_type"]
+          online_url: string | null
+          source: Database["public"]["Enums"]["lesson_source"]
+          start_time: string
+          status: Database["public"]["Enums"]["lesson_status"]
+          subject_id: string | null
+          topic: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lessons"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       create_manual_lesson: {
         Args: {
           p_date: string
@@ -541,6 +568,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      delete_student: { Args: { p_student_id: string }; Returns: undefined }
       is_parent_of: { Args: { target_student_id: string }; Returns: boolean }
       is_tutor: { Args: never; Returns: boolean }
       owns_student: { Args: { target_student_id: string }; Returns: boolean }

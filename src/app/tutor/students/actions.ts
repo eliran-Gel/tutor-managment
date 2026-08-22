@@ -46,6 +46,17 @@ export async function updateStudent(studentId: string, formData: FormData) {
   revalidatePath("/tutor/students");
 }
 
+export async function deleteStudent(studentId: string) {
+  const { supabase } = await requireTutor();
+
+  const { error } = await supabase.rpc("delete_student", { p_student_id: studentId });
+  if (error) return { error: error.message };
+
+  revalidatePath("/tutor/students");
+  revalidatePath("/tutor/calendar");
+  return { success: true as const };
+}
+
 export async function setStudentArchived(studentId: string, archived: boolean) {
   const { supabase } = await requireTutor();
 

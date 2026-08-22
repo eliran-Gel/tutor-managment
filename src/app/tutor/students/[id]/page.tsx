@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EditStudentForm } from "./edit-student-form";
 import { ArchiveButton } from "./archive-button";
+import { DeleteStudentButton } from "./delete-student-button";
 import { InternalNotesCard } from "./internal-notes-card";
 import { ParentLinksCard } from "./parent-links-card";
 import { ClaimGuestCard } from "./claim-guest-card";
@@ -38,7 +39,10 @@ export default async function StudentDetailPage({
           {student.is_guest && <Badge tone="pending">אורח/ת</Badge>}
           {student.archived_at && <Badge tone="destructive">בארכיון</Badge>}
         </div>
-        <ArchiveButton studentId={student.id} archived={Boolean(student.archived_at)} />
+        <div className="flex items-center gap-2">
+          <ArchiveButton studentId={student.id} archived={Boolean(student.archived_at)} />
+          <DeleteStudentButton studentId={student.id} studentName={student.display_name} />
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

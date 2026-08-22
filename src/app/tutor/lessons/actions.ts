@@ -39,6 +39,16 @@ function revalidateLessonPaths() {
   revalidatePath("/portal/dashboard");
 }
 
+export async function cancelLesson(lessonId: string) {
+  const { supabase } = await requireTutor();
+
+  const { error } = await supabase.rpc("cancel_lesson", { target_lesson_id: lessonId });
+  if (error) return { error: error.message };
+
+  revalidateLessonPaths();
+  return { success: true as const };
+}
+
 export async function createManualLesson(input: ManualLessonInput) {
   const { supabase } = await requireTutor();
 

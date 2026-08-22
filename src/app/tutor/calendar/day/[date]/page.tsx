@@ -8,6 +8,7 @@ import { LESSON_STATUS_LABELS, LESSON_STATUS_TONE, DELIVERY_MODE_LABELS } from "
 import { blocksForDate } from "@/lib/availability";
 import { formatAppTime } from "@/lib/dates/timezone";
 import { formatIsoDate } from "@/lib/dates/format";
+import { LessonDayActions } from "./lesson-day-actions";
 
 const HEBREW_WEEKDAYS_FULL = ["יום ראשון", "יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "יום שבת"];
 
@@ -26,7 +27,9 @@ export default async function CalendarDayPage({ params }: { params: Promise<{ da
   const [{ data: lessons }, { data: blocks }] = await Promise.all([
     supabase
       .from("lessons")
-      .select("id, start_time, end_time, status, delivery_mode, topic, subjects(name)")
+      .select(
+        "id, start_time, end_time, status, delivery_mode, topic, subjects(name), lesson_participants(students(display_name))",
+      )
       .eq("date", date)
       .in("status", ["confirmed", "completed", "requested"])
       .order("start_time"),
@@ -82,22 +85,32 @@ export default async function CalendarDayPage({ params }: { params: Promise<{ da
       )}
 
       <div className="flex flex-col gap-3">
-        {lessons?.map((lesson) => (
-          <Card key={lesson.id} className="flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="font-semibold text-text-primary">
-                {lesson.start_time.slice(0, 5)}–{lesson.end_time.slice(0, 5)} · {lesson.subjects?.name ?? "שיעור"}
-              </p>
-              <p className="mt-1 text-sm text-text-muted">
-                {DELIVERY_MODE_LABELS[lesson.delivery_mode]}
-                {lesson.topic && ` · ${lesson.topic}`}
-              </p>
-            </div>
-            <Badge tone={LESSON_STATUS_TONE[lesson.status]} className="shrink-0">
-              {LESSON_STATUS_LABELS[lesson.status]}
-            </Badge>
-          </Card>
-        ))}
+        {lessons?.map((lesson) => {
+          const studentNames = lesson.lesson_participants
+            .map((lp) => lp.students?.display_name)
+            .filter((name): name is string => Boolean(name));
+
+          return (
+            <Card key={lesson.id} className="flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="font-semibold text-text-primary">
+                  {lesson.start_time.slice(0, 5)}–{lesson.end_time.slice(0, 5)} · {lesson.subjects?.name ?? "שיעור"}
+                </p>
+                <p className="mt-1 text-sm text-text-primary">
+                  {studentNames.length > 0 ? studentNames.join(", ") : "ללא תלמיד/ה משויכ/ת"}
+                </p>
+                <p className="mt-1 text-sm text-text-muted">
+                  {DELIVERY_MODE_LABELS[lesson.delivery_mode]}
+                  {lesson.topic && ` · ${lesson.topic}`}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <Badge tone={LESSON_STATUS_TONE[lesson.status]}>{LESSON_STATUS_LABELS[lesson.status]}</Badge>
+                {lesson.status === "confirmed" && <LessonDayActions lessonId={lesson.id} />}
+              </div>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
