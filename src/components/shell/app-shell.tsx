@@ -38,9 +38,9 @@ export function AppShell({
         </div>
       )}
 
-      <div className="flex min-h-full flex-1 flex-col">
+      <div className="flex min-w-0 min-h-full flex-1 flex-col">
         <Topbar onMenuClick={() => setMobileNavOpen(true)} userName={userName} profileHref={profileHref} />
-        <main className="flex-1 bg-background px-4 py-6 md:px-8">{children}</main>
+        <main className="min-w-0 flex-1 bg-background px-4 py-6 md:px-8">{children}</main>
       </div>
     </div>
   );

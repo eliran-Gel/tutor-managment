@@ -29,15 +29,15 @@ export function SubjectsCard({ subjects }: { subjects: Tables<"subjects">[] }) {
           {subjects.map((subject) => (
             <li
               key={subject.id}
-              className="flex items-center justify-between rounded-control border border-border px-3 py-2"
+              className="min-w-0 flex items-center justify-between gap-3 rounded-control border border-border px-3 py-2"
             >
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-text-primary">{subject.name}</span>
-                {!subject.active && <Badge tone="neutral">לא פעיל</Badge>}
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="truncate text-sm font-medium text-text-primary">{subject.name}</span>
+                {!subject.active && <Badge tone="neutral" className="shrink-0">לא פעיל</Badge>}
               </div>
               <button
                 type="button"
-                className="text-xs font-medium text-text-secondary hover:text-text-primary"
+                className="shrink-0 text-xs font-medium text-text-secondary hover:text-text-primary"
                 onClick={() =>
                   startTransition(() => setSubjectActive(subject.id, !subject.active))
                 }

@@ -58,9 +58,9 @@ export default async function StudentsPage({
         {students?.map((student) => (
           <Link key={student.id} href={`/tutor/students/${student.id}`}>
             <Card className="h-full transition-shadow hover:shadow-none">
-              <div className="flex items-center justify-between">
-                <p className="font-semibold text-text-primary">{student.display_name}</p>
-                {student.is_guest && <Badge tone="pending">אורח/ת</Badge>}
+              <div className="flex items-center justify-between gap-2">
+                <p className="min-w-0 truncate font-semibold text-text-primary">{student.display_name}</p>
+                {student.is_guest && <Badge tone="pending" className="shrink-0">אורח/ת</Badge>}
               </div>
               <p className="mt-1 text-sm text-text-muted">
                 {student.grade_level ?? "ללא כיתה"}

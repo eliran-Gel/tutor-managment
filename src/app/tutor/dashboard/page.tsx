@@ -54,11 +54,11 @@ export default async function TutorDashboardPage() {
           ) : (
             <ul className="flex flex-col gap-2">
               {pendingRequests?.map((req) => (
-                <li key={req.id} className="rounded-control border border-border px-3 py-2 text-sm">
-                  <p className="font-medium text-text-primary">
+                <li key={req.id} className="min-w-0 rounded-control border border-border px-3 py-2 text-sm">
+                  <p className="break-words font-medium text-text-primary">
                     {req.requester?.full_name ?? req.requester?.email}
                   </p>
-                  <p className="text-text-muted">
+                  <p className="break-words text-text-muted">
                     {req.subjects?.name} · {formatIsoDate(req.date)} · {req.start_time.slice(0, 5)} ·{" "}
                     {DELIVERY_MODE_LABELS[req.delivery_mode]}
                   </p>

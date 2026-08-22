@@ -14,7 +14,7 @@ export default async function AvailabilityPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-text-primary">חסימת שעות</h1>
           <p className="text-sm text-text-secondary">
@@ -32,18 +32,20 @@ export default async function AvailabilityPage() {
 
       <div className="flex flex-col gap-2">
         {blocks?.map((block) => (
-          <Card key={block.id} className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
+          <Card key={block.id} className="min-w-0 flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
                 <p className="font-medium text-text-primary">
                   {formatAppTime(block.start_at, "dd/MM/yyyy")} ·{" "}
                   {formatAppTime(block.start_at, "HH:mm")}–{formatAppTime(block.end_at, "HH:mm")}
                 </p>
                 {block.recurrence_rule === "weekly" && <Badge tone="selected">כל שבוע</Badge>}
               </div>
-              {block.note && <p className="mt-1 text-sm text-text-muted">{block.note}</p>}
+              {block.note && <p className="mt-1 break-words text-sm text-text-muted">{block.note}</p>}
             </div>
-            <DeleteBlockButton blockId={block.id} />
+            <div className="shrink-0">
+              <DeleteBlockButton blockId={block.id} />
+            </div>
           </Card>
         ))}
       </div>

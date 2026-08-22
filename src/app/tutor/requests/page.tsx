@@ -27,19 +27,21 @@ export default async function RequestsPage() {
 
       <div className="flex flex-col gap-2">
         {requests?.map((req) => (
-          <Card key={req.id} className="flex items-center justify-between gap-4">
-            <div>
-              <p className="font-medium text-text-primary">
+          <Card key={req.id} className="min-w-0 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="truncate font-medium text-text-primary">
                 {req.requester?.full_name ?? req.requester?.email ?? "משתמש לא ידוע"}
               </p>
-              <p className="mt-1 text-sm text-text-secondary">
+              <p className="mt-1 break-words text-sm text-text-secondary">
                 {req.subjects?.name ?? "ללא מקצוע"} · {formatIsoDate(req.date)} ·{" "}
                 {req.start_time.slice(0, 5)}–{req.end_time.slice(0, 5)} ·{" "}
                 {DELIVERY_MODE_LABELS[req.delivery_mode]}
               </p>
-              {req.topic && <p className="mt-1 text-sm text-text-muted">{req.topic}</p>}
+              {req.topic && <p className="mt-1 break-words text-sm text-text-muted">{req.topic}</p>}
             </div>
-            <RequestRowActions lessonId={req.id} />
+            <div className="shrink-0">
+              <RequestRowActions lessonId={req.id} />
+            </div>
           </Card>
         ))}
       </div>

@@ -36,17 +36,17 @@ export function ParentLinksCard({
           {links.map((link) => (
             <li
               key={link.id}
-              className="flex items-center justify-between rounded-control border border-border px-3 py-2"
+              className="min-w-0 flex items-center justify-between gap-3 rounded-control border border-border px-3 py-2"
             >
-              <div>
-                <p className="text-sm font-medium text-text-primary">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-text-primary">
                   {link.profiles?.full_name ?? "ללא שם"}
                 </p>
-                <p className="text-xs text-text-muted">{link.profiles?.email}</p>
+                <p className="truncate text-xs text-text-muted">{link.profiles?.email}</p>
               </div>
               <button
                 type="button"
-                className="text-xs font-medium text-status-destructive hover:opacity-80"
+                className="shrink-0 text-xs font-medium text-status-destructive hover:opacity-80"
                 onClick={() => startTransition(() => unlinkParent(link.id, studentId))}
               >
                 ביטול קישור

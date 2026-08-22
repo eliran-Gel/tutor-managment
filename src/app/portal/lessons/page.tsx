@@ -21,7 +21,7 @@ export default async function PortalLessonsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-text-primary">השיעורים שלי</h1>
           <p className="text-sm text-text-secondary">כל הבקשות והשיעורים המתוזמנים</p>
@@ -37,21 +37,19 @@ export default async function PortalLessonsPage() {
 
       <div className="flex flex-col gap-2">
         {lessons?.map((lesson) => (
-          <Card key={lesson.id} className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="font-medium text-text-primary">{lesson.subjects?.name ?? "ללא מקצוע"}</p>
-                <Badge tone={LESSON_STATUS_TONE[lesson.status]}>
-                  {LESSON_STATUS_LABELS[lesson.status]}
-                </Badge>
-              </div>
-              <p className="mt-1 text-sm text-text-muted">
-                {formatIsoDate(lesson.date)} ·{" "}
-                {lesson.start_time.slice(0, 5)}–{lesson.end_time.slice(0, 5)} ·{" "}
-                {DELIVERY_MODE_LABELS[lesson.delivery_mode]}
-              </p>
-              {lesson.topic && <p className="mt-1 text-sm text-text-secondary">{lesson.topic}</p>}
+          <Card key={lesson.id} className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="break-words font-medium text-text-primary">{lesson.subjects?.name ?? "ללא מקצוע"}</p>
+              <Badge tone={LESSON_STATUS_TONE[lesson.status]}>
+                {LESSON_STATUS_LABELS[lesson.status]}
+              </Badge>
             </div>
+            <p className="mt-1 break-words text-sm text-text-muted">
+              {formatIsoDate(lesson.date)} ·{" "}
+              {lesson.start_time.slice(0, 5)}–{lesson.end_time.slice(0, 5)} ·{" "}
+              {DELIVERY_MODE_LABELS[lesson.delivery_mode]}
+            </p>
+            {lesson.topic && <p className="mt-1 break-words text-sm text-text-secondary">{lesson.topic}</p>}
           </Card>
         ))}
       </div>
