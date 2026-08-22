@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -369,10 +369,13 @@ export type Database = {
           created_at: string
           default_price: number | null
           display_name: string
+          grade: number | null
           grade_level: string | null
+          grade_year: number | null
           id: string
           is_guest: boolean
           profile_id: string | null
+          school_name: string | null
           updated_at: string
         }
         Insert: {
@@ -381,10 +384,13 @@ export type Database = {
           created_at?: string
           default_price?: number | null
           display_name: string
+          grade?: number | null
           grade_level?: string | null
+          grade_year?: number | null
           id?: string
           is_guest?: boolean
           profile_id?: string | null
+          school_name?: string | null
           updated_at?: string
         }
         Update: {
@@ -393,10 +399,13 @@ export type Database = {
           created_at?: string
           default_price?: number | null
           display_name?: string
+          grade?: number | null
           grade_level?: string | null
+          grade_year?: number | null
           id?: string
           is_guest?: boolean
           profile_id?: string | null
+          school_name?: string | null
           updated_at?: string
         }
         Relationships: [

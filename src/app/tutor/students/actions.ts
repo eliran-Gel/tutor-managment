@@ -3,17 +3,26 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireTutor } from "@/lib/auth/require-tutor";
+import { currentSchoolYear } from "@/lib/grades";
 
 const studentInputSchema = z.object({
   display_name: z.string().trim().min(1, "שם נדרש"),
-  grade_level: z.string().trim().min(1).nullable(),
+  grade: z.coerce.number().int().min(1).max(12).nullable(),
+  school_name: z.string().trim().min(1).nullable(),
 });
 
 function readStudentInput(formData: FormData) {
-  return studentInputSchema.parse({
+  const parsed = studentInputSchema.parse({
     display_name: formData.get("display_name"),
-    grade_level: (formData.get("grade_level") as string) || null,
+    grade: (formData.get("grade") as string) || null,
+    school_name: (formData.get("school_name") as string) || null,
   });
+  return {
+    display_name: parsed.display_name,
+    grade: parsed.grade,
+    grade_year: parsed.grade != null ? currentSchoolYear() : null,
+    school_name: parsed.school_name,
+  };
 }
 
 export async function createStudent(formData: FormData) {

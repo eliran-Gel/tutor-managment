@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Field, TextInput } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { GRADE_OPTIONS } from "@/lib/grades";
 import { createStudent } from "./actions";
 
 export function AddStudentModal() {
@@ -41,8 +42,23 @@ export function AddStudentModal() {
           <Field label="שם מלא" htmlFor="display_name">
             <TextInput id="display_name" name="display_name" required autoFocus />
           </Field>
-          <Field label="כיתה / שכבה" htmlFor="grade_level">
-            <TextInput id="grade_level" name="grade_level" placeholder='למשל: י"א' />
+          <Field label="כיתה" htmlFor="grade">
+            <select
+              id="grade"
+              name="grade"
+              defaultValue=""
+              className="rounded-control border border-border bg-background px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-accent"
+            >
+              <option value="">ללא</option>
+              {GRADE_OPTIONS.map((g) => (
+                <option key={g.value} value={g.value}>
+                  {g.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="בית ספר" htmlFor="school_name">
+            <TextInput id="school_name" name="school_name" placeholder="שם בית הספר" />
           </Field>
 
           {error && <p className="text-sm text-status-destructive">{error}</p>}

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
@@ -11,7 +12,7 @@ export default async function PortalDashboardPage() {
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const [{ data: links }, { data: nextLesson }, { data: subjects }] = await Promise.all([
+  const [{ data: links }, { data: nextLesson }, { data: subjects }, { data: ownStudent }] = await Promise.all([
     supabase.from("business_links").select("*").eq("id", true).single(),
     supabase
       .from("lessons")
@@ -23,7 +24,12 @@ export default async function PortalDashboardPage() {
       .limit(1)
       .maybeSingle(),
     supabase.from("subjects").select("*").eq("active", true).order("name"),
+    profile?.role === "student"
+      ? supabase.from("students").select("grade, school_name").eq("profile_id", profile.id).maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
+
+  const needsGradeSchool = ownStudent && (ownStudent.grade == null || !ownStudent.school_name);
 
   const quickLinks = [
     { label: "אתר", href: links?.website_url },
@@ -38,6 +44,20 @@ export default async function PortalDashboardPage() {
         <h1 className="text-xl font-bold text-text-primary">שלום! 👋</h1>
         <p className="text-sm text-text-secondary">כיף לראות אותך שוב</p>
       </div>
+
+      {needsGradeSchool && (
+        <Card className="border-status-pending bg-status-pending-bg">
+          <p className="text-sm font-medium text-status-pending">
+            כדאי להשלים את הפרופיל: יש להוסיף כיתה ובית ספר.
+          </p>
+          <Link
+            href="/portal/profile"
+            className="mt-2 inline-block text-sm font-semibold text-status-pending underline"
+          >
+            מעבר לפרופיל
+          </Link>
+        </Card>
+      )}
 
       <Card className="bg-brand-primary text-white">
         <p className="text-sm opacity-80">השיעור הבא שלך</p>

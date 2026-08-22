@@ -125,10 +125,11 @@ export default async function CalendarPage({
               const isToday = day.toDateString() === now.toDateString();
 
               return (
-                <div
+                <Link
                   key={day.toISOString()}
+                  href={`/tutor/calendar/day/${toIsoDate(day)}`}
                   className={cn(
-                    "min-h-24 bg-surface p-2",
+                    "min-h-24 bg-surface p-2 hover:bg-surface-muted",
                     !inMonth && "opacity-40",
                     dayBlocks.length > 0 && "bg-status-destructive-bg",
                   )}
@@ -153,7 +154,7 @@ export default async function CalendarPage({
                       </p>
                     </div>
                   ))}
-                </div>
+                </Link>
               );
             }),
           )}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { formatGrade } from "@/lib/grades";
 import { AddStudentModal } from "./add-student-modal";
 
 export default async function StudentsPage({
@@ -15,7 +16,7 @@ export default async function StudentsPage({
   const supabase = await createClient();
   let query = supabase
     .from("students")
-    .select("id, display_name, is_guest, grade_level, archived_at")
+    .select("id, display_name, is_guest, grade, grade_year, school_name, archived_at")
     .order("display_name");
 
   query = showArchived ? query.not("archived_at", "is", null) : query.is("archived_at", null);
@@ -62,7 +63,15 @@ export default async function StudentsPage({
                 <p className="min-w-0 truncate font-semibold text-text-primary">{student.display_name}</p>
                 {student.is_guest && <Badge tone="pending" className="shrink-0">אורח/ת</Badge>}
               </div>
-              <p className="mt-1 text-sm text-text-muted">{student.grade_level ?? "ללא כיתה"}</p>
+              <p className="mt-1 text-sm text-text-muted">
+                {(() => {
+                  const grade = formatGrade(student.grade, student.grade_year);
+                  if (grade && student.school_name) return `כיתה ${grade} · ${student.school_name}`;
+                  if (grade) return `כיתה ${grade}`;
+                  if (student.school_name) return student.school_name;
+                  return "ללא כיתה";
+                })()}
+              </p>
             </Card>
           </Link>
         ))}

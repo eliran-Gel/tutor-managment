@@ -15,7 +15,12 @@ export async function approveRequest(lessonId: string) {
   const { supabase } = await requireTutor();
 
   const { error } = await supabase.rpc("approve_lesson_request", { target_lesson_id: lessonId });
-  if (error) return { error: error.message };
+  if (error) {
+    if (error.message.includes("overlap_conflict")) {
+      return { error: "לא ניתן לאשר: יש כבר שיעור מאושר אחר שחופף לזמן הזה." };
+    }
+    return { error: error.message };
+  }
 
   revalidateRequestPaths();
   return { success: true as const };

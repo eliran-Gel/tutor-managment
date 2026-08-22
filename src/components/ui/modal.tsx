@@ -32,9 +32,9 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="relative w-full max-w-md rounded-card border border-border bg-surface p-6 shadow-card"
+        className="relative flex max-h-[90vh] w-full max-w-md flex-col rounded-card border border-border bg-surface shadow-card"
       >
-        <div className="mb-4 flex items-center justify-between">
+        <div className="flex shrink-0 items-center justify-between border-b border-border px-6 py-4">
           <h2 className="text-base font-semibold text-text-primary">{title}</h2>
           <button
             type="button"
@@ -45,7 +45,7 @@ export function Modal({
             ✕
           </button>
         </div>
-        {children}
+        <div className="overflow-y-auto px-6 py-4">{children}</div>
       </div>
     </div>,
     document.body,

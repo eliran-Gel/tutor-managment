@@ -5,6 +5,7 @@ import { Modal } from "@/components/ui/modal";
 import { Field, TextInput } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { TimeSlotSelect } from "@/components/ui/time-slot-select";
+import { StudentCombobox, NEW_STUDENT } from "@/components/ui/student-combobox";
 import { LESSON_DURATIONS } from "@/lib/lessons";
 import { calculateLessonPrice } from "@/lib/pricing";
 import {
@@ -17,7 +18,6 @@ import type { Tables } from "@/types/database";
 type Student = Pick<Tables<"students">, "id" | "display_name">;
 type Subject = Tables<"subjects">;
 
-const NEW_STUDENT = "__new__";
 const emptyParticipant = { student_id: "", newName: "" };
 
 export function NewLessonModal({ students, subjects }: { students: Student[]; subjects: Subject[] }) {
@@ -188,21 +188,14 @@ export function NewLessonModal({ students, subjects }: { students: Student[]; su
             <span className="text-sm font-medium text-text-secondary">תלמידים</span>
             {participants.map((p, i) => (
               <div key={i} className="flex flex-wrap gap-2">
-                <select
-                  value={p.student_id}
-                  onChange={(e) => updateParticipant(i, "student_id", e.target.value)}
-                  className="min-w-0 flex-1 rounded-control border border-border bg-background px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-accent"
-                >
-                  <option value="">בחר/י תלמיד/ה</option>
-                  <option value={NEW_STUDENT}>➕ תלמיד/ה חדש/ה (טרם נרשם/ה)</option>
-                  {students
-                    .filter((s) => !participants.some((other, j) => j !== i && other.student_id === s.id))
-                    .map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.display_name}
-                      </option>
-                    ))}
-                </select>
+                <StudentCombobox
+                  students={students.filter(
+                    (s) => !participants.some((other, j) => j !== i && other.student_id === s.id),
+                  )}
+                  value={p.student_id === NEW_STUDENT ? "" : p.student_id}
+                  displayName={students.find((s) => s.id === p.student_id)?.display_name ?? ""}
+                  onSelect={(id) => updateParticipant(i, "student_id", id)}
+                />
                 {p.student_id === NEW_STUDENT && (
                   <TextInput
                     placeholder="שם התלמיד/ה החדש/ה"
@@ -313,38 +306,51 @@ export function NewLessonModal({ students, subjects }: { students: Student[]; su
             <TextInput id="ml-topic" value={topic} onChange={(e) => setTopic(e.target.value)} />
           </Field>
 
-          {conflict && (
-            <div className="rounded-control bg-status-pending-bg px-4 py-3 text-sm text-status-pending">
-              <p>{conflict}</p>
+          {error && <p className="text-sm text-status-destructive">{error}</p>}
+
+          {conflict ? (
+            // Replaces the normal button row entirely while a conflict is
+            // pending - it must never coexist with "יצירת שיעור", since a
+            // layout shift plus a confused re-click there is exactly what
+            // silently force-created an overlapping lesson in practice.
+            <div className="rounded-control border-2 border-status-pending bg-status-pending-bg px-4 py-3 text-sm">
+              <p className="font-semibold text-status-pending">⚠ {conflict}</p>
+              <div className="mt-3 flex justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={isPending}
+                  onClick={() => setConflict(null)}
+                >
+                  ביטול
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  disabled={isPending}
+                  onClick={() => submit(true)}
+                >
+                  {isPending && submitAction === "force" ? "יוצר..." : "כן, ליצור בכל זאת"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-2 flex justify-end gap-2">
               <Button
                 type="button"
                 variant="secondary"
-                className="mt-2"
-                disabled={isPending}
-                onClick={() => submit(true)}
+                onClick={() => {
+                  setOpen(false);
+                  reset();
+                }}
               >
-                {isPending && submitAction === "force" ? "יוצר..." : "כן, ליצור בכל זאת"}
+                ביטול
+              </Button>
+              <Button type="button" disabled={isPending} onClick={() => submit(false)}>
+                {isPending && submitAction === "create" ? "יוצר..." : "יצירת שיעור"}
               </Button>
             </div>
           )}
-
-          {error && <p className="text-sm text-status-destructive">{error}</p>}
-
-          <div className="mt-2 flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setOpen(false);
-                reset();
-              }}
-            >
-              ביטול
-            </Button>
-            <Button type="button" disabled={isPending} onClick={() => submit(false)}>
-              {isPending && submitAction === "create" ? "יוצר..." : "יצירת שיעור"}
-            </Button>
-          </div>
         </div>
       </Modal>
     </>

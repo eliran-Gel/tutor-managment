@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Field, TextInput } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { GRADE_OPTIONS, effectiveGrade } from "@/lib/grades";
 import { updateStudent } from "../actions";
 import type { Tables } from "@/types/database";
 
@@ -10,6 +11,11 @@ export function EditStudentForm({ student }: { student: Tables<"students"> }) {
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [isPending, startTransition] = useTransition();
+
+  const currentGrade =
+    student.grade != null && student.grade_year != null
+      ? effectiveGrade(student.grade, student.grade_year)
+      : "";
 
   return (
     <form
@@ -30,8 +36,23 @@ export function EditStudentForm({ student }: { student: Tables<"students"> }) {
       <Field label="שם מלא" htmlFor="display_name">
         <TextInput id="display_name" name="display_name" defaultValue={student.display_name} required />
       </Field>
-      <Field label="כיתה / שכבה" htmlFor="grade_level">
-        <TextInput id="grade_level" name="grade_level" defaultValue={student.grade_level ?? ""} />
+      <Field label="כיתה" htmlFor="grade">
+        <select
+          id="grade"
+          name="grade"
+          defaultValue={currentGrade}
+          className="rounded-control border border-border bg-background px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-accent"
+        >
+          <option value="">ללא</option>
+          {GRADE_OPTIONS.map((g) => (
+            <option key={g.value} value={g.value}>
+              {g.label}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field label="בית ספר" htmlFor="school_name">
+        <TextInput id="school_name" name="school_name" defaultValue={student.school_name ?? ""} />
       </Field>
 
       {error && <p className="text-sm text-status-destructive">{error}</p>}
