@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { BusinessLinksForm } from "./business-links-form";
 import { TutorSettingsForm } from "./tutor-settings-form";
 import { SubjectsCard } from "./subjects-card";
+import { CalendarFeedCard } from "./calendar-feed-card";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -36,6 +37,8 @@ export default async function SettingsPage() {
         </Card>
 
         <SubjectsCard subjects={subjects ?? []} />
+
+        <CalendarFeedCard token={process.env.TUTOR_CALENDAR_FEED_TOKEN ?? ""} />
       </div>
     </div>
   );

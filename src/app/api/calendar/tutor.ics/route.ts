@@ -1,0 +1,56 @@
+import { NextRequest } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { fromAppTime } from "@/lib/dates/timezone";
+import { buildIcsFeed, type IcsEvent } from "@/lib/ics";
+import { DELIVERY_MODE_LABELS } from "@/lib/lessons";
+
+// Public, unauthenticated endpoint (iOS/Google Calendar fetch it directly,
+// with no login session) gated by a long random token instead of a
+// Supabase session - the same "secret address" pattern Google Calendar
+// itself uses for ICS subscriptions. Never log or expose this URL publicly.
+export async function GET(request: NextRequest) {
+  const token = request.nextUrl.searchParams.get("token");
+  if (!token || token !== process.env.TUTOR_CALENDAR_FEED_TOKEN) {
+    return new Response("Not found", { status: 404 });
+  }
+
+  const supabase = createAdminClient();
+  const { data: lessons } = await supabase
+    .from("lessons")
+    .select(
+      "id, date, start_time, end_time, status, delivery_mode, topic, online_url, subjects(name), lesson_participants(students(display_name))",
+    )
+    .in("status", ["confirmed", "completed"])
+    .order("date");
+
+  const events: IcsEvent[] = (lessons ?? []).map((lesson) => {
+    const start = fromAppTime(new Date(`${lesson.date}T${lesson.start_time.slice(0, 5)}:00`));
+    const end = fromAppTime(new Date(`${lesson.date}T${lesson.end_time.slice(0, 5)}:00`));
+    const studentNames = lesson.lesson_participants
+      .map((lp) => lp.students?.display_name)
+      .filter((name): name is string => Boolean(name));
+    const subjectName = lesson.subjects?.name ?? "שיעור";
+
+    const descriptionParts = [DELIVERY_MODE_LABELS[lesson.delivery_mode]];
+    if (lesson.topic) descriptionParts.push(lesson.topic);
+
+    return {
+      uid: `lesson-${lesson.id}@tutor-managment`,
+      start,
+      end,
+      summary: studentNames.length > 0 ? `${subjectName} עם ${studentNames.join(", ")}` : subjectName,
+      description: descriptionParts.join(" · "),
+      location: lesson.delivery_mode === "online" ? (lesson.online_url ?? undefined) : undefined,
+    };
+  });
+
+  const ics = buildIcsFeed("שיעורים - אלירן גלברג", events);
+
+  return new Response(ics, {
+    headers: {
+      "Content-Type": "text/calendar; charset=utf-8",
+      "Content-Disposition": 'inline; filename="lessons.ics"',
+      "Cache-Control": "no-store",
+    },
+  });
+}
