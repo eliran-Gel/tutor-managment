@@ -1,0 +1,93 @@
+/*
+ * Design tokens for the Tutor Management System.
+ * Palette per DESIGN_GUIDELINES.md: deep navy primary, turquoise/cyan accent,
+ * restrained secondary accents (green/purple/orange), red only for destructive/error.
+ * Dark mode preserves the same hierarchy rather than naively inverting every color.
+ */
+
+:root {
+  --color-navy-950: #0b1b34;
+  --color-navy-900: #102a4c;
+  --color-navy-800: #163a63;
+  --color-navy-700: #1f4d7e;
+
+  --color-turquoise-600: #0891a1;
+  --color-turquoise-500: #0eaebd;
+  --color-turquoise-400: #22c3d1;
+  --color-turquoise-100: #d7f5f7;
+
+  --color-green-500: #2fa563;
+  --color-green-100: #dff5e7;
+  --color-purple-500: #8b5cf6;
+  --color-purple-100: #ece5fd;
+  --color-orange-500: #e2922f;
+  --color-orange-100: #fbead2;
+  --color-red-500: #dc4444;
+  --color-red-100: #fbdede;
+
+  --background: #f6f8fb;
+  --surface: #ffffff;
+  --surface-muted: #eef2f7;
+  --border: #e1e7ef;
+  --text-primary: var(--color-navy-950);
+  --text-secondary: #4b5c72;
+  --text-muted: #7c8ba0;
+
+  --brand-primary: var(--color-navy-900);
+  --brand-accent: var(--color-turquoise-500);
+
+  --status-confirmed: var(--color-green-500);
+  --status-confirmed-bg: var(--color-green-100);
+  --status-pending: var(--color-orange-500);
+  --status-pending-bg: var(--color-orange-100);
+  --status-selected: var(--color-purple-500);
+  --status-selected-bg: var(--color-purple-100);
+  --status-destructive: var(--color-red-500);
+  --status-destructive-bg: var(--color-red-100);
+
+  --shadow-card: 0 1px 2px rgba(16, 42, 76, 0.06), 0 4px 12px rgba(16, 42, 76, 0.06);
+  --radius-card: 1rem;
+  --radius-control: 0.6rem;
+}
+
+:root[data-theme="dark"] {
+  --background: #0a1526;
+  --surface: #101f36;
+  --surface-muted: #16283f;
+  --border: #223451;
+  --text-primary: #eef3f9;
+  --text-secondary: #aebbcd;
+  --text-muted: #7c8ba0;
+
+  --brand-primary: var(--color-turquoise-400);
+  --brand-accent: var(--color-turquoise-400);
+
+  --status-confirmed-bg: rgba(47, 165, 99, 0.18);
+  --status-pending-bg: rgba(226, 146, 47, 0.18);
+  --status-selected-bg: rgba(139, 92, 246, 0.2);
+  --status-destructive-bg: rgba(220, 68, 68, 0.18);
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: #0a1526;
+    --surface: #101f36;
+    --surface-muted: #16283f;
+    --border: #223451;
+    --text-primary: #eef3f9;
+    --text-secondary: #aebbcd;
+    --text-muted: #7c8ba0;
+
+    --brand-primary: var(--color-turquoise-400);
+    --brand-accent: var(--color-turquoise-400);
+
+    --status-confirmed-bg: rgba(47, 165, 99, 0.18);
+    --status-pending-bg: rgba(226, 146, 47, 0.18);
+    --status-selected-bg: rgba(139, 92, 246, 0.2);
+    --status-destructive-bg: rgba(220, 68, 68, 0.18);
+
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 20px rgba(0, 0, 0, 0.35);
+  }
+}
