@@ -39,6 +39,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      availability_blocks: {
+        Row: {
+          created_at: string
+          end_at: string
+          id: string
+          note: string | null
+          recurrence_rule: string | null
+          start_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_at: string
+          id?: string
+          note?: string | null
+          recurrence_rule?: string | null
+          start_at: string
+        }
+        Update: {
+          created_at?: string
+          end_at?: string
+          id?: string
+          note?: string | null
+          recurrence_rule?: string | null
+          start_at?: string
+        }
+        Relationships: []
+      }
       business_links: {
         Row: {
           bit_link: string | null

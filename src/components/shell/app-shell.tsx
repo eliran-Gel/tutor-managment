@@ -15,7 +15,7 @@ export function AppShell({
   items: NavItem[];
   roleLabel: string;
   userName?: string | null;
-  profileHref: string;
+  profileHref?: string;
   children: ReactNode;
 }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);

@@ -11,7 +11,7 @@ export function Topbar({
 }: {
   onMenuClick?: () => void;
   userName?: string | null;
-  profileHref: string;
+  profileHref?: string;
 }) {
   return (
     <header className="flex items-center justify-between border-b border-border bg-surface px-4 py-3 md:px-6">
@@ -31,7 +31,7 @@ export function Topbar({
       </button>
 
       <div className="flex items-center gap-4">
-        {userName && (
+        {userName && profileHref && (
           <Link
             href={profileHref}
             className="hidden text-sm font-medium text-text-primary hover:text-brand-accent md:inline"
