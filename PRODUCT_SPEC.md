@@ -203,6 +203,14 @@ The price is computed once, at request-approval or manual-creation time, and sto
 
 The tutor's subjects are a short fixed list (currently מתמטיקה/Math, פיזיקה/Physics, מחשבים/Computer Science), seeded by default so there is no setup step before the tutor can use the system. The tutor can still add more subjects later via settings if their offering expands.
 
+### 3.11 Calendar visibility of requests
+
+The tutor's calendar (month grid and day view) shows pending lesson requests alongside confirmed lessons, visually distinguished (a separate pending color/indicator, plus a legend). A request that only appeared in a separate "requests" list and nowhere on the calendar itself is easy to miss when the tutor is scanning a specific day/week for availability.
+
+### 3.12 Personal calendar sync
+
+The tutor can subscribe to their own confirmed-lesson schedule from their phone/computer's native calendar app (iPhone Calendar, Google Calendar, etc.) via a private iCalendar (.ics) feed URL, found in Settings. This is a one-time subscription — once added, new/changed/cancelled lessons stay in sync automatically, with no manual export step. The feed URL is a secret (like a Google Calendar "secret address"), not tied to a login session, since calendar apps fetch it in the background without the tutor being "logged in" at that moment. It is tutor-only in two independent ways: the Settings page itself is unreachable by any non-tutor role, and the feed URL carries its own separate secret token.
+
 ---
 
 ## 4. Lesson types

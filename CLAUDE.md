@@ -43,6 +43,8 @@ If two requirements conflict, do not guess. Identify the conflict and ask.
 - The tutor can permanently delete a student (distinct from archiving, which keeps history but hides them from active views).
 - Subjects are a fixed short list (currently מתמטיקה, פיזיקה, מחשבים) seeded by default so the tutor never has to configure them before first use; the tutor can still add more via settings if needed.
 - Each student has a grade (כיתה) and school. The grade advances automatically at the start of each school year (September) rather than needing manual yearly updates.
+- The calendar (month and day views) shows pending lesson requests as well as confirmed lessons, visually distinct (pending tone/color) — a request must be visible where the tutor actually looks for their schedule, not only in a separate requests list.
+- The tutor can subscribe their confirmed lessons to their personal calendar app (iPhone/Google Calendar) via a private iCalendar feed URL (`/api/calendar/tutor.ics`), gated by a secret token rather than a login session (calendar apps fetch it without an authenticated browser). This is in addition to, not a replacement for, the in-app calendar.
 - Payment is tracked manually by the tutor.
 - Supported payment methods: cash, Bit, PayBox, other.
 - Bit/PayBox are external payment links, not integrated payment processing in the MVP.
