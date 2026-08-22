@@ -1,11 +1,14 @@
 "use client";
 
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SignOutButton } from "@/components/sign-out-button";
 
 export function Topbar({
   onMenuClick,
+  userName,
 }: {
   onMenuClick?: () => void;
+  userName?: string | null;
 }) {
   return (
     <header className="flex items-center justify-between border-b border-border bg-surface px-4 py-3 md:px-6">
@@ -24,7 +27,13 @@ export function Topbar({
         </svg>
       </button>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4">
+        {userName && (
+          <span className="hidden text-sm font-medium text-text-primary md:inline">
+            {userName}
+          </span>
+        )}
+        <SignOutButton />
         <button
           type="button"
           className="relative flex h-9 w-9 items-center justify-center rounded-full text-text-secondary hover:bg-surface-muted"

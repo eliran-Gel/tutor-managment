@@ -7,11 +7,17 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      // Role-based landing (tutor vs. portal) arrives in Phase 1 once
-      // profiles.role exists to branch on.
-      return NextResponse.redirect(`${origin}/`);
+    const { error, data } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (!error && data.user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", data.user.id)
+        .single();
+
+      const homePath = profile?.role === "tutor" ? "/tutor/dashboard" : "/portal/dashboard";
+      return NextResponse.redirect(`${origin}${homePath}`);
     }
   }
 

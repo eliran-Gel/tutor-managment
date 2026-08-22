@@ -1,10 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const PROTECTED_PREFIXES = ["/tutor", "/portal"];
+
 /**
- * Keeps the Supabase auth session cookie fresh on every request.
- * Role-based route protection is added in Phase 1 once `profiles.role`
- * exists to check against.
+ * Keeps the Supabase auth session cookie fresh, and does coarse role-based
+ * routing: unauthenticated visitors to a protected area go to /login,
+ * tutors are kept out of /portal, and everyone else is kept out of /tutor.
+ * This is UX routing only — Row Level Security (see the profiles migration)
+ * is the actual authorization boundary, not this middleware.
  */
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -18,26 +22,55 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options),
-          );
-        },
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        response = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          response.cookies.set(name, value, options),
+        );
       },
     },
-  );
+  });
 
-  await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { pathname } = request.nextUrl;
+  const isProtected = PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+
+  if (!user) {
+    if (isProtected) {
+      const redirectUrl = new URL("/login", request.url);
+      return NextResponse.redirect(redirectUrl);
+    }
+    return response;
+  }
+
+  if (isProtected || pathname === "/login") {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    const homePath = profile?.role === "tutor" ? "/tutor/dashboard" : "/portal/dashboard";
+
+    if (pathname === "/login") {
+      return NextResponse.redirect(new URL(homePath, request.url));
+    }
+    if (profile?.role === "tutor" && pathname.startsWith("/portal")) {
+      return NextResponse.redirect(new URL(homePath, request.url));
+    }
+    if (profile?.role !== "tutor" && pathname.startsWith("/tutor")) {
+      return NextResponse.redirect(new URL(homePath, request.url));
+    }
+  }
 
   return response;
 }

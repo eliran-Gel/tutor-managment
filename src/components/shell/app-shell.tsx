@@ -8,10 +8,12 @@ import { Topbar } from "./topbar";
 export function AppShell({
   items,
   roleLabel,
+  userName,
   children,
 }: {
   items: NavItem[];
   roleLabel: string;
+  userName?: string | null;
   children: ReactNode;
 }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -35,7 +37,7 @@ export function AppShell({
       )}
 
       <div className="flex min-h-full flex-1 flex-col">
-        <Topbar onMenuClick={() => setMobileNavOpen(true)} />
+        <Topbar onMenuClick={() => setMobileNavOpen(true)} userName={userName} />
         <main className="flex-1 bg-background px-4 py-6 md:px-8">{children}</main>
       </div>
     </div>
