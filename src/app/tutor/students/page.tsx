@@ -35,7 +35,7 @@ export default async function StudentsPage({
         <div className="flex items-center gap-3">
           <Link
             href={showArchived ? "/tutor/students" : "/tutor/students?archived=1"}
-            className="text-sm font-medium text-text-secondary transition-transform duration-150 hover:text-text-primary active:scale-95"
+            className="text-sm font-medium text-text-secondary transition-transform duration-200 hover:text-text-primary active:scale-90"
           >
             {showArchived ? "הצג פעילים" : "הצג ארכיון"}
           </Link>
@@ -57,7 +57,7 @@ export default async function StudentsPage({
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {students?.map((student) => (
-          <Link key={student.id} href={`/tutor/students/${student.id}`} className="block transition-transform duration-150 active:scale-[0.97]">
+          <Link key={student.id} href={`/tutor/students/${student.id}`} className="block transition-transform duration-200 active:scale-95">
             <Card className="h-full transition-shadow hover:shadow-none">
               <div className="flex items-center justify-between gap-2">
                 <p className="min-w-0 truncate font-semibold text-text-primary">{student.display_name}</p>

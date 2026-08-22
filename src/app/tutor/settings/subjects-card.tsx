@@ -38,7 +38,7 @@ export function SubjectsCard({ subjects }: { subjects: Tables<"subjects">[] }) {
               <button
                 type="button"
                 disabled={isPending}
-                className="shrink-0 text-xs font-medium text-text-secondary transition-transform duration-150 hover:text-text-primary active:scale-90 disabled:opacity-50"
+                className="shrink-0 text-xs font-medium text-text-secondary transition-transform duration-200 hover:text-text-primary active:scale-85 disabled:opacity-50"
                 onClick={() =>
                   startTransition(() => setSubjectActive(subject.id, !subject.active))
                 }

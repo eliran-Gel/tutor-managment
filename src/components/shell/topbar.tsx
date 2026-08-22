@@ -18,7 +18,7 @@ export function Topbar({
       <button
         type="button"
         onClick={onMenuClick}
-        className="flex h-9 w-9 items-center justify-center rounded-control text-text-secondary transition-transform duration-150 hover:bg-surface-muted active:scale-90 md:hidden"
+        className="flex h-9 w-9 items-center justify-center rounded-control text-text-secondary transition-transform duration-200 hover:bg-surface-muted active:scale-85 md:hidden"
         aria-label="פתח תפריט"
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
@@ -34,7 +34,7 @@ export function Topbar({
         {userName && profileHref && (
           <Link
             href={profileHref}
-            className="hidden text-sm font-medium text-text-primary transition-transform duration-150 hover:text-brand-accent active:scale-95 md:inline"
+            className="hidden text-sm font-medium text-text-primary transition-transform duration-200 hover:text-brand-accent active:scale-90 md:inline"
           >
             {userName}
           </Link>

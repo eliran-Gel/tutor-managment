@@ -66,7 +66,7 @@ export default async function TutorDashboardPage() {
               ))}
             </ul>
           )}
-          <Link href="/tutor/requests" className="mt-3 inline-block text-sm font-medium text-brand-accent transition-transform duration-150 hover:underline active:scale-95">
+          <Link href="/tutor/requests" className="mt-3 inline-block text-sm font-medium text-brand-accent transition-transform duration-200 hover:underline active:scale-90">
             לכל הבקשות ←
           </Link>
         </Card>

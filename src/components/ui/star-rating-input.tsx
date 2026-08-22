@@ -22,7 +22,7 @@ export function StarRatingInput({
           aria-label={`דירוג ${star} מתוך 5`}
           onClick={() => setValue(value === star ? 0 : star)}
           className={cn(
-            "text-xl transition duration-150 active:scale-90",
+            "text-xl transition duration-200 active:scale-85",
             star <= value ? "text-status-pending" : "text-border hover:text-status-pending",
           )}
         >

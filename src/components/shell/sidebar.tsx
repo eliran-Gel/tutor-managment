@@ -37,7 +37,7 @@ export function Sidebar({
             onClick={() => {
               if (item.href === pathname) onSamePageClick?.();
             }}
-            className="block rounded-control px-3 py-2 text-sm font-medium text-text-secondary transition duration-150 hover:bg-surface-muted hover:text-text-primary active:scale-95 active:bg-surface-muted"
+            className="block rounded-control px-3 py-2 text-sm font-medium text-text-secondary transition duration-200 hover:bg-surface-muted hover:text-text-primary active:scale-90 active:bg-surface-muted"
           >
             {item.label}
           </Link>

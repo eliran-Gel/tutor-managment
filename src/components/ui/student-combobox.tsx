@@ -68,7 +68,7 @@ export function StudentCombobox({
               setOpen(false);
               setEditing(false);
             }}
-            className="block w-full px-3 py-2 text-right text-sm font-medium text-brand-accent transition-colors duration-150 hover:bg-surface-muted active:bg-surface-muted"
+            className="block w-full px-3 py-2 text-right text-sm font-medium text-brand-accent transition-colors duration-200 hover:bg-surface-muted active:bg-surface-muted"
           >
             ➕ תלמיד/ה חדש/ה (טרם נרשם/ה)
           </button>
@@ -85,7 +85,7 @@ export function StudentCombobox({
                 setOpen(false);
                 setEditing(false);
               }}
-              className="block w-full truncate px-3 py-2 text-right text-sm text-text-primary transition-colors duration-150 hover:bg-surface-muted active:bg-surface-muted"
+              className="block w-full truncate px-3 py-2 text-right text-sm text-text-primary transition-colors duration-200 hover:bg-surface-muted active:bg-surface-muted"
             >
               {s.display_name}
             </button>
