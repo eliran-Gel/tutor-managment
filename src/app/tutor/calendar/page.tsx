@@ -109,10 +109,13 @@ export default async function CalendarPage({
         </div>
       </div>
 
-      <Card className="overflow-x-auto">
-        <div className="grid min-w-[640px] grid-cols-7 gap-px bg-border">
+      <Card className="overflow-hidden">
+        {/* Negative margin reclaims the Card's own padding on mobile only,
+            so the 7-column grid gets the extra width it needs to fit the
+            whole month on one screen without horizontal scrolling. */}
+        <div className="-mx-5 -my-5 grid grid-cols-7 gap-px bg-border sm:mx-0 sm:my-0">
           {HEBREW_WEEKDAY_LABELS.map((label) => (
-            <div key={label} className="bg-surface py-2 text-center text-xs font-semibold text-text-muted">
+            <div key={label} className="bg-surface py-1.5 text-center text-[10px] font-semibold text-text-muted sm:py-2 sm:text-xs">
               {label}
             </div>
           ))}
@@ -129,31 +132,44 @@ export default async function CalendarPage({
                   key={day.toISOString()}
                   href={`/tutor/calendar/day/${toIsoDate(day)}`}
                   className={cn(
-                    "min-h-24 bg-surface p-2 transition duration-200 hover:bg-surface-muted active:scale-95 active:bg-surface-muted",
+                    "flex min-h-12 flex-col items-center gap-0.5 bg-surface p-1 transition duration-200 hover:bg-surface-muted active:scale-95 active:bg-surface-muted sm:min-h-24 sm:items-stretch sm:p-2",
                     !inMonth && "opacity-40",
                     dayBlocks.length > 0 && "bg-status-destructive-bg",
                   )}
                 >
                   <p
                     className={cn(
-                      "text-xs font-medium text-text-secondary",
-                      isToday && "inline-flex h-5 w-5 items-center justify-center rounded-full bg-brand-accent text-white",
+                      "text-[11px] font-medium text-text-secondary sm:text-xs",
+                      isToday &&
+                        "flex h-5 w-5 items-center justify-center rounded-full bg-brand-accent text-white",
                     )}
                   >
                     {day.getDate()}
                   </p>
-                  {dayBlocks.map((block) => (
-                    <p key={block.id} className="mt-1 truncate text-xs text-status-destructive">
-                      חסום {formatAppTime(block.start_at, "HH:mm")}–{formatAppTime(block.end_at, "HH:mm")}
-                    </p>
-                  ))}
-                  {dayLessons.map((lesson) => (
-                    <div key={lesson.id} className="mt-1 truncate rounded bg-status-confirmed-bg px-1 py-0.5">
-                      <p className="truncate text-xs font-medium text-status-confirmed">
-                        {lesson.start_time.slice(0, 5)} {lesson.subjects?.name ?? "שיעור"}
-                      </p>
+
+                  {/* Mobile: dot indicators only, so the whole month still fits the screen at once. */}
+                  {(dayBlocks.length > 0 || dayLessons.length > 0) && (
+                    <div className="flex gap-0.5 sm:hidden">
+                      {dayBlocks.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-status-destructive" />}
+                      {dayLessons.length > 0 && <span className="h-1.5 w-1.5 rounded-full bg-status-confirmed" />}
                     </div>
-                  ))}
+                  )}
+
+                  {/* sm and up: full text previews. */}
+                  <div className="hidden sm:block">
+                    {dayBlocks.map((block) => (
+                      <p key={block.id} className="mt-1 truncate text-xs text-status-destructive">
+                        חסום {formatAppTime(block.start_at, "HH:mm")}–{formatAppTime(block.end_at, "HH:mm")}
+                      </p>
+                    ))}
+                    {dayLessons.map((lesson) => (
+                      <div key={lesson.id} className="mt-1 truncate rounded bg-status-confirmed-bg px-1 py-0.5">
+                        <p className="truncate text-xs font-medium text-status-confirmed">
+                          {lesson.start_time.slice(0, 5)} {lesson.subjects?.name ?? "שיעור"}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </Link>
               );
             }),
