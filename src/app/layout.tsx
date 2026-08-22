@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Rubik } from "next/font/google";
 import { cookies } from "next/headers";
+import { IosActiveFix } from "@/components/ios-active-fix";
 import "./globals.css";
 
 const rubik = Rubik({
@@ -30,6 +31,7 @@ export default async function RootLayout({
       className={`${rubik.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-text-primary">
+        <IosActiveFix />
         {children}
       </body>
     </html>

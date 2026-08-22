@@ -148,7 +148,7 @@ export function LoginForm() {
           setStatus({ type: "idle" });
         }}
         disabled={busy}
-        className="text-xs font-medium text-text-muted hover:text-text-secondary disabled:opacity-50"
+        className="text-xs font-medium text-text-muted transition-transform duration-150 hover:text-text-secondary active:scale-95 disabled:opacity-50"
       >
         {mode === "magic-link" ? "יש לך סיסמה? התחברות עם סיסמה" : "התחברות עם קישור באימייל"}
       </button>

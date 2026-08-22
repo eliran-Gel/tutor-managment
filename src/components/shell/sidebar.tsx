@@ -1,15 +1,22 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { NavItem } from "@/lib/nav";
 
 export function Sidebar({
   items,
   roleLabel,
-  onNavigate,
+  onSamePageClick,
 }: {
   items: NavItem[];
   roleLabel: string;
-  onNavigate?: () => void;
+  /** Fires when the clicked link is the page already showing - no route
+   * change will happen, so a caller closing a drawer on route-change can't
+   * rely on that here and needs this explicit signal instead. */
+  onSamePageClick?: () => void;
 }) {
+  const pathname = usePathname();
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-3 border-b border-border px-5 py-5">
@@ -27,7 +34,9 @@ export function Sidebar({
           <Link
             key={item.href}
             href={item.href}
-            onClick={onNavigate}
+            onClick={() => {
+              if (item.href === pathname) onSamePageClick?.();
+            }}
             className="block rounded-control px-3 py-2 text-sm font-medium text-text-secondary transition duration-150 hover:bg-surface-muted hover:text-text-primary active:scale-95 active:bg-surface-muted"
           >
             {item.label}

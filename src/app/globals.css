@@ -31,6 +31,9 @@
 
 html {
   overflow-x: hidden;
+  /* Without this, iOS/Android also flash their own gray tap-highlight box
+     on every press, on top of our custom active: press animations. */
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {

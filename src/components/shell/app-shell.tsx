@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import type { NavItem } from "@/lib/nav";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
@@ -19,6 +20,17 @@ export function AppShell({
   children: ReactNode;
 }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Close the drawer only once the destination route has actually taken
+  // over (pathname changed) - not on click. Closing on click left a gap
+  // where the drawer had already vanished but the new page hadn't
+  // rendered yet, showing the stale old page underneath for a moment.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return (
     <div className="flex min-h-full flex-1">
@@ -33,7 +45,7 @@ export function AppShell({
             onClick={() => setMobileNavOpen(false)}
           />
           <div className="absolute inset-y-0 end-0 w-72 bg-surface shadow-card">
-            <Sidebar items={items} roleLabel={roleLabel} onNavigate={() => setMobileNavOpen(false)} />
+            <Sidebar items={items} roleLabel={roleLabel} onSamePageClick={() => setMobileNavOpen(false)} />
           </div>
         </div>
       )}
