@@ -1,14 +1,30 @@
 import Link from "next/link";
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DELIVERY_MODE_LABELS } from "@/lib/lessons";
 import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 
+function toIsoDate(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export default async function TutorDashboardPage() {
   const supabase = await createClient();
+  const now = new Date();
+  const today = toIsoDate(now);
+  const weekStart = toIsoDate(startOfWeek(now, { weekStartsOn: 0 }));
+  const weekEnd = toIsoDate(endOfWeek(now, { weekStartsOn: 0 }));
+  const monthStart = toIsoDate(startOfMonth(now));
+  const monthEnd = toIsoDate(endOfMonth(now));
 
-  const [{ count: activeStudents }, { data: pendingRequests }] = await Promise.all([
+  // The week can spill into the previous/next month, so fetch the union of
+  // both ranges - otherwise a week count near a month boundary undercounts.
+  const rangeStart = weekStart < monthStart ? weekStart : monthStart;
+  const rangeEnd = weekEnd > monthEnd ? weekEnd : monthEnd;
+
+  const [{ count: activeStudents }, { data: pendingRequests }, { data: rangeLessons }] = await Promise.all([
     supabase.from("students").select("id", { count: "exact", head: true }).is("archived_at", null),
     supabase
       .from("lessons")
@@ -16,13 +32,22 @@ export default async function TutorDashboardPage() {
       .eq("status", "requested")
       .order("created_at")
       .limit(5),
+    // Lessons in the today/week/month union range - fetched once and
+    // sliced below, instead of 3 separate round trips.
+    supabase
+      .from("lessons")
+      .select("date")
+      .in("status", ["confirmed", "completed"])
+      .gte("date", rangeStart)
+      .lte("date", rangeEnd),
   ]);
 
+  const lessonDates = rangeLessons ?? [];
   const kpis = [
     { label: "תלמידים פעילים", value: activeStudents ?? "—" },
-    { label: "היום", value: "—" },
-    { label: "השבוע", value: "—" },
-    { label: "החודש", value: "—" },
+    { label: "היום", value: lessonDates.filter((l) => l.date === today).length },
+    { label: "השבוע", value: lessonDates.filter((l) => l.date >= weekStart && l.date <= weekEnd).length },
+    { label: "החודש", value: lessonDates.filter((l) => l.date >= monthStart && l.date <= monthEnd).length },
   ];
 
   return (
