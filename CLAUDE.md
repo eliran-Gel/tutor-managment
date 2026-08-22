@@ -32,8 +32,7 @@ If two requirements conflict, do not guess. Identify the conflict and ask.
 - The tutor can create forced/manual lessons even when no student request exists.
 - The tutor can block unavailable time slots.
 - Booking can be requested up to one month ahead.
-- Standard lesson duration is 60 minutes.
-- Two consecutive hours (120 minutes) are supported.
+- Supported lesson durations are round increments only: 15, 30, 45, or 60 minutes.
 - Group lessons support up to 3 students.
 - A group lesson must explicitly list its participating students.
 - Pricing may differ between students and between individual lessons.

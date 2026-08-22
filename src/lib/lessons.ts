@@ -23,7 +23,8 @@ export const LESSON_STATUS_TONE: Record<
   change_requested: "selected",
 };
 
-export const LESSON_DURATIONS = [60, 120] as const;
+// Updated per tutor preference: round time increments only (was 60/120).
+export const LESSON_DURATIONS = [15, 30, 45, 60] as const;
 
 export const DELIVERY_MODE_LABELS: Record<Database["public"]["Enums"]["delivery_mode"], string> = {
   online: "מקוון",

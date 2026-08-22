@@ -93,3 +93,25 @@ export async function createManualLesson(input: ManualLessonInput) {
   revalidateLessonPaths();
   return { success: true as const };
 }
+
+/**
+ * Creates a new guest student on the fly while booking a lesson (e.g. a
+ * WhatsApp-arranged lesson for someone not yet in the roster), returning
+ * its id so the caller can include it in the same createManualLesson call.
+ */
+export async function createGuestStudentQuick(displayName: string, defaultPrice: number) {
+  const { supabase } = await requireTutor();
+
+  const name = displayName.trim();
+  if (!name) return { error: "יש להזין שם" };
+
+  const { data, error } = await supabase
+    .from("students")
+    .insert({ display_name: name, default_price: defaultPrice, is_guest: true })
+    .select("id")
+    .single();
+  if (error) return { error: error.message };
+
+  revalidatePath("/tutor/students");
+  return { id: data.id as string };
+}

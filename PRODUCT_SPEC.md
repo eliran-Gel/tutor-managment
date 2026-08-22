@@ -157,9 +157,11 @@ Blocked times cannot be requested by students.
 
 ### 3.6 Lesson duration
 
-Supported:
-- 60 minutes,
-- 120 consecutive minutes.
+Supported (round increments only, per tutor's real scheduling habits):
+- 15 minutes,
+- 30 minutes,
+- 45 minutes,
+- 60 minutes.
 
 Design the data model so other durations can be added later without rewriting the system.
 

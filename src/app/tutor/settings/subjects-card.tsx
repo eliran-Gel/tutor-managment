@@ -37,12 +37,13 @@ export function SubjectsCard({ subjects }: { subjects: Tables<"subjects">[] }) {
               </div>
               <button
                 type="button"
-                className="shrink-0 text-xs font-medium text-text-secondary hover:text-text-primary"
+                disabled={isPending}
+                className="shrink-0 text-xs font-medium text-text-secondary hover:text-text-primary disabled:opacity-50"
                 onClick={() =>
                   startTransition(() => setSubjectActive(subject.id, !subject.active))
                 }
               >
-                {subject.active ? "השבתה" : "הפעלה"}
+                {isPending ? "מעדכן..." : subject.active ? "השבתה" : "הפעלה"}
               </button>
             </li>
           ))}

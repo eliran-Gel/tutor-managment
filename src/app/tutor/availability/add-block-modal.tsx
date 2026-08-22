@@ -8,6 +8,7 @@ import { createAvailabilityBlock } from "./actions";
 
 export function AddBlockModal() {
   const [open, setOpen] = useState(false);
+  const [allDay, setAllDay] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
@@ -28,6 +29,7 @@ export function AddBlockModal() {
               try {
                 await createAvailabilityBlock(formData);
                 formRef.current?.reset();
+                setAllDay(false);
                 setOpen(false);
               } catch (e) {
                 setError(e instanceof Error ? e.message : "שגיאה לא צפויה");
@@ -38,14 +40,28 @@ export function AddBlockModal() {
           <Field label="תאריך" htmlFor="date">
             <TextInput id="date" name="date" type="date" required />
           </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="משעה" htmlFor="start_time">
-              <TextInput id="start_time" name="start_time" type="time" required />
-            </Field>
-            <Field label="עד שעה" htmlFor="end_time">
-              <TextInput id="end_time" name="end_time" type="time" required />
-            </Field>
-          </div>
+
+          <label className="flex items-center gap-2 text-sm text-text-secondary">
+            <input
+              type="checkbox"
+              name="all_day"
+              checked={allDay}
+              onChange={(e) => setAllDay(e.target.checked)}
+            />
+            חסימת יום שלם (ללא תלות בשעות)
+          </label>
+
+          {!allDay && (
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="משעה" htmlFor="start_time">
+                <TextInput id="start_time" name="start_time" type="time" required={!allDay} />
+              </Field>
+              <Field label="עד שעה" htmlFor="end_time">
+                <TextInput id="end_time" name="end_time" type="time" required={!allDay} />
+              </Field>
+            </div>
+          )}
+
           <Field label="חזרתיות" htmlFor="recurrence">
             <select
               id="recurrence"

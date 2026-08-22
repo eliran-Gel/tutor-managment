@@ -6,6 +6,7 @@ import { approveRequest, rejectRequest } from "./actions";
 
 export function RequestRowActions({ lessonId }: { lessonId: string }) {
   const [error, setError] = useState<string | null>(null);
+  const [action, setAction] = useState<"approve" | "reject" | null>(null);
   const [isPending, startTransition] = useTransition();
 
   return (
@@ -15,22 +16,26 @@ export function RequestRowActions({ lessonId }: { lessonId: string }) {
           type="button"
           variant="secondary"
           disabled={isPending}
-          onClick={() => startTransition(() => rejectRequest(lessonId))}
+          onClick={() => {
+            setAction("reject");
+            startTransition(() => rejectRequest(lessonId));
+          }}
         >
-          דחייה
+          {isPending && action === "reject" ? "דוחה..." : "דחייה"}
         </Button>
         <Button
           type="button"
           disabled={isPending}
-          onClick={() =>
+          onClick={() => {
+            setAction("approve");
             startTransition(async () => {
               setError(null);
               const result = await approveRequest(lessonId);
               if (result?.error) setError(result.error);
-            })
-          }
+            });
+          }}
         >
-          {isPending ? "מעדכן..." : "אישור"}
+          {isPending && action === "approve" ? "מאשר..." : "אישור"}
         </Button>
       </div>
       {error && <p className="max-w-56 text-xs text-status-destructive">{error}</p>}

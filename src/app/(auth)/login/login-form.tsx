@@ -6,7 +6,20 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
 
-type Status = { type: "idle" } | { type: "loading" } | { type: "error"; message: string } | { type: "sent" };
+type Status =
+  | { type: "idle" }
+  | { type: "loading-google" }
+  | { type: "loading-magic-link" }
+  | { type: "loading-password" }
+  | { type: "redirecting" }
+  | { type: "error"; message: string }
+  | { type: "sent" };
+
+const isBusy = (status: Status) =>
+  status.type === "loading-google" ||
+  status.type === "loading-magic-link" ||
+  status.type === "loading-password" ||
+  status.type === "redirecting";
 
 export function LoginForm() {
   const router = useRouter();
@@ -16,7 +29,7 @@ export function LoginForm() {
   const [status, setStatus] = useState<Status>({ type: "idle" });
 
   async function signInWithGoogle() {
-    setStatus({ type: "loading" });
+    setStatus({ type: "loading-google" });
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -27,7 +40,7 @@ export function LoginForm() {
 
   async function sendMagicLink(e: React.FormEvent) {
     e.preventDefault();
-    setStatus({ type: "loading" });
+    setStatus({ type: "loading-magic-link" });
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOtp({
       email,
@@ -42,17 +55,23 @@ export function LoginForm() {
 
   async function signInWithPassword(e: React.FormEvent) {
     e.preventDefault();
-    setStatus({ type: "loading" });
+    setStatus({ type: "loading-password" });
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setStatus({ type: "error", message: error.message });
       return;
     }
-    setStatus({ type: "idle" });
+    // Stay "busy" (buttons disabled, no re-click possible) all the way
+    // through navigation instead of flipping back to idle first - that
+    // gap is exactly what let a second click re-trigger sign-in before
+    // the redirect landed.
+    setStatus({ type: "redirecting" });
     router.push("/tutor/dashboard");
     router.refresh();
   }
+
+  const busy = isBusy(status);
 
   return (
     <div className="flex flex-col gap-4">
@@ -61,9 +80,9 @@ export function LoginForm() {
         variant="secondary"
         className="w-full"
         onClick={signInWithGoogle}
-        disabled={status.type === "loading"}
+        disabled={busy}
       >
-        המשך עם Google
+        {status.type === "loading-google" ? "מעביר ל-Google..." : "המשך עם Google"}
       </Button>
 
       <div className="flex items-center gap-3 text-xs text-text-muted">
@@ -87,8 +106,8 @@ export function LoginForm() {
               onChange={(e) => setEmail(e.target.value)}
               className="rounded-control border border-border bg-background px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-accent"
             />
-            <Button type="submit" variant="primary" disabled={status.type === "loading"}>
-              שלח קישור התחברות
+            <Button type="submit" variant="primary" disabled={busy}>
+              {status.type === "loading-magic-link" ? "שולח..." : "שלח קישור התחברות"}
             </Button>
           </form>
         )
@@ -108,8 +127,12 @@ export function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <Button type="submit" variant="primary" disabled={status.type === "loading"}>
-            התחברות
+          <Button type="submit" variant="primary" disabled={busy}>
+            {status.type === "loading-password"
+              ? "מתחבר..."
+              : status.type === "redirecting"
+                ? "מעביר אותך פנימה..."
+                : "התחברות"}
           </Button>
         </form>
       )}
@@ -124,7 +147,8 @@ export function LoginForm() {
           setMode(mode === "magic-link" ? "password" : "magic-link");
           setStatus({ type: "idle" });
         }}
-        className="text-xs font-medium text-text-muted hover:text-text-secondary"
+        disabled={busy}
+        className="text-xs font-medium text-text-muted hover:text-text-secondary disabled:opacity-50"
       >
         {mode === "magic-link" ? "יש לך סיסמה? התחברות עם סיסמה" : "התחברות עם קישור באימייל"}
       </button>

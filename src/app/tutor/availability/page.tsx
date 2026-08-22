@@ -31,23 +31,30 @@ export default async function AvailabilityPage() {
       )}
 
       <div className="flex flex-col gap-2">
-        {blocks?.map((block) => (
-          <Card key={block.id} className="min-w-0 flex flex-wrap items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="font-medium text-text-primary">
-                  {formatAppTime(block.start_at, "dd/MM/yyyy")} ·{" "}
-                  {formatAppTime(block.start_at, "HH:mm")}–{formatAppTime(block.end_at, "HH:mm")}
-                </p>
-                {block.recurrence_rule === "weekly" && <Badge tone="selected">כל שבוע</Badge>}
+        {blocks?.map((block) => {
+          const isAllDay =
+            formatAppTime(block.start_at, "HH:mm") === "00:00" &&
+            formatAppTime(block.end_at, "HH:mm") === "23:59";
+          return (
+            <Card key={block.id} className="min-w-0 flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-medium text-text-primary">
+                    {formatAppTime(block.start_at, "dd/MM/yyyy")} ·{" "}
+                    {isAllDay
+                      ? "כל היום"
+                      : `${formatAppTime(block.start_at, "HH:mm")}–${formatAppTime(block.end_at, "HH:mm")}`}
+                  </p>
+                  {block.recurrence_rule === "weekly" && <Badge tone="selected">כל שבוע</Badge>}
+                </div>
+                {block.note && <p className="mt-1 break-words text-sm text-text-muted">{block.note}</p>}
               </div>
-              {block.note && <p className="mt-1 break-words text-sm text-text-muted">{block.note}</p>}
-            </div>
-            <div className="shrink-0">
-              <DeleteBlockButton blockId={block.id} />
-            </div>
-          </Card>
-        ))}
+              <div className="shrink-0">
+                <DeleteBlockButton blockId={block.id} />
+              </div>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

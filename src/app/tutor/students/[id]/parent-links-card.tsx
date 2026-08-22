@@ -46,10 +46,11 @@ export function ParentLinksCard({
               </div>
               <button
                 type="button"
-                className="shrink-0 text-xs font-medium text-status-destructive hover:opacity-80"
+                disabled={isPending}
+                className="shrink-0 text-xs font-medium text-status-destructive hover:opacity-80 disabled:opacity-50"
                 onClick={() => startTransition(() => unlinkParent(link.id, studentId))}
               >
-                ביטול קישור
+                {isPending ? "מבטל..." : "ביטול קישור"}
               </button>
             </li>
           ))}
