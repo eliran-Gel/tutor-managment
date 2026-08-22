@@ -2,13 +2,15 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { BusinessLinksForm } from "./business-links-form";
 import { TutorSettingsForm } from "./tutor-settings-form";
+import { SubjectsCard } from "./subjects-card";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
 
-  const [{ data: links }, { data: settings }] = await Promise.all([
+  const [{ data: links }, { data: settings }, { data: subjects }] = await Promise.all([
     supabase.from("business_links").select("*").eq("id", true).single(),
     supabase.from("tutor_settings").select("*").eq("id", true).single(),
+    supabase.from("subjects").select("*").order("name"),
   ]);
 
   return (
@@ -32,6 +34,8 @@ export default async function SettingsPage() {
           </CardHeader>
           {settings && <TutorSettingsForm settings={settings} />}
         </Card>
+
+        <SubjectsCard subjects={subjects ?? []} />
       </div>
     </div>
   );

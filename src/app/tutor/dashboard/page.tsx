@@ -1,20 +1,36 @@
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { DELIVERY_MODE_LABELS } from "@/lib/lessons";
+import { formatIsoDate } from "@/lib/dates/format";
 
-const kpis = [
-  { label: "תלמידים פעילים", value: "—" },
-  { label: "היום", value: "—" },
-  { label: "השבוע", value: "—" },
-  { label: "החודש", value: "—" },
-];
+export default async function TutorDashboardPage() {
+  const supabase = await createClient();
 
-export default function TutorDashboardPage() {
+  const [{ count: activeStudents }, { data: pendingRequests }] = await Promise.all([
+    supabase.from("students").select("id", { count: "exact", head: true }).is("archived_at", null),
+    supabase
+      .from("lessons")
+      .select("*, subjects(name), requester:profiles!lessons_created_by_fkey(full_name, email)")
+      .eq("status", "requested")
+      .order("created_at")
+      .limit(5),
+  ]);
+
+  const kpis = [
+    { label: "תלמידים פעילים", value: activeStudents ?? "—" },
+    { label: "היום", value: "—" },
+    { label: "השבוע", value: "—" },
+    { label: "החודש", value: "—" },
+  ];
+
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-xl font-bold text-text-primary">בוקר טוב, אלירן!</h1>
         <p className="text-sm text-text-secondary">
-          לוח הבקרה עדיין ריק — הנתונים החיים יתווספו בשלבי הפיתוח הבאים.
+          נתוני הכנסות/שעות יתווספו בשלבי הפיתוח הבאים.
         </p>
       </div>
 
@@ -31,9 +47,28 @@ export default function TutorDashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>בקשות לשיעורים ממתינות</CardTitle>
-            <Badge tone="pending">0</Badge>
+            <Badge tone="pending">{pendingRequests?.length ?? 0}</Badge>
           </CardHeader>
-          <p className="text-sm text-text-muted">אין בקשות עדיין — תתווספנה בשלב הבא.</p>
+          {pendingRequests && pendingRequests.length === 0 ? (
+            <p className="text-sm text-text-muted">אין בקשות ממתינות כרגע.</p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {pendingRequests?.map((req) => (
+                <li key={req.id} className="rounded-control border border-border px-3 py-2 text-sm">
+                  <p className="font-medium text-text-primary">
+                    {req.requester?.full_name ?? req.requester?.email}
+                  </p>
+                  <p className="text-text-muted">
+                    {req.subjects?.name} · {formatIsoDate(req.date)} · {req.start_time.slice(0, 5)} ·{" "}
+                    {DELIVERY_MODE_LABELS[req.delivery_mode]}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+          <Link href="/tutor/requests" className="mt-3 inline-block text-sm font-medium text-brand-accent hover:underline">
+            לכל הבקשות ←
+          </Link>
         </Card>
 
         <Card>

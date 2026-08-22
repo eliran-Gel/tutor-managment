@@ -96,6 +96,158 @@ export type Database = {
         }
         Relationships: []
       }
+      lesson_participants: {
+        Row: {
+          created_at: string
+          id: string
+          lesson_id: string
+          payment_method: Database["public"]["Enums"]["payment_method"] | null
+          payment_note: string | null
+          payment_received_at: string | null
+          payment_status: Database["public"]["Enums"]["payment_status"]
+          price_charged: number
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lesson_id: string
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          payment_note?: string | null
+          payment_received_at?: string | null
+          payment_status?: Database["public"]["Enums"]["payment_status"]
+          price_charged: number
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          payment_method?: Database["public"]["Enums"]["payment_method"] | null
+          payment_note?: string | null
+          payment_received_at?: string | null
+          payment_status?: Database["public"]["Enums"]["payment_status"]
+          price_charged?: number
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_participants_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_participants_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_tutor_notes: {
+        Row: {
+          id: string
+          lesson_id: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          lesson_id: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          lesson_id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_tutor_notes_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: true
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lessons: {
+        Row: {
+          created_at: string
+          created_by: string
+          date: string
+          delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+          duration_minutes: number
+          end_time: string
+          forced: boolean
+          id: string
+          lesson_type: Database["public"]["Enums"]["lesson_type"]
+          online_url: string | null
+          source: Database["public"]["Enums"]["lesson_source"]
+          start_time: string
+          status: Database["public"]["Enums"]["lesson_status"]
+          subject_id: string | null
+          topic: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          date: string
+          delivery_mode?: Database["public"]["Enums"]["delivery_mode"]
+          duration_minutes: number
+          end_time: string
+          forced?: boolean
+          id?: string
+          lesson_type?: Database["public"]["Enums"]["lesson_type"]
+          online_url?: string | null
+          source: Database["public"]["Enums"]["lesson_source"]
+          start_time: string
+          status?: Database["public"]["Enums"]["lesson_status"]
+          subject_id?: string | null
+          topic?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          date?: string
+          delivery_mode?: Database["public"]["Enums"]["delivery_mode"]
+          duration_minutes?: number
+          end_time?: string
+          forced?: boolean
+          id?: string
+          lesson_type?: Database["public"]["Enums"]["lesson_type"]
+          online_url?: string | null
+          source?: Database["public"]["Enums"]["lesson_source"]
+          start_time?: string
+          status?: Database["public"]["Enums"]["lesson_status"]
+          subject_id?: string | null
+          topic?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lessons_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parent_students: {
         Row: {
           created_at: string
@@ -307,9 +459,50 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_lesson_request: {
+        Args: { target_lesson_id: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          date: string
+          delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+          duration_minutes: number
+          end_time: string
+          forced: boolean
+          id: string
+          lesson_type: Database["public"]["Enums"]["lesson_type"]
+          online_url: string | null
+          source: Database["public"]["Enums"]["lesson_source"]
+          start_time: string
+          status: Database["public"]["Enums"]["lesson_status"]
+          subject_id: string | null
+          topic: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lessons"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      is_parent_of: { Args: { target_student_id: string }; Returns: boolean }
       is_tutor: { Args: never; Returns: boolean }
+      owns_student: { Args: { target_student_id: string }; Returns: boolean }
     }
     Enums: {
+      delivery_mode: "online" | "in_person"
+      lesson_source: "student_request" | "tutor_manual"
+      lesson_status:
+        | "requested"
+        | "confirmed"
+        | "rejected"
+        | "cancelled"
+        | "completed"
+        | "change_requested"
+      lesson_type: "individual" | "group"
+      payment_method: "cash" | "bit" | "paybox" | "other"
+      payment_status: "unpaid" | "paid"
       user_role: "tutor" | "parent" | "student"
     }
     CompositeTypes: {
@@ -441,6 +634,19 @@ export const Constants = {
   },
   public: {
     Enums: {
+      delivery_mode: ["online", "in_person"],
+      lesson_source: ["student_request", "tutor_manual"],
+      lesson_status: [
+        "requested",
+        "confirmed",
+        "rejected",
+        "cancelled",
+        "completed",
+        "change_requested",
+      ],
+      lesson_type: ["individual", "group"],
+      payment_method: ["cash", "bit", "paybox", "other"],
+      payment_status: ["unpaid", "paid"],
       user_role: ["tutor", "parent", "student"],
     },
   },

@@ -1,10 +1,29 @@
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { DELIVERY_MODE_LABELS } from "@/lib/lessons";
+import { formatIsoDate } from "@/lib/dates/format";
+import { RequestLessonModal } from "../lessons/request-lesson-modal";
 
 export default async function PortalDashboardPage() {
   const supabase = await createClient();
-  const { data: links } = await supabase.from("business_links").select("*").eq("id", true).single();
+  const profile = await getCurrentProfile();
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [{ data: links }, { data: nextLesson }, { data: subjects }] = await Promise.all([
+    supabase.from("business_links").select("*").eq("id", true).single(),
+    supabase
+      .from("lessons")
+      .select("*, subjects(name)")
+      .eq("status", "confirmed")
+      .gte("date", today)
+      .order("date")
+      .order("start_time")
+      .limit(1)
+      .maybeSingle(),
+    supabase.from("subjects").select("*").eq("active", true).order("name"),
+  ]);
 
   const quickLinks = [
     { label: "אתר", href: links?.website_url },
@@ -22,10 +41,25 @@ export default async function PortalDashboardPage() {
 
       <Card className="bg-brand-primary text-white">
         <p className="text-sm opacity-80">השיעור הבא שלך</p>
-        <p className="mt-2 text-lg font-semibold">עדיין אין שיעור מתוזמן</p>
-        <Button variant="secondary" className="mt-4 bg-white/10 text-white hover:bg-white/20">
-          קביעת שיעור
-        </Button>
+        {nextLesson ? (
+          <>
+            <p className="mt-2 text-lg font-semibold">{nextLesson.subjects?.name ?? "שיעור"}</p>
+            <p className="mt-1 text-sm opacity-90">
+              {formatIsoDate(nextLesson.date)} · {nextLesson.start_time.slice(0, 5)}–
+              {nextLesson.end_time.slice(0, 5)} · {DELIVERY_MODE_LABELS[nextLesson.delivery_mode]}
+            </p>
+          </>
+        ) : (
+          <p className="mt-2 text-lg font-semibold">עדיין אין שיעור מתוזמן</p>
+        )}
+        {profile?.role === "student" && (
+          <div className="mt-4">
+            <RequestLessonModal
+              subjects={subjects ?? []}
+              triggerClassName="bg-white/10 text-white hover:bg-white/20"
+            />
+          </div>
+        )}
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2">

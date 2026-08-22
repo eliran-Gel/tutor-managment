@@ -58,3 +58,27 @@ export async function updateTutorSettings(formData: FormData) {
 
   revalidatePath("/tutor/settings");
 }
+
+const subjectNameSchema = z.string().trim().min(1, "שם המקצוע נדרש");
+
+export async function createSubject(formData: FormData) {
+  const { supabase } = await requireTutor();
+  const name = subjectNameSchema.parse(formData.get("name"));
+
+  const { error } = await supabase.from("subjects").insert({ name });
+  if (error) {
+    if (error.code === "23505") throw new Error("מקצוע בשם הזה כבר קיים");
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/tutor/settings");
+}
+
+export async function setSubjectActive(subjectId: string, active: boolean) {
+  const { supabase } = await requireTutor();
+
+  const { error } = await supabase.from("subjects").update({ active }).eq("id", subjectId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/tutor/settings");
+}
