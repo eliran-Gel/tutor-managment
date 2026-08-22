@@ -39,6 +39,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      parent_students: {
+        Row: {
+          created_at: string
+          id: string
+          parent_profile_id: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          parent_profile_id: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          parent_profile_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_students_parent_profile_id_fkey"
+            columns: ["parent_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parent_students_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -72,6 +108,119 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"]
           theme_preference?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      student_internal_notes: {
+        Row: {
+          id: string
+          notes: string | null
+          rating: number | null
+          student_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          notes?: string | null
+          rating?: number | null
+          student_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          notes?: string | null
+          rating?: number | null
+          student_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_internal_notes_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_internal_notes_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      students: {
+        Row: {
+          archived_at: string | null
+          claimed_at: string | null
+          created_at: string
+          default_price: number | null
+          display_name: string
+          grade_level: string | null
+          id: string
+          is_guest: boolean
+          profile_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          claimed_at?: string | null
+          created_at?: string
+          default_price?: number | null
+          display_name: string
+          grade_level?: string | null
+          id?: string
+          is_guest?: boolean
+          profile_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          claimed_at?: string | null
+          created_at?: string
+          default_price?: number | null
+          display_name?: string
+          grade_level?: string | null
+          id?: string
+          is_guest?: boolean
+          profile_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "students_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subjects: {
+        Row: {
+          active: boolean
+          color: string | null
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean
+          color?: string | null
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean
+          color?: string | null
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }
