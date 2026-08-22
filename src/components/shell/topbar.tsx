@@ -1,14 +1,17 @@
 "use client";
 
+import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SignOutButton } from "@/components/sign-out-button";
 
 export function Topbar({
   onMenuClick,
   userName,
+  profileHref,
 }: {
   onMenuClick?: () => void;
   userName?: string | null;
+  profileHref: string;
 }) {
   return (
     <header className="flex items-center justify-between border-b border-border bg-surface px-4 py-3 md:px-6">
@@ -29,9 +32,12 @@ export function Topbar({
 
       <div className="flex items-center gap-4">
         {userName && (
-          <span className="hidden text-sm font-medium text-text-primary md:inline">
+          <Link
+            href={profileHref}
+            className="hidden text-sm font-medium text-text-primary hover:text-brand-accent md:inline"
+          >
             {userName}
-          </span>
+          </Link>
         )}
         <SignOutButton />
         <button

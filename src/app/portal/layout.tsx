@@ -11,6 +11,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
       items={portalNav}
       roleLabel={profile ? ROLE_LABELS[profile.role] : "תלמיד"}
       userName={profile?.full_name ?? profile?.email}
+      profileHref="/portal/profile"
     >
       {children}
     </AppShell>

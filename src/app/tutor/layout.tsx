@@ -11,6 +11,7 @@ export default async function TutorLayout({ children }: { children: ReactNode })
       items={tutorNav}
       roleLabel={profile ? ROLE_LABELS[profile.role] : "מורה פרטי"}
       userName={profile?.full_name ?? profile?.email}
+      profileHref="/tutor/profile"
     >
       {children}
     </AppShell>

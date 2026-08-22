@@ -9,11 +9,13 @@ export function AppShell({
   items,
   roleLabel,
   userName,
+  profileHref,
   children,
 }: {
   items: NavItem[];
   roleLabel: string;
   userName?: string | null;
+  profileHref: string;
   children: ReactNode;
 }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -37,7 +39,7 @@ export function AppShell({
       )}
 
       <div className="flex min-h-full flex-1 flex-col">
-        <Topbar onMenuClick={() => setMobileNavOpen(true)} userName={userName} />
+        <Topbar onMenuClick={() => setMobileNavOpen(true)} userName={userName} profileHref={profileHref} />
         <main className="flex-1 bg-background px-4 py-6 md:px-8">{children}</main>
       </div>
     </div>
