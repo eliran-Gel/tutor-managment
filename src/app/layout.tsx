@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Rubik } from "next/font/google";
 import { cookies } from "next/headers";
 import { IosActiveFix } from "@/components/ios-active-fix";
@@ -12,6 +12,15 @@ const rubik = Rubik({
 export const metadata: Metadata = {
   title: "אלירן גלברג - מורה פרטי | ניהול",
   description: "מערכת ניהול לעסק ההוראה הפרטית",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "אלירן גלברג",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#102a4c",
 };
 
 export default async function RootLayout({

@@ -8,6 +8,7 @@ import { DeleteStudentButton } from "./delete-student-button";
 import { InternalNotesCard } from "./internal-notes-card";
 import { ParentLinksCard } from "./parent-links-card";
 import { ClaimGuestCard } from "./claim-guest-card";
+import { LessonHistoryCard } from "./lesson-history-card";
 
 export default async function StudentDetailPage({
   params,
@@ -58,6 +59,8 @@ export default async function StudentDetailPage({
           <ParentLinksCard studentId={student.id} links={parentLinks ?? []} />
         </div>
       </div>
+
+      <LessonHistoryCard studentId={student.id} />
 
       <InternalNotesCard studentId={student.id} notes={notes ?? null} />
     </div>
