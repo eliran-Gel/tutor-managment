@@ -18,19 +18,23 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
 }
 
+/** Shared with any non-<button> element (e.g. a Link) that needs to look
+ * like a button - never nest a real <button> inside an <a>, since browsers
+ * handle that invalid markup inconsistently (clicks/focus can silently
+ * misbehave). */
+export function buttonClasses(variant: Variant = "primary", className?: string) {
+  return cn(
+    "inline-flex items-center justify-center gap-2 rounded-control px-4 py-2 text-sm font-medium transition-colors",
+    "disabled:opacity-50 disabled:pointer-events-none",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+    variantClasses[variant],
+    className,
+  );
+}
+
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", ...props }, ref) => (
-    <button
-      ref={ref}
-      className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-control px-4 py-2 text-sm font-medium transition-colors",
-        "disabled:opacity-50 disabled:pointer-events-none",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-        variantClasses[variant],
-        className,
-      )}
-      {...props}
-    />
+    <button ref={ref} className={buttonClasses(variant, className)} {...props} />
   ),
 );
 Button.displayName = "Button";
