@@ -118,6 +118,10 @@ Every important action should have a clear state:
 - disabled,
 - confirmed.
 
+Every tappable element also needs an *immediate* press/active state (a quick scale-down + color shift on touch), independent of the states above — without it, a tap gives no feedback at all until a network round-trip or page navigation finishes, which reads as "the button doesn't work" even when it does. `:hover` does not cover this on touch devices, and iOS Safari additionally requires a global touch listener for `:active` to fire at all (see `src/components/ios-active-fix.tsx`) — a plain `active:` Tailwind class alone is not sufficient on iPhone.
+
+When a confirming action follows a warning/conflict state (e.g. "this overlaps — create anyway?"), never show the original action button and the confirm button at the same time — replace one with the other. Two live buttons in that spot is exactly the setup for a mis-click landing on the wrong one after a layout shift.
+
 Avoid ambiguous buttons.
 
 Use Hebrew labels that explain the action.

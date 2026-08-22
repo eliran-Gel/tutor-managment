@@ -33,13 +33,14 @@ Full access.
 
 Can:
 - create/edit/archive students,
+- permanently delete a student (distinct from archiving — removes their history entirely; archiving is the reversible option),
 - manage parents,
 - create lessons manually,
 - approve/reject lesson requests,
+- cancel a lesson that is already confirmed (not only reject one still pending),
 - approve/reject lesson-change requests,
 - block calendar availability,
 - create individual or group lessons,
-- assign lesson prices,
 - mark payments as received,
 - publish summaries,
 - create/edit homework,
@@ -102,6 +103,12 @@ Their lesson history can still exist in the tutor system.
 
 Later, the guest student may be invited to create an account and claim/access their existing history.
 
+### 2.5 Student profile: grade and school
+
+Every student has a grade (כיתה) and a school. A self-registering student is prompted to fill these in (they can also be set/edited by the tutor).
+
+The grade advances automatically at the start of each school year (September) rather than needing a manual yearly update across every student — the system stores the grade as of a reference school year and derives the current grade from elapsed school-year boundaries.
+
 ---
 
 ## 3. Scheduling
@@ -155,15 +162,18 @@ The tutor can block:
 
 Blocked times cannot be requested by students.
 
-### 3.6 Lesson duration
+### 3.6 Lesson duration and start time
 
-Supported (round increments only, per tutor's real scheduling habits):
-- 15 minutes,
-- 30 minutes,
-- 45 minutes,
-- 60 minutes.
+Supported lesson durations:
+- 60 minutes,
+- 90 minutes,
+- 120 minutes.
+
+Lessons may only start on the quarter hour (e.g. 16:00, 16:15, 16:30, 16:45) — the tutor never books at arbitrary minutes, so start-time selection is restricted to these increments. This 15-minute granularity applies to the start time only, not to duration.
 
 Design the data model so other durations can be added later without rewriting the system.
+
+The system must never allow two confirmed lessons to overlap in time. This is enforced both when the tutor approves a pending request and when the tutor creates a lesson manually — two students may have overlapping *pending* requests (only one can end up confirmed), but two *confirmed* lessons overlapping is always a bug to prevent, not a state to allow.
 
 ### 3.7 Individual lesson
 
@@ -175,9 +185,23 @@ Up to 3 students.
 
 When creating a group lesson, the tutor must select the participating students.
 
-Each participant may have a different price.
+The group lesson is one scheduled event with multiple participants, all charged the same fixed price for that lesson type/duration — see 3.9.
 
-The group lesson is one scheduled event with multiple participants.
+### 3.9 Pricing
+
+Pricing is a fixed table by lesson type and duration, not a per-student or per-lesson manual entry:
+
+| Duration | Individual | Group |
+|---|---|---|
+| 60 min | ₪140 | ₪110 |
+| 90 min | ₪210 | ₪165 |
+| 120 min | ₪280 | ₪220 |
+
+The price is computed once, at request-approval or manual-creation time, and stored on the lesson/participant record. It is never recalculated retroactively if the pricing table changes later — a lesson already booked keeps the price it was booked at.
+
+### 3.10 Subjects
+
+The tutor's subjects are a short fixed list (currently מתמטיקה/Math, פיזיקה/Physics, מחשבים/Computer Science), seeded by default so there is no setup step before the tutor can use the system. The tutor can still add more subjects later via settings if their offering expands.
 
 ---
 
@@ -224,6 +248,8 @@ Statuses should distinguish:
 - cancelled,
 - completed,
 - change requested.
+
+`rejected` applies to a request that was never confirmed; `cancelled` applies to a lesson that was confirmed and then called off. The tutor can move a lesson to `cancelled` directly from `confirmed` at any time — this does not require the student to first submit a change/cancel request.
 
 Do not allow clients to bypass these states.
 
@@ -565,7 +591,8 @@ Mobile/iPhone:
 - responsive cards,
 - touch-friendly controls,
 - clear hierarchy,
-- no horizontal scrolling for normal workflows.
+- no horizontal scrolling for normal workflows,
+- the month calendar must fit the whole month on one screen on a phone, like the native iOS Calendar app (compact day cells, no per-day text that doesn't fit — use small indicator dots instead, with full detail available on tap-through or on larger screens).
 
 ---
 

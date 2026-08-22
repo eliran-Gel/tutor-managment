@@ -9,7 +9,7 @@ This plan incorporates the user's final decisions:
 2. Internal ratings/notes must be unreachable by student/parent **at the database layer**, not just hidden in UI.
 3. Guest students have full data (lessons, summaries, homework, payments, notes) but zero dashboard access until they register/claim an account; history must survive claiming.
 4. Auth = Google OAuth + email/password + email magic link now; phone/OTP added later without a data-model change.
-5. Group lessons (max 3) are tutor-created only in MVP; per-participant price snapshot required.
+5. Group lessons (max 3) are tutor-created only in MVP; price is a fixed table by lesson type/duration (not manually entered), snapshotted onto the lesson/participant records at booking time — see PRODUCT_SPEC.md §3.9 (superseded the original per-participant-price idea from real usage feedback).
 6. Payment reminders: 3-day default, configurable, tutor-facing surfacing only — never auto-sent.
 7. Push notifications required; PWA install path must handle the iOS Add-to-Home-Screen requirement explicitly.
 8. Students/parents may only request — never directly modify confirmed lessons.

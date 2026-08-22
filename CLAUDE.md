@@ -38,6 +38,11 @@ If two requirements conflict, do not guess. Identify the conflict and ask.
 - A group lesson must explicitly list its participating students.
 - Pricing is fixed by lesson type and duration, not per-student: individual lessons are ₪140/₪210/₪280 for 60/90/120 minutes; group lessons are ₪110/₪165/₪220 for 60/90/120 minutes.
 - The price actually charged is stored on the lesson/payment record at creation/approval time and must not be retroactively changed if the pricing table changes later.
+- Two confirmed lessons must never be allowed to overlap in time — this must be enforced both when the tutor approves a request and when the tutor creates a lesson manually, not only one of the two paths.
+- The tutor can cancel a lesson that is already confirmed, not only reject a request that is still pending.
+- The tutor can permanently delete a student (distinct from archiving, which keeps history but hides them from active views).
+- Subjects are a fixed short list (currently מתמטיקה, פיזיקה, מחשבים) seeded by default so the tutor never has to configure them before first use; the tutor can still add more via settings if needed.
+- Each student has a grade (כיתה) and school. The grade advances automatically at the start of each school year (September) rather than needing manual yearly updates.
 - Payment is tracked manually by the tutor.
 - Supported payment methods: cash, Bit, PayBox, other.
 - Bit/PayBox are external payment links, not integrated payment processing in the MVP.
@@ -99,5 +104,6 @@ The tutor remains the editor and final approver.
 - Prefer clear Hebrew labels over technical jargon.
 - Keep important actions visible.
 - Make mobile use excellent, not an afterthought.
+- Every clickable element must show immediate visual feedback on tap (not just `:hover`, which doesn't exist on touch) — see `src/components/ios-active-fix.tsx` for why this needs a global touch listener, not just `active:` classes, to actually work on iOS Safari.
 - Preserve the friendly educational character.
 - Avoid visual clutter.
