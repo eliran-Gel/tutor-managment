@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { DELIVERY_MODE_LABELS } from "@/lib/lessons";
 import { formatIsoDateWithWeekday } from "@/lib/dates/format";
+import { getHebrewGreeting } from "@/lib/greeting";
 
 function toIsoDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -53,7 +54,7 @@ export default async function TutorDashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-bold text-text-primary">בוקר טוב, אלירן!</h1>
+        <h1 className="text-xl font-bold text-text-primary">{getHebrewGreeting()}, אלירן!</h1>
         <p className="text-sm text-text-secondary">
           נתוני הכנסות/שעות יתווספו בשלבי הפיתוח הבאים.
         </p>
