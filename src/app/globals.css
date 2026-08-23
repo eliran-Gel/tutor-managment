@@ -42,6 +42,13 @@ body {
   font-family: var(--font-rubik), Arial, Helvetica, sans-serif;
   overflow-x: hidden;
   max-width: 100vw;
+  /* Global, automatic guarantee against the "one long unbroken word forces
+     the whole layout wider than the screen" bug (emails, URLs, long names)
+     - wraps onto more lines instead of overflowing, everywhere, without
+     relying on every component remembering to add break-words/min-w-0.
+     Only kicks in when a normal space-based line break isn't enough to
+     prevent overflow, so ordinary text is unaffected. */
+  overflow-wrap: anywhere;
 }
 
 * {
