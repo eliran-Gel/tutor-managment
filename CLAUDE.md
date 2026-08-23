@@ -65,6 +65,10 @@ If two requirements conflict, do not guess. Identify the conflict and ask.
 - WhatsApp integration is planned for later; do not make it a dependency of the MVP.
 - Do not build a separate native iOS/Android app in the first version. Build a responsive web app/PWA first.
 
+## Dev tooling
+
+`.claude/commands/` has project slash commands for the repeated parts of this workflow: `/verify` (type-check + lint), `/db-push` (push a migration and regenerate types), `/test-account` (create a throwaway test user), `/cleanup-test-data` (audit and remove leftover test rows), `/deploy-status` (check the latest Vercel deploy), `/ship` (the full verify → commit → push → confirm pipeline). `.claude/skills/test-account-hygiene/` documents the exact order test-account cleanup must happen in — read it before deleting a test account, since deleting the auth user does not cascade to its `students` row and leaving that orphaned has caused real bugs before.
+
 ## Development behavior
 
 Before major implementation:
