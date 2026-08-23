@@ -7,6 +7,79 @@ import { LESSON_DURATIONS } from "@/lib/lessons";
 import { checkLessonConflicts, addMinutesToTime } from "@/lib/lesson-conflicts";
 import { isValidTimeSlot } from "@/lib/time-slots";
 
+const changeRequestSchema = z
+  .object({
+    lesson_id: z.string().uuid(),
+    request_type: z.enum(["reschedule", "cancel"]),
+    requested_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+    requested_start_time: z
+      .string()
+      .regex(/^\d{2}:\d{2}$/)
+      .refine(isValidTimeSlot, "השעה חייבת להיות בכפולות של רבע שעה")
+      .nullable(),
+    reason: z.string().trim().nullable(),
+  })
+  .refine((v) => v.request_type === "cancel" || (v.requested_date && v.requested_start_time), {
+    message: "יש לבחור תאריך ושעה חדשים לדחיית השיעור",
+    path: ["requested_date"],
+  });
+
+export async function requestLessonChange(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "יש להתחבר למערכת" };
+
+  const parsed = changeRequestSchema.safeParse({
+    lesson_id: formData.get("lesson_id"),
+    request_type: formData.get("request_type"),
+    requested_date: (formData.get("requested_date") as string) || null,
+    requested_start_time: (formData.get("requested_start_time") as string) || null,
+    reason: (formData.get("reason") as string) || null,
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "פרטים לא תקינים" };
+  }
+  const input = parsed.data;
+
+  let requestedEndTime: string | null = null;
+  if (input.request_type === "reschedule") {
+    const { data: lesson } = await supabase
+      .from("lessons")
+      .select("duration_minutes")
+      .eq("id", input.lesson_id)
+      .single();
+    if (!lesson) return { error: "השיעור לא נמצא" };
+
+    const requestedDate = new Date(`${input.requested_date}T00:00:00`);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (requestedDate < today) return { error: "לא ניתן לבקש תאריך בעבר" };
+
+    const { endTime, crossesMidnight } = addMinutesToTime(input.requested_start_time!, lesson.duration_minutes);
+    if (crossesMidnight) return { error: "שיעור לא יכול לחצות חצות" };
+    requestedEndTime = endTime;
+  }
+
+  const { error } = await supabase.rpc("request_lesson_change", {
+    p_lesson_id: input.lesson_id,
+    p_request_type: input.request_type,
+    p_requested_date: input.requested_date ?? "",
+    p_requested_start_time: input.requested_start_time ? `${input.requested_start_time}:00` : "",
+    p_requested_end_time: requestedEndTime ? `${requestedEndTime}:00` : "",
+    p_reason: input.reason ?? "",
+  });
+  if (error) return { error: error.message };
+
+  revalidatePath("/portal/lessons");
+  revalidatePath("/portal/dashboard");
+  revalidatePath("/tutor/requests");
+  revalidatePath("/tutor/dashboard");
+  revalidatePath("/tutor/calendar");
+  return { success: true as const };
+}
+
 const requestSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "תאריך לא תקין"),
   start_time: z

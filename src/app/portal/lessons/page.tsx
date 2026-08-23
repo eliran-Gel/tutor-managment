@@ -5,6 +5,7 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { LESSON_STATUS_LABELS, LESSON_STATUS_TONE, DELIVERY_MODE_LABELS } from "@/lib/lessons";
 import { formatIsoDate } from "@/lib/dates/format";
 import { RequestLessonModal } from "./request-lesson-modal";
+import { RequestChangeModal } from "./request-change-modal";
 
 export default async function PortalLessonsPage() {
   const supabase = await createClient();
@@ -38,11 +39,20 @@ export default async function PortalLessonsPage() {
       <div className="flex flex-col gap-2">
         {lessons?.map((lesson) => (
           <Card key={lesson.id} className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="break-words font-medium text-text-primary">{lesson.subjects?.name ?? "ללא מקצוע"}</p>
-              <Badge tone={LESSON_STATUS_TONE[lesson.status]}>
-                {LESSON_STATUS_LABELS[lesson.status]}
-              </Badge>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
+                <p className="break-words font-medium text-text-primary">{lesson.subjects?.name ?? "ללא מקצוע"}</p>
+                <Badge tone={LESSON_STATUS_TONE[lesson.status]}>
+                  {LESSON_STATUS_LABELS[lesson.status]}
+                </Badge>
+              </div>
+              {lesson.status === "confirmed" && profile?.role !== "tutor" && (
+                <RequestChangeModal
+                  lessonId={lesson.id}
+                  currentDate={lesson.date}
+                  currentStartTime={lesson.start_time}
+                />
+              )}
             </div>
             <p className="mt-1 break-words text-sm text-text-muted">
               {formatIsoDate(lesson.date)} ·{" "}

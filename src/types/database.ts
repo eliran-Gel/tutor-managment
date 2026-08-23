@@ -96,6 +96,73 @@ export type Database = {
         }
         Relationships: []
       }
+      change_requests: {
+        Row: {
+          created_at: string
+          id: string
+          lesson_id: string
+          reason: string | null
+          request_type: Database["public"]["Enums"]["change_request_type"]
+          requested_by: string
+          requested_date: string | null
+          requested_end_time: string | null
+          requested_start_time: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["change_request_status"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lesson_id: string
+          reason?: string | null
+          request_type: Database["public"]["Enums"]["change_request_type"]
+          requested_by: string
+          requested_date?: string | null
+          requested_end_time?: string | null
+          requested_start_time?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["change_request_status"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          reason?: string | null
+          request_type?: Database["public"]["Enums"]["change_request_type"]
+          requested_by?: string
+          requested_date?: string | null
+          requested_end_time?: string | null
+          requested_start_time?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["change_request_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "change_requests_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "change_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "change_requests_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_participants: {
         Row: {
           created_at: string
@@ -468,6 +535,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_change_request: {
+        Args: { p_request_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          lesson_id: string
+          reason: string | null
+          request_type: Database["public"]["Enums"]["change_request_type"]
+          requested_by: string
+          requested_date: string | null
+          requested_end_time: string | null
+          requested_start_time: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["change_request_status"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "change_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       approve_lesson_request: {
         Args: { target_lesson_id: string }
         Returns: {
@@ -572,8 +662,63 @@ export type Database = {
       is_parent_of: { Args: { target_student_id: string }; Returns: boolean }
       is_tutor: { Args: never; Returns: boolean }
       owns_student: { Args: { target_student_id: string }; Returns: boolean }
+      reject_change_request: {
+        Args: { p_request_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          lesson_id: string
+          reason: string | null
+          request_type: Database["public"]["Enums"]["change_request_type"]
+          requested_by: string
+          requested_date: string | null
+          requested_end_time: string | null
+          requested_start_time: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["change_request_status"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "change_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      request_lesson_change: {
+        Args: {
+          p_lesson_id: string
+          p_reason: string
+          p_request_type: Database["public"]["Enums"]["change_request_type"]
+          p_requested_date: string
+          p_requested_end_time: string
+          p_requested_start_time: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          lesson_id: string
+          reason: string | null
+          request_type: Database["public"]["Enums"]["change_request_type"]
+          requested_by: string
+          requested_date: string | null
+          requested_end_time: string | null
+          requested_start_time: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["change_request_status"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "change_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
+      change_request_status: "pending" | "approved" | "rejected"
+      change_request_type: "reschedule" | "cancel"
       delivery_mode: "online" | "in_person"
       lesson_source: "student_request" | "tutor_manual"
       lesson_status:
@@ -717,6 +862,8 @@ export const Constants = {
   },
   public: {
     Enums: {
+      change_request_status: ["pending", "approved", "rejected"],
+      change_request_type: ["reschedule", "cancel"],
       delivery_mode: ["online", "in_person"],
       lesson_source: ["student_request", "tutor_manual"],
       lesson_status: [

@@ -38,3 +38,28 @@ export async function rejectRequest(lessonId: string) {
 
   revalidateRequestPaths();
 }
+
+export async function approveChangeRequest(requestId: string) {
+  const { supabase } = await requireTutor();
+
+  const { error } = await supabase.rpc("approve_change_request", { p_request_id: requestId });
+  if (error) {
+    if (error.message.includes("overlap_conflict")) {
+      return { error: "לא ניתן לאשר: יש כבר שיעור מאושר אחר שחופף לזמן החדש המבוקש." };
+    }
+    return { error: error.message };
+  }
+
+  revalidateRequestPaths();
+  return { success: true as const };
+}
+
+export async function rejectChangeRequest(requestId: string) {
+  const { supabase } = await requireTutor();
+
+  const { error } = await supabase.rpc("reject_change_request", { p_request_id: requestId });
+  if (error) return { error: error.message };
+
+  revalidateRequestPaths();
+  return { success: true as const };
+}
