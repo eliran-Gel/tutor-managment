@@ -7,20 +7,24 @@ import { Button } from "@/components/ui/button";
 import { TimeSlotSelect } from "@/components/ui/time-slot-select";
 import { formatIsoDate } from "@/lib/dates/format";
 import { requestLessonChange } from "./actions";
+import type { Tables } from "@/types/database";
 
 export function RequestChangeModal({
   lessonId,
   currentDate,
   currentStartTime,
+  subjects,
 }: {
   lessonId: string;
   currentDate: string;
   currentStartTime: string;
+  subjects: Tables<"subjects">[];
 }) {
   const [open, setOpen] = useState(false);
   const [requestType, setRequestType] = useState<"reschedule" | "cancel">("reschedule");
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
+  const [subjectId, setSubjectId] = useState("");
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -35,6 +39,7 @@ export function RequestChangeModal({
     setRequestType("reschedule");
     setDate("");
     setStartTime("");
+    setSubjectId("");
     setReason("");
     setError(null);
     setSuccess(false);
@@ -53,6 +58,7 @@ export function RequestChangeModal({
     if (requestType === "reschedule") {
       formData.set("requested_date", date);
       formData.set("requested_start_time", startTime);
+      if (subjectId) formData.set("requested_subject_id", subjectId);
     }
     if (reason) formData.set("reason", reason);
 
@@ -124,6 +130,21 @@ export function RequestChangeModal({
               </Field>
               <Field label="שעה חדשה" htmlFor="rc-time">
                 <TimeSlotSelect id="rc-time" value={startTime} onChange={setStartTime} required />
+              </Field>
+              <Field label="מקצוע חדש (אופציונלי)" htmlFor="rc-subject">
+                <select
+                  id="rc-subject"
+                  value={subjectId}
+                  onChange={(e) => setSubjectId(e.target.value)}
+                  className="rounded-control border border-border bg-background px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-accent"
+                >
+                  <option value="">ללא שינוי</option>
+                  {subjects.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
               </Field>
             </>
           )}

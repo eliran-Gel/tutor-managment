@@ -51,6 +51,7 @@ export default async function PortalLessonsPage() {
                   lessonId={lesson.id}
                   currentDate={lesson.date}
                   currentStartTime={lesson.start_time}
+                  subjects={subjects ?? []}
                 />
               )}
             </div>

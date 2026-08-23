@@ -17,6 +17,7 @@ const changeRequestSchema = z
       .regex(/^\d{2}:\d{2}$/)
       .refine(isValidTimeSlot, "השעה חייבת להיות בכפולות של רבע שעה")
       .nullable(),
+    requested_subject_id: z.string().uuid().nullable(),
     reason: z.string().trim().nullable(),
   })
   .refine((v) => v.request_type === "cancel" || (v.requested_date && v.requested_start_time), {
@@ -36,6 +37,7 @@ export async function requestLessonChange(formData: FormData) {
     request_type: formData.get("request_type"),
     requested_date: (formData.get("requested_date") as string) || null,
     requested_start_time: (formData.get("requested_start_time") as string) || null,
+    requested_subject_id: (formData.get("requested_subject_id") as string) || null,
     reason: (formData.get("reason") as string) || null,
   });
   if (!parsed.success) {
@@ -68,6 +70,7 @@ export async function requestLessonChange(formData: FormData) {
     p_requested_date: input.requested_date ?? "",
     p_requested_start_time: input.requested_start_time ? `${input.requested_start_time}:00` : "",
     p_requested_end_time: requestedEndTime ? `${requestedEndTime}:00` : "",
+    p_requested_subject_id: input.requested_subject_id ?? "",
     p_reason: input.reason ?? "",
   });
   if (error) return { error: error.message };

@@ -16,7 +16,7 @@ export default async function RequestsPage() {
     supabase
       .from("change_requests")
       .select(
-        "*, requester:profiles!change_requests_requested_by_fkey(full_name, email), lessons(date, start_time, end_time, subjects(name))",
+        "*, requester:profiles!change_requests_requested_by_fkey(full_name, email), lessons(date, start_time, end_time, subjects(name)), requested_subject:subjects!change_requests_requested_subject_id_fkey(name)",
       )
       .eq("status", "pending")
       .order("created_at"),
@@ -86,6 +86,11 @@ export default async function RequestsPage() {
                 <p className="mt-1 break-words text-sm font-medium text-status-selected">
                   לתאריך חדש: {formatIsoDateWithWeekday(cr.requested_date)} ·{" "}
                   {cr.requested_start_time?.slice(0, 5)}–{cr.requested_end_time?.slice(0, 5)}
+                </p>
+              )}
+              {cr.requested_subject && (
+                <p className="mt-1 break-words text-sm font-medium text-status-selected">
+                  מקצוע חדש: {cr.requested_subject.name}
                 </p>
               )}
               {cr.reason && <p className="mt-1 break-words text-sm text-text-muted">{cr.reason}</p>}

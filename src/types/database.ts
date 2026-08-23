@@ -107,6 +107,7 @@ export type Database = {
           requested_date: string | null
           requested_end_time: string | null
           requested_start_time: string | null
+          requested_subject_id: string | null
           resolved_at: string | null
           resolved_by: string | null
           status: Database["public"]["Enums"]["change_request_status"]
@@ -121,6 +122,7 @@ export type Database = {
           requested_date?: string | null
           requested_end_time?: string | null
           requested_start_time?: string | null
+          requested_subject_id?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
           status?: Database["public"]["Enums"]["change_request_status"]
@@ -135,6 +137,7 @@ export type Database = {
           requested_date?: string | null
           requested_end_time?: string | null
           requested_start_time?: string | null
+          requested_subject_id?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
           status?: Database["public"]["Enums"]["change_request_status"]
@@ -152,6 +155,13 @@ export type Database = {
             columns: ["requested_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "change_requests_requested_subject_id_fkey"
+            columns: ["requested_subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
             referencedColumns: ["id"]
           },
           {
@@ -547,6 +557,7 @@ export type Database = {
           requested_date: string | null
           requested_end_time: string | null
           requested_start_time: string | null
+          requested_subject_id: string | null
           resolved_at: string | null
           resolved_by: string | null
           status: Database["public"]["Enums"]["change_request_status"]
@@ -674,6 +685,7 @@ export type Database = {
           requested_date: string | null
           requested_end_time: string | null
           requested_start_time: string | null
+          requested_subject_id: string | null
           resolved_at: string | null
           resolved_by: string | null
           status: Database["public"]["Enums"]["change_request_status"]
@@ -693,6 +705,7 @@ export type Database = {
           p_requested_date: string
           p_requested_end_time: string
           p_requested_start_time: string
+          p_requested_subject_id: string
         }
         Returns: {
           created_at: string
@@ -704,6 +717,7 @@ export type Database = {
           requested_date: string | null
           requested_end_time: string | null
           requested_start_time: string | null
+          requested_subject_id: string | null
           resolved_at: string | null
           resolved_by: string | null
           status: Database["public"]["Enums"]["change_request_status"]
