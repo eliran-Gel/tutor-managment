@@ -34,13 +34,13 @@ export default async function StudentDetailPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold text-text-primary">{student.display_name}</h1>
-          {student.is_guest && <Badge tone="pending">אורח/ת</Badge>}
-          {student.archived_at && <Badge tone="destructive">בארכיון</Badge>}
+      <div className="flex min-w-0 flex-col gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
+          <h1 className="min-w-0 break-words text-xl font-bold text-text-primary">{student.display_name}</h1>
+          {student.is_guest && <Badge tone="pending" className="shrink-0">אורח/ת</Badge>}
+          {student.archived_at && <Badge tone="destructive" className="shrink-0">בארכיון</Badge>}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <ArchiveButton studentId={student.id} archived={Boolean(student.archived_at)} />
           <DeleteStudentButton studentId={student.id} studentName={student.display_name} />
         </div>

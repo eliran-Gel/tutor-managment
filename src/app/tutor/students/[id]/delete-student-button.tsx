@@ -20,11 +20,11 @@ export function DeleteStudentButton({ studentId, studentName }: { studentId: str
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-status-destructive">
-          למחוק את {studentName} לצמיתות? כל היסטוריית השיעורים שלו/ה תימחק. לא ניתן לבטל.
-        </span>
+    <div className="flex w-full min-w-0 flex-col items-end gap-2 sm:w-auto">
+      <span className="w-full break-words text-sm text-status-destructive sm:text-end">
+        למחוק את {studentName} לצמיתות? כל היסטוריית השיעורים שלו/ה תימחק. לא ניתן לבטל.
+      </span>
+      <div className="flex shrink-0 items-center gap-2">
         <Button type="button" variant="secondary" disabled={isPending} onClick={() => setConfirming(false)}>
           ביטול
         </Button>

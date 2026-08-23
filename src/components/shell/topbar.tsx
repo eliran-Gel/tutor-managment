@@ -30,11 +30,11 @@ export function Topbar({
         </svg>
       </button>
 
-      <div className="flex items-center gap-4">
+      <div className="flex min-w-0 items-center gap-4">
         {userName && profileHref && (
           <Link
             href={profileHref}
-            className="hidden text-sm font-medium text-text-primary transition-transform duration-200 hover:text-brand-accent active:scale-90 md:inline"
+            className="hidden max-w-40 truncate text-sm font-medium text-text-primary transition-transform duration-200 hover:text-brand-accent active:scale-90 md:inline"
           >
             {userName}
           </Link>

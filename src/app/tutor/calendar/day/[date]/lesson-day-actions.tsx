@@ -11,9 +11,9 @@ export function LessonDayActions({ lessonId }: { lessonId: string }) {
 
   if (confirming) {
     return (
-      <div className="flex flex-col items-end gap-1">
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-status-destructive">לבטל את השיעור?</span>
+      <div className="flex w-full min-w-0 flex-col items-end gap-2 sm:w-auto">
+        <span className="w-full break-words text-xs text-status-destructive sm:text-end">לבטל את השיעור?</span>
+        <div className="flex shrink-0 items-center gap-2">
           <Button type="button" variant="secondary" disabled={isPending} onClick={() => setConfirming(false)}>
             חזרה
           </Button>
