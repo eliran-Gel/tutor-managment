@@ -10,8 +10,30 @@ const rubik = Rubik({
 });
 
 export const metadata: Metadata = {
-  title: "אלירן גלברג - מורה פרטי | ניהול",
-  description: "מערכת ניהול לעסק ההוראה הפרטית",
+  metadataBase: new URL("https://elirangelberg.com"),
+  title: {
+    default: "אלירן גלברג - מורה פרטי | ניהול",
+    template: "%s | אלירן גלברג - מורה פרטי",
+  },
+  description:
+    "אלירן גלברג, מורה פרטי למתמטיקה, פיזיקה ומחשבים. קביעת שיעורים, מעקב התקדמות וסיכומי שיעור לתלמידים ולהורים.",
+  keywords: ["אלירן גלברג", "מורה פרטי", "שיעורים פרטיים", "מתמטיקה", "פיזיקה", "מחשבים"],
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "אלירן גלברג - מורה פרטי",
+    description: "מורה פרטי למתמטיקה, פיזיקה ומחשבים. קביעת שיעורים וניהול התקדמות לתלמידים ולהורים.",
+    url: "https://elirangelberg.com",
+    siteName: "אלירן גלברג - מורה פרטי",
+    locale: "he_IL",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "אלירן גלברג - מורה פרטי",
+    description: "מורה פרטי למתמטיקה, פיזיקה ומחשבים.",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
