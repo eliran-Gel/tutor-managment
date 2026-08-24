@@ -14,6 +14,7 @@ export const tutorNav: NavItem[] = [
   { label: "הכנסות וסטטיסטיקות", href: "/tutor/analytics" },
   { label: "חסימת שעות", href: "/tutor/availability" },
   { label: "הגדרות", href: "/tutor/settings" },
+  { label: "פרופיל", href: "/tutor/profile" },
 ];
 
 export const portalNav: NavItem[] = [
