@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# real-data snapshots (region migration safety net - contains real user data)
+/migration-backup
