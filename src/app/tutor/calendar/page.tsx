@@ -73,33 +73,33 @@ export default async function CalendarPage({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-xl font-bold text-text-primary">יומן</h1>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/tutor/calendar"
             aria-disabled={isViewingCurrentMonth}
             className={cn(
-              "rounded-control border border-border px-3 py-1.5 text-sm font-medium text-text-secondary transition-transform duration-200 hover:bg-surface-muted active:scale-90",
+              "shrink-0 whitespace-nowrap rounded-control border border-border px-3 py-1.5 text-sm font-medium text-text-secondary transition-transform duration-200 hover:bg-surface-muted active:scale-90",
               isViewingCurrentMonth && "pointer-events-none opacity-40",
             )}
           >
             היום
           </Link>
 
-          <div className="flex items-center gap-1">
+          <div className="flex shrink-0 items-center gap-1">
             <Link
               href={`/tutor/calendar?year=${prevMonth.year}&month=${prevMonth.month}`}
               aria-label="חודש קודם"
-              className="flex h-8 w-8 items-center justify-center rounded-control border border-border text-text-secondary transition-transform duration-200 hover:bg-surface-muted active:scale-85"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control border border-border text-text-secondary transition-transform duration-200 hover:bg-surface-muted active:scale-85"
             >
               ‹
             </Link>
-            <p className="min-w-32 text-center text-sm font-medium text-text-primary">
+            <p className="min-w-32 shrink-0 whitespace-nowrap text-center text-sm font-medium text-text-primary">
               {HEBREW_MONTHS[month - 1]} {year}
             </p>
             <Link
               href={`/tutor/calendar?year=${nextMonth.year}&month=${nextMonth.month}`}
               aria-label="חודש הבא"
-              className="flex h-8 w-8 items-center justify-center rounded-control border border-border text-text-secondary transition-transform duration-200 hover:bg-surface-muted active:scale-85"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control border border-border text-text-secondary transition-transform duration-200 hover:bg-surface-muted active:scale-85"
             >
               ›
             </Link>
