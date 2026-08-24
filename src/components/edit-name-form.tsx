@@ -15,11 +15,16 @@ export function EditNameForm({ userId, currentName }: { userId: string; currentN
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const trimmed = name.trim();
+    if (trimmed.length > 40) {
+      setStatus({ type: "error", message: "שם יכול להכיל עד 40 תווים" });
+      return;
+    }
     setStatus({ type: "loading" });
     const supabase = createClient();
     const { error } = await supabase
       .from("profiles")
-      .update({ full_name: name.trim() || null })
+      .update({ full_name: trimmed || null })
       .eq("id", userId);
     if (error) {
       setStatus({ type: "error", message: error.message });
@@ -37,6 +42,7 @@ export function EditNameForm({ userId, currentName }: { userId: string; currentN
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="השם שיוצג במערכת"
+          maxLength={40}
         />
       </Field>
       {status.type === "error" && <p className="text-sm text-status-destructive">{status.message}</p>}

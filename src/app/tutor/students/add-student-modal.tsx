@@ -40,7 +40,7 @@ export function AddStudentModal() {
             ניתן להוסיף תלמיד/ה גם ללא כתובת אימייל — יישאר/תישאר תלמיד/ה אורח/ת עד לחיבור חשבון.
           </p>
           <Field label="שם מלא" htmlFor="display_name">
-            <TextInput id="display_name" name="display_name" required autoFocus />
+            <TextInput id="display_name" name="display_name" required autoFocus maxLength={40} />
           </Field>
           <Field label="כיתה" htmlFor="grade">
             <select

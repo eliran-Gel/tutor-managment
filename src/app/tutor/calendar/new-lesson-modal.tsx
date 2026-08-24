@@ -202,6 +202,7 @@ export function NewLessonModal({ students, subjects }: { students: Student[]; su
                     value={p.newName}
                     onChange={(e) => updateParticipant(i, "newName", e.target.value)}
                     className="min-w-0 flex-1"
+                    maxLength={40}
                   />
                 )}
                 {lessonType === "group" && participants.length > 1 && (

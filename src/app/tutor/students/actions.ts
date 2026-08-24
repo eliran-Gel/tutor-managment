@@ -6,7 +6,7 @@ import { requireTutor } from "@/lib/auth/require-tutor";
 import { currentSchoolYear } from "@/lib/grades";
 
 const studentInputSchema = z.object({
-  display_name: z.string().trim().min(1, "שם נדרש"),
+  display_name: z.string().trim().min(1, "שם נדרש").max(40, "שם יכול להכיל עד 40 תווים"),
   grade: z.coerce.number().int().min(1).max(12).nullable(),
   school_name: z.string().trim().min(1).nullable(),
 });

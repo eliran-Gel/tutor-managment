@@ -114,6 +114,7 @@ export async function createGuestStudentQuick(displayName: string) {
 
   const name = displayName.trim();
   if (!name) return { error: "יש להזין שם" };
+  if (name.length > 40) return { error: "שם יכול להכיל עד 40 תווים" };
 
   const { data, error } = await supabase
     .from("students")

@@ -34,7 +34,13 @@ export function EditStudentForm({ student }: { student: Tables<"students"> }) {
       }}
     >
       <Field label="שם מלא" htmlFor="display_name">
-        <TextInput id="display_name" name="display_name" defaultValue={student.display_name} required />
+        <TextInput
+          id="display_name"
+          name="display_name"
+          defaultValue={student.display_name}
+          required
+          maxLength={40}
+        />
       </Field>
       <Field label="כיתה" htmlFor="grade">
         <select
