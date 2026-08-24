@@ -30,7 +30,12 @@
 }
 
 html {
-  overflow-x: hidden;
+  /* auto, not hidden: if something still overflows (a bug we haven't
+     found, or an edge case - very long unbroken text, unusual font size)
+     scrolling sideways is the escape hatch to actually reach it. hidden
+     looks identical when nothing overflows but silently traps content
+     that does, with no way to reach it - happened in practice. */
+  overflow-x: auto;
   /* Without this, iOS/Android also flash their own gray tap-highlight box
      on every press, on top of our custom active: press animations. */
   -webkit-tap-highlight-color: transparent;
@@ -40,7 +45,7 @@ body {
   background: var(--background);
   color: var(--text-primary);
   font-family: var(--font-rubik), Arial, Helvetica, sans-serif;
-  overflow-x: hidden;
+  overflow-x: auto;
   max-width: 100vw;
   /* Global, automatic guarantee against the "one long unbroken word forces
      the whole layout wider than the screen" bug (emails, URLs, long names)
