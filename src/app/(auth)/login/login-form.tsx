@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,18 @@ export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<Status>({ type: "idle" });
+
+  useEffect(() => {
+    // Reading the ?error= query param requires the browser URL, which
+    // isn't available during SSR - this one-time check on mount is
+    // intentional (surfaces a failed /auth/callback redirect as an error
+    // message instead of silently landing back on this page).
+    /* eslint-disable react-hooks/set-state-in-effect */
+    if (new URLSearchParams(window.location.search).get("error") === "auth") {
+      setStatus({ type: "error", message: "קישור ההתחברות פג תוקף או שכבר נעשה בו שימוש. יש לנסות שוב." });
+    }
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
 
   async function signInWithGoogle() {
     setStatus({ type: "loading-google" });
@@ -152,6 +165,13 @@ export function LoginForm() {
       >
         {mode === "magic-link" ? "יש לך סיסמה? התחברות עם סיסמה" : "התחברות עם קישור באימייל"}
       </button>
+
+      <Link
+        href="/signup"
+        className="text-center text-xs font-medium text-text-muted transition-transform duration-200 hover:text-text-secondary active:scale-90"
+      >
+        עדיין אין לך חשבון? הרשמה
+      </Link>
     </div>
   );
 }
