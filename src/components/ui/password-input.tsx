@@ -14,7 +14,7 @@ export function PasswordInput({
       <input
         type={visible ? "text" : "password"}
         className={cn(
-          "w-full rounded-control border border-border bg-background py-2 pe-3 ps-9 text-sm text-text-primary",
+          "w-full rounded-control border border-border bg-background py-2 pe-3 ps-11 text-sm text-text-primary",
           "placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-accent",
           className,
         )}
@@ -24,7 +24,7 @@ export function PasswordInput({
         type="button"
         onClick={() => setVisible((v) => !v)}
         aria-label={visible ? "הסתרת סיסמה" : "הצגת סיסמה"}
-        className="absolute inset-y-0 start-0 flex w-9 items-center justify-center text-text-muted transition-transform duration-200 hover:text-text-secondary active:scale-85"
+        className="absolute inset-y-0 start-0 flex w-11 items-center justify-center text-text-muted transition-transform duration-200 hover:text-text-secondary active:scale-85"
       >
         {visible ? (
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
