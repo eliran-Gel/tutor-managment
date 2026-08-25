@@ -139,18 +139,14 @@ export async function requestLesson(formData: FormData) {
   if (blocked) return { error: "הזמן המבוקש חסום ואינו זמין" };
   if (doubleBooked) return { error: "יש כבר שיעור מאושר בזמן הזה" };
 
-  const { error } = await supabase.from("lessons").insert({
-    date: input.date,
-    start_time: `${input.start_time}:00`,
-    end_time: `${endTime}:00`,
-    duration_minutes: input.duration_minutes,
-    lesson_type: "individual",
-    delivery_mode: input.delivery_mode,
-    subject_id: input.subject_id,
-    topic: input.topic,
-    status: "requested",
-    source: "student_request",
-    created_by: user.id,
+  const { error } = await supabase.rpc("request_lesson", {
+    p_date: input.date,
+    p_start_time: `${input.start_time}:00`,
+    p_end_time: `${endTime}:00`,
+    p_duration_minutes: input.duration_minutes,
+    p_delivery_mode: input.delivery_mode,
+    p_subject_id: input.subject_id,
+    p_topic: input.topic ?? "",
   });
   if (error) return { error: error.message };
 

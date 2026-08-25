@@ -325,6 +325,47 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          link_path: string | null
+          read_at: string | null
+          recipient_profile_id: string
+          title: string
+          type: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link_path?: string | null
+          read_at?: string | null
+          recipient_profile_id: string
+          title: string
+          type: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          link_path?: string | null
+          read_at?: string | null
+          recipient_profile_id?: string
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_recipient_profile_id_fkey"
+            columns: ["recipient_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parent_students: {
         Row: {
           created_at: string
@@ -630,44 +671,94 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      create_manual_lesson: {
+      create_manual_lesson:
+        | {
+            Args: {
+              p_date: string
+              p_delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+              p_duration_minutes: number
+              p_end_time: string
+              p_forced: boolean
+              p_lesson_type: Database["public"]["Enums"]["lesson_type"]
+              p_online_url: string
+              p_participants: Json
+              p_start_time: string
+              p_subject_id: string
+              p_topic: string
+            }
+            Returns: {
+              created_at: string
+              created_by: string
+              date: string
+              delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+              duration_minutes: number
+              end_time: string
+              forced: boolean
+              id: string
+              lesson_type: Database["public"]["Enums"]["lesson_type"]
+              online_url: string | null
+              source: Database["public"]["Enums"]["lesson_source"]
+              start_time: string
+              status: Database["public"]["Enums"]["lesson_status"]
+              subject_id: string | null
+              topic: string | null
+              updated_at: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "lessons"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              p_date: string
+              p_delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+              p_duration_minutes: number
+              p_end_time: string
+              p_forced: boolean
+              p_lesson_type: Database["public"]["Enums"]["lesson_type"]
+              p_online_url: string
+              p_start_time: string
+              p_student_ids: string[]
+              p_subject_id: string
+              p_topic: string
+            }
+            Returns: {
+              created_at: string
+              created_by: string
+              date: string
+              delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+              duration_minutes: number
+              end_time: string
+              forced: boolean
+              id: string
+              lesson_type: Database["public"]["Enums"]["lesson_type"]
+              online_url: string | null
+              source: Database["public"]["Enums"]["lesson_source"]
+              start_time: string
+              status: Database["public"]["Enums"]["lesson_status"]
+              subject_id: string | null
+              topic: string | null
+              updated_at: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "lessons"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+      create_notification: {
         Args: {
-          p_date: string
-          p_delivery_mode: Database["public"]["Enums"]["delivery_mode"]
-          p_duration_minutes: number
-          p_end_time: string
-          p_forced: boolean
-          p_lesson_type: Database["public"]["Enums"]["lesson_type"]
-          p_online_url: string
-          p_start_time: string
-          p_student_ids: string[]
-          p_subject_id: string
-          p_topic: string
+          p_body: string
+          p_link_path: string
+          p_recipient: string
+          p_title: string
+          p_type: string
         }
-        Returns: {
-          created_at: string
-          created_by: string
-          date: string
-          delivery_mode: Database["public"]["Enums"]["delivery_mode"]
-          duration_minutes: number
-          end_time: string
-          forced: boolean
-          id: string
-          lesson_type: Database["public"]["Enums"]["lesson_type"]
-          online_url: string | null
-          source: Database["public"]["Enums"]["lesson_source"]
-          start_time: string
-          status: Database["public"]["Enums"]["lesson_status"]
-          subject_id: string | null
-          topic: string | null
-          updated_at: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "lessons"
-          isOneToOne: true
-          isSetofReturn: false
-        }
+        Returns: undefined
       }
       delete_student: { Args: { p_student_id: string }; Returns: undefined }
       is_parent_of: { Args: { target_student_id: string }; Returns: boolean }
@@ -693,6 +784,68 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "change_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      reject_lesson_request: {
+        Args: { target_lesson_id: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          date: string
+          delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+          duration_minutes: number
+          end_time: string
+          forced: boolean
+          id: string
+          lesson_type: Database["public"]["Enums"]["lesson_type"]
+          online_url: string | null
+          source: Database["public"]["Enums"]["lesson_source"]
+          start_time: string
+          status: Database["public"]["Enums"]["lesson_status"]
+          subject_id: string | null
+          topic: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lessons"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      request_lesson: {
+        Args: {
+          p_date: string
+          p_delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+          p_duration_minutes: number
+          p_end_time: string
+          p_start_time: string
+          p_subject_id: string
+          p_topic: string
+        }
+        Returns: {
+          created_at: string
+          created_by: string
+          date: string
+          delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+          duration_minutes: number
+          end_time: string
+          forced: boolean
+          id: string
+          lesson_type: Database["public"]["Enums"]["lesson_type"]
+          online_url: string | null
+          source: Database["public"]["Enums"]["lesson_source"]
+          start_time: string
+          status: Database["public"]["Enums"]["lesson_status"]
+          subject_id: string | null
+          topic: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lessons"
           isOneToOne: true
           isSetofReturn: false
         }

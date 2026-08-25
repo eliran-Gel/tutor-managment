@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import type { NavItem } from "@/lib/nav";
+import type { NotificationRow } from "@/lib/notifications";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 
@@ -11,12 +12,16 @@ export function AppShell({
   roleLabel,
   userName,
   profileHref,
+  userId,
+  notifications,
   children,
 }: {
   items: NavItem[];
   roleLabel: string;
   userName?: string | null;
   profileHref?: string;
+  userId?: string | null;
+  notifications?: NotificationRow[];
   children: ReactNode;
 }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -56,7 +61,13 @@ export function AppShell({
       )}
 
       <div className="flex min-w-0 min-h-full flex-1 flex-col">
-        <Topbar onMenuClick={() => setMobileNavOpen(true)} userName={userName} profileHref={profileHref} />
+        <Topbar
+          onMenuClick={() => setMobileNavOpen(true)}
+          userName={userName}
+          profileHref={profileHref}
+          userId={userId}
+          notifications={notifications}
+        />
         <main className="min-w-0 flex-1 bg-background px-4 py-6 md:px-8">{children}</main>
       </div>
     </div>

@@ -29,11 +29,7 @@ export async function approveRequest(lessonId: string) {
 export async function rejectRequest(lessonId: string) {
   const { supabase } = await requireTutor();
 
-  const { error } = await supabase
-    .from("lessons")
-    .update({ status: "rejected" })
-    .eq("id", lessonId)
-    .eq("status", "requested");
+  const { error } = await supabase.rpc("reject_lesson_request", { target_lesson_id: lessonId });
   if (error) throw new Error(error.message);
 
   revalidateRequestPaths();
