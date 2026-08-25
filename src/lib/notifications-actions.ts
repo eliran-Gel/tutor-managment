@@ -23,3 +23,13 @@ export async function markAllNotificationsRead(profileId: string) {
     .eq("recipient_profile_id", profileId)
     .is("read_at", null);
 }
+
+export async function deleteNotification(id: string) {
+  const supabase = await createClient();
+  await supabase.from("notifications").delete().eq("id", id);
+}
+
+export async function deleteAllNotifications(profileId: string) {
+  const supabase = await createClient();
+  await supabase.from("notifications").delete().eq("recipient_profile_id", profileId);
+}

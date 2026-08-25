@@ -33,6 +33,7 @@ export type ManualLessonInput = z.infer<typeof manualLessonSchema>;
 
 function revalidateLessonPaths() {
   revalidatePath("/tutor/calendar");
+  revalidatePath("/tutor/calendar/day/[date]", "page");
   revalidatePath("/tutor/dashboard");
   revalidatePath("/tutor/students");
   revalidatePath("/portal/lessons");

@@ -7,6 +7,7 @@ function revalidateRequestPaths() {
   revalidatePath("/tutor/requests");
   revalidatePath("/tutor/dashboard");
   revalidatePath("/tutor/calendar");
+  revalidatePath("/tutor/calendar/day/[date]", "page");
   revalidatePath("/portal/lessons");
   revalidatePath("/portal/dashboard");
 }

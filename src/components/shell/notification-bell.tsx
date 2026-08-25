@@ -1,10 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatAppTime } from "@/lib/dates/timezone";
-import { markNotificationRead, markAllNotificationsRead, fetchRecentNotifications } from "@/lib/notifications-actions";
+import {
+  markNotificationRead,
+  markAllNotificationsRead,
+  fetchRecentNotifications,
+  deleteNotification,
+  deleteAllNotifications,
+} from "@/lib/notifications-actions";
 import type { NotificationRow } from "@/lib/notifications";
 
 export function NotificationBell({
@@ -17,6 +23,7 @@ export function NotificationBell({
   const router = useRouter();
   const [notifications, setNotifications] = useState(initialNotifications);
   const [open, setOpen] = useState(false);
+  const [confirmingDeleteAll, setConfirmingDeleteAll] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.filter((n) => !n.read_at).length;
@@ -95,6 +102,18 @@ export function NotificationBell({
     await markAllNotificationsRead(userId);
   }
 
+  async function handleDeleteOne(e: ReactMouseEvent, id: string) {
+    e.stopPropagation();
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    await deleteNotification(id);
+  }
+
+  async function handleDeleteAll() {
+    setConfirmingDeleteAll(false);
+    setNotifications([]);
+    await deleteAllNotifications(userId);
+  }
+
   return (
     <div ref={rootRef} className="relative">
       <button
@@ -115,17 +134,46 @@ export function NotificationBell({
 
       {open && (
         <div className="absolute end-0 z-20 mt-2 w-80 max-w-[90vw] overflow-hidden rounded-control border border-border bg-surface shadow-lg">
-          <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+          <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2.5">
             <p className="text-sm font-semibold text-text-primary">התראות</p>
-            {unreadCount > 0 && (
-              <button
-                type="button"
-                onClick={handleMarkAllRead}
-                className="text-xs font-medium text-brand-accent transition-transform duration-200 hover:underline active:scale-90"
-              >
-                סימון הכל כנקרא
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={handleMarkAllRead}
+                  className="text-xs font-medium text-brand-accent transition-transform duration-200 hover:underline active:scale-90"
+                >
+                  סימון הכל כנקרא
+                </button>
+              )}
+              {notifications.length > 0 &&
+                (confirmingDeleteAll ? (
+                  <span className="flex items-center gap-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setConfirmingDeleteAll(false)}
+                      className="font-medium text-text-secondary hover:underline"
+                    >
+                      ביטול
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeleteAll}
+                      className="font-medium text-status-destructive hover:underline"
+                    >
+                      מחיקת הכל?
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmingDeleteAll(true)}
+                    className="text-xs font-medium text-text-secondary transition-transform duration-200 hover:text-status-destructive hover:underline active:scale-90"
+                  >
+                    מחיקת הכל
+                  </button>
+                ))}
+            </div>
           </div>
 
           <div className="max-h-96 overflow-y-auto">
@@ -133,18 +181,30 @@ export function NotificationBell({
               <p className="px-4 py-6 text-center text-sm text-text-muted">אין התראות כרגע.</p>
             ) : (
               notifications.map((n) => (
-                <button
+                <div
                   key={n.id}
-                  type="button"
-                  onClick={() => handleClickNotification(n)}
-                  className={`block w-full border-b border-border px-4 py-3 text-right text-sm transition-colors duration-200 last:border-b-0 hover:bg-surface-muted ${
-                    n.read_at ? "" : "bg-status-selected-bg"
-                  }`}
+                  className={`group relative border-b border-border last:border-b-0 ${n.read_at ? "" : "bg-status-selected-bg"}`}
                 >
-                  <p className="font-medium text-text-primary">{n.title}</p>
-                  {n.body && <p className="mt-0.5 break-words text-text-secondary">{n.body}</p>}
-                  <p className="mt-1 text-xs text-text-muted">{formatAppTime(n.created_at, "dd/MM/yyyy HH:mm")}</p>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => handleClickNotification(n)}
+                    className="block w-full px-4 py-3 pe-9 text-right text-sm transition-colors duration-200 hover:bg-surface-muted"
+                  >
+                    <p className="font-medium text-text-primary">{n.title}</p>
+                    {n.body && <p className="mt-0.5 break-words text-text-secondary">{n.body}</p>}
+                    <p className="mt-1 text-xs text-text-muted">{formatAppTime(n.created_at, "dd/MM/yyyy HH:mm")}</p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => handleDeleteOne(e, n.id)}
+                    aria-label="מחיקת התראה"
+                    className="absolute end-2 top-2.5 flex h-6 w-6 items-center justify-center rounded-full text-text-muted transition-colors duration-200 hover:bg-surface-muted hover:text-status-destructive"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
+                      <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                    </svg>
+                  </button>
+                </div>
               ))
             )}
           </div>
