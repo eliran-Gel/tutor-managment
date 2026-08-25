@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatAppTime } from "@/lib/dates/timezone";
-import { markNotificationRead, markAllNotificationsRead } from "@/lib/notifications-actions";
+import { markNotificationRead, markAllNotificationsRead, fetchRecentNotifications } from "@/lib/notifications-actions";
 import type { NotificationRow } from "@/lib/notifications";
 
 export function NotificationBell({
@@ -46,6 +46,37 @@ export function NotificationBell({
 
     return () => {
       supabase.removeChannel(channel);
+    };
+  }, [userId]);
+
+  // Realtime's websocket can silently die on a backgrounded/idle tab
+  // without the INSERT subscription visibly erroring - this re-syncs
+  // straight from the server whenever the tab regains focus, and every
+  // minute in the background as a belt-and-suspenders fallback, so the
+  // bell can't get permanently stuck stale.
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refresh() {
+      const fresh = await fetchRecentNotifications(userId);
+      if (!cancelled) setNotifications(fresh);
+    }
+
+    function onVisible() {
+      if (document.visibilityState === "visible") refresh();
+    }
+
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") refresh();
+    }, 60000);
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+      clearInterval(interval);
     };
   }, [userId]);
 
