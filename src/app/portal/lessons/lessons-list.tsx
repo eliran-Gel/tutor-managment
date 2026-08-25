@@ -118,6 +118,7 @@ export function LessonsList({ lessons, subjects, isTutor }: { lessons: LessonRow
                   lessonId={lesson.id}
                   currentDate={lesson.date}
                   currentStartTime={lesson.start_time}
+                  currentDurationMinutes={lesson.duration_minutes}
                   subjects={subjects}
                 />
               )}

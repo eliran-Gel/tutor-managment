@@ -4,11 +4,19 @@ import { useRef, useState, useTransition } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Field, TextInput } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { TimeSlotSelect } from "@/components/ui/time-slot-select";
+import { generateTimeSlots } from "@/lib/time-slots";
 import { createAvailabilityBlock } from "./actions";
+
+// The lesson-booking grid only spans 07:00-22:45; a blocked period can
+// reasonably start or end outside working hours, so this covers the full day.
+const FULL_DAY_SLOTS = generateTimeSlots(0, 24);
 
 export function AddBlockModal() {
   const [open, setOpen] = useState(false);
   const [allDay, setAllDay] = useState(false);
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
@@ -30,6 +38,8 @@ export function AddBlockModal() {
                 await createAvailabilityBlock(formData);
                 formRef.current?.reset();
                 setAllDay(false);
+                setStartTime("");
+                setEndTime("");
                 setOpen(false);
               } catch (e) {
                 setError(e instanceof Error ? e.message : "שגיאה לא צפויה");
@@ -54,10 +64,24 @@ export function AddBlockModal() {
           {!allDay && (
             <div className="grid grid-cols-2 gap-3">
               <Field label="משעה" htmlFor="start_time">
-                <TextInput id="start_time" name="start_time" type="time" required={!allDay} />
+                <TimeSlotSelect
+                  id="start_time"
+                  name="start_time"
+                  value={startTime}
+                  onChange={setStartTime}
+                  required={!allDay}
+                  slots={FULL_DAY_SLOTS}
+                />
               </Field>
               <Field label="עד שעה" htmlFor="end_time">
-                <TextInput id="end_time" name="end_time" type="time" required={!allDay} />
+                <TimeSlotSelect
+                  id="end_time"
+                  name="end_time"
+                  value={endTime}
+                  onChange={setEndTime}
+                  required={!allDay}
+                  slots={FULL_DAY_SLOTS}
+                />
               </Field>
             </div>
           )}

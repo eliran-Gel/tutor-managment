@@ -1,11 +1,57 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { toAppTime } from "@/lib/dates/timezone";
-import { blocksForDate } from "@/lib/availability";
+import { blocksForDate, type AvailabilityBlock } from "@/lib/availability";
+import { generateTimeSlots } from "@/lib/time-slots";
 import type { Database } from "@/types/database";
 
 export function timeStrToMinutes(t: string) {
   const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
+}
+
+type ExistingLesson = { start_time: string; end_time: string };
+
+async function fetchDayConflictData(
+  supabase: SupabaseClient<Database>,
+  date: string,
+  excludeLessonId?: string,
+): Promise<{ dayBlocks: AvailabilityBlock[]; existing: ExistingLesson[] }> {
+  const dayLocal = new Date(`${date}T00:00:00`);
+  const { data: blocks } = await supabase.from("availability_blocks").select("*");
+  const dayBlocks = blocksForDate(blocks ?? [], dayLocal);
+
+  let query = supabase
+    .from("lessons")
+    .select("id, start_time, end_time")
+    .eq("date", date)
+    .eq("status", "confirmed");
+  if (excludeLessonId) query = query.neq("id", excludeLessonId);
+  const { data: existing } = await query;
+
+  return { dayBlocks, existing: existing ?? [] };
+}
+
+function conflictAt(
+  reqStartMin: number,
+  reqEndMin: number,
+  dayBlocks: AvailabilityBlock[],
+  existing: ExistingLesson[],
+) {
+  const blocked = dayBlocks.some((block) => {
+    const blockStart = toAppTime(block.start_at);
+    const blockEnd = toAppTime(block.end_at);
+    const blockStartMin = blockStart.getHours() * 60 + blockStart.getMinutes();
+    const blockEndMin = blockEnd.getHours() * 60 + blockEnd.getMinutes();
+    return reqStartMin < blockEndMin && reqEndMin > blockStartMin;
+  });
+
+  const doubleBooked = existing.some((l) => {
+    const existingStart = timeStrToMinutes(l.start_time.slice(0, 5));
+    const existingEnd = timeStrToMinutes(l.end_time.slice(0, 5));
+    return reqStartMin < existingEnd && reqEndMin > existingStart;
+  });
+
+  return { blocked, doubleBooked };
 }
 
 /**
@@ -21,35 +67,43 @@ export async function checkLessonConflicts(
   endTime: string,
   excludeLessonId?: string,
 ) {
-  const startLocal = new Date(`${date}T${startTime}:00`);
-  const reqStartMin = timeStrToMinutes(startTime);
-  const reqEndMin = timeStrToMinutes(endTime);
-
-  const { data: blocks } = await supabase.from("availability_blocks").select("*");
-  const dayBlocks = blocksForDate(blocks ?? [], startLocal);
-  const blocked = dayBlocks.some((block) => {
-    const blockStart = toAppTime(block.start_at);
-    const blockEnd = toAppTime(block.end_at);
-    const blockStartMin = blockStart.getHours() * 60 + blockStart.getMinutes();
-    const blockEndMin = blockEnd.getHours() * 60 + blockEnd.getMinutes();
-    return reqStartMin < blockEndMin && reqEndMin > blockStartMin;
-  });
-
-  let query = supabase
-    .from("lessons")
-    .select("id, start_time, end_time")
-    .eq("date", date)
-    .eq("status", "confirmed");
-  if (excludeLessonId) query = query.neq("id", excludeLessonId);
-  const { data: existing } = await query;
-
-  const doubleBooked = (existing ?? []).some((l) => {
-    const existingStart = timeStrToMinutes(l.start_time.slice(0, 5));
-    const existingEnd = timeStrToMinutes(l.end_time.slice(0, 5));
-    return reqStartMin < existingEnd && reqEndMin > existingStart;
-  });
-
+  const { dayBlocks, existing } = await fetchDayConflictData(supabase, date, excludeLessonId);
+  const { blocked, doubleBooked } = conflictAt(
+    timeStrToMinutes(startTime),
+    timeStrToMinutes(endTime),
+    dayBlocks,
+    existing,
+  );
   return { blocked, doubleBooked, hasConflict: blocked || doubleBooked };
+}
+
+/**
+ * Every start time (of the standard 15-minute grid) that a lesson of
+ * `durationMinutes` could start at on `date` without overlapping a blocked
+ * period or an existing confirmed lesson - so the picker only ever offers
+ * slots that would actually succeed, instead of surfacing the conflict only
+ * after submission. `excludeLessonId` lets a reschedule ignore the lesson's
+ * own current slot when checking itself for "conflicts".
+ */
+export async function getAvailableStartTimes(
+  supabase: SupabaseClient<Database>,
+  date: string,
+  durationMinutes: number,
+  excludeLessonId?: string,
+): Promise<string[]> {
+  const { dayBlocks, existing } = await fetchDayConflictData(supabase, date, excludeLessonId);
+
+  return generateTimeSlots().filter((slot) => {
+    const { endTime, crossesMidnight } = addMinutesToTime(slot, durationMinutes);
+    if (crossesMidnight) return false;
+    const { blocked, doubleBooked } = conflictAt(
+      timeStrToMinutes(slot),
+      timeStrToMinutes(endTime),
+      dayBlocks,
+      existing,
+    );
+    return !blocked && !doubleBooked;
+  });
 }
 
 export function addMinutesToTime(startTime: string, durationMinutes: number) {

@@ -1,16 +1,14 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Field, TextInput } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
+import { TimeSlotSelect } from "@/components/ui/time-slot-select";
 import { LESSON_DURATIONS } from "@/lib/lessons";
 import { calculateLessonPrice } from "@/lib/pricing";
-import { generateTimeSlots } from "@/lib/time-slots";
-import { requestLesson } from "./actions";
+import { requestLesson, getAvailableStartTimesAction } from "./actions";
 import type { Tables } from "@/types/database";
-
-const TIME_SLOTS = generateTimeSlots();
 
 export function RequestLessonModal({
   subjects,
@@ -20,7 +18,11 @@ export function RequestLessonModal({
   triggerClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [date, setDate] = useState("");
+  const [startTime, setStartTime] = useState("");
   const [duration, setDuration] = useState(60);
+  const [availableSlots, setAvailableSlots] = useState<string[] | undefined>(undefined);
+  const [slotsLoading, setSlotsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -30,6 +32,25 @@ export function RequestLessonModal({
   const maxDate = new Date(today);
   maxDate.setMonth(maxDate.getMonth() + 1);
   const toDateInput = (d: Date) => d.toISOString().slice(0, 10);
+
+  // Fetches available start times from the server whenever the date or
+  // duration changes - a genuine external-data sync, not derived state.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (!date) return;
+    let cancelled = false;
+    setSlotsLoading(true);
+    getAvailableStartTimesAction(date, duration).then((slots) => {
+      if (cancelled) return;
+      setAvailableSlots(slots);
+      setSlotsLoading(false);
+      setStartTime((prev) => (slots.includes(prev) ? prev : ""));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [date, duration]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return (
     <>
@@ -55,6 +76,9 @@ export function RequestLessonModal({
                 } else {
                   setSuccess(true);
                   formRef.current?.reset();
+                  setDate("");
+                  setStartTime("");
+                  setAvailableSlots(undefined);
                   setTimeout(() => {
                     setOpen(false);
                     setSuccess(false);
@@ -84,25 +108,11 @@ export function RequestLessonModal({
                 name="date"
                 type="date"
                 required
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
                 min={toDateInput(today)}
                 max={toDateInput(maxDate)}
               />
-            </Field>
-
-            <Field label="שעת התחלה" htmlFor="start_time">
-              <select
-                id="start_time"
-                name="start_time"
-                required
-                className="rounded-control border border-border bg-background px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-accent"
-              >
-                <option value="">בחר/י שעה</option>
-                {TIME_SLOTS.map((slot) => (
-                  <option key={slot} value={slot}>
-                    {slot}
-                  </option>
-                ))}
-              </select>
             </Field>
 
             <Field label="משך השיעור" htmlFor="duration_minutes">
@@ -119,6 +129,19 @@ export function RequestLessonModal({
                   </option>
                 ))}
               </select>
+            </Field>
+
+            <Field label="שעת התחלה" htmlFor="start_time">
+              <TimeSlotSelect
+                id="start_time"
+                name="start_time"
+                value={startTime}
+                onChange={setStartTime}
+                required
+                slots={date ? availableSlots : []}
+                loading={slotsLoading}
+                emptyMessage={date ? "כל השעות תפוסות ביום זה" : "יש לבחור תאריך קודם"}
+              />
             </Field>
 
             <p className="text-sm text-text-secondary">

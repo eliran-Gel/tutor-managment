@@ -1,23 +1,25 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Field, TextInput } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { TimeSlotSelect } from "@/components/ui/time-slot-select";
 import { formatIsoDate } from "@/lib/dates/format";
-import { requestLessonChange } from "./actions";
+import { requestLessonChange, getAvailableStartTimesAction } from "./actions";
 import type { Tables } from "@/types/database";
 
 export function RequestChangeModal({
   lessonId,
   currentDate,
   currentStartTime,
+  currentDurationMinutes,
   subjects,
 }: {
   lessonId: string;
   currentDate: string;
   currentStartTime: string;
+  currentDurationMinutes: number;
   subjects: Tables<"subjects">[];
 }) {
   const [open, setOpen] = useState(false);
@@ -26,6 +28,8 @@ export function RequestChangeModal({
   const [startTime, setStartTime] = useState("");
   const [subjectId, setSubjectId] = useState("");
   const [reason, setReason] = useState("");
+  const [availableSlots, setAvailableSlots] = useState<string[] | undefined>(undefined);
+  const [slotsLoading, setSlotsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -35,12 +39,32 @@ export function RequestChangeModal({
   maxDate.setMonth(maxDate.getMonth() + 1);
   const toDateInput = (d: Date) => d.toISOString().slice(0, 10);
 
+  // Fetches available start times from the server whenever the date
+  // changes - a genuine external-data sync, not derived state.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (!date || requestType !== "reschedule") return;
+    let cancelled = false;
+    setSlotsLoading(true);
+    getAvailableStartTimesAction(date, currentDurationMinutes, lessonId).then((slots) => {
+      if (cancelled) return;
+      setAvailableSlots(slots);
+      setSlotsLoading(false);
+      setStartTime((prev) => (slots.includes(prev) ? prev : ""));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [date, requestType, currentDurationMinutes, lessonId]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
   function reset() {
     setRequestType("reschedule");
     setDate("");
     setStartTime("");
     setSubjectId("");
     setReason("");
+    setAvailableSlots(undefined);
     setError(null);
     setSuccess(false);
   }
@@ -129,7 +153,15 @@ export function RequestChangeModal({
                 />
               </Field>
               <Field label="שעה חדשה" htmlFor="rc-time">
-                <TimeSlotSelect id="rc-time" value={startTime} onChange={setStartTime} required />
+                <TimeSlotSelect
+                  id="rc-time"
+                  value={startTime}
+                  onChange={setStartTime}
+                  required
+                  slots={date ? availableSlots : []}
+                  loading={slotsLoading}
+                  emptyMessage={date ? "כל השעות תפוסות ביום זה" : "יש לבחור תאריך קודם"}
+                />
               </Field>
               <Field label="מקצוע חדש (אופציונלי)" htmlFor="rc-subject">
                 <select

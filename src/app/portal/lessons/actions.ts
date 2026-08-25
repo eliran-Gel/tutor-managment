@@ -4,8 +4,17 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { LESSON_DURATIONS } from "@/lib/lessons";
-import { checkLessonConflicts, addMinutesToTime } from "@/lib/lesson-conflicts";
+import { checkLessonConflicts, addMinutesToTime, getAvailableStartTimes } from "@/lib/lesson-conflicts";
 import { isValidTimeSlot } from "@/lib/time-slots";
+
+export async function getAvailableStartTimesAction(
+  date: string,
+  durationMinutes: number,
+  excludeLessonId?: string,
+) {
+  const supabase = await createClient();
+  return getAvailableStartTimes(supabase, date, durationMinutes, excludeLessonId);
+}
 
 const changeRequestSchema = z
   .object({
