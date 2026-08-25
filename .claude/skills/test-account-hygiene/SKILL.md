@@ -13,6 +13,8 @@ This project has exactly one real tutor (`moto.eliran@gmail.com`). Every other s
 
 This happened repeatedly during initial development: a test tutor account named e.g. `test-icons+1787417354669@example.com` stayed visible in the real tutor's students list long after the "cleanup" step ran, because only the auth user was deleted. It surfaced as a real UI bug report (a long orphaned email-as-name broke layout) before the root cause was traced back to this gap.
 
+**This applies to throwaway *tutor* accounts too, not just student ones — and it's easy to miss.** A test tutor is created as `role: "student"` (like everyone) and only promoted to `role: "tutor"` in a second step, but the `handle_new_user()` trigger already fired and created its own `students` row before that promotion. Cleanup scripts that only track "the student account's studentId" and forget the tutor account also has one of these incidental rows will leave it behind as an orphan (`profile_id` → null, `display_name` → the tutor's test email) the moment `deleteUser` runs on the tutor. This happened again in a later session (four leftover `test2/3/4/5-tutor+...@example.com` rows found in the real students list) for exactly this reason — track and delete **both** accounts' `students` rows, tutor included.
+
 ## Correct cleanup order
 
 1. **Delete any `lessons` this account is tied to** (as `created_by`, or via a `students` row it owns that has `lesson_participants`). Deleting a `lessons` row cascades to its `lesson_participants` rows automatically.
