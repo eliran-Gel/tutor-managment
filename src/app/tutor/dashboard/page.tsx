@@ -3,6 +3,7 @@ import { startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { DELIVERY_MODE_LABELS } from "@/lib/lessons";
 import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 import { getHebrewGreeting } from "@/lib/greeting";
@@ -13,6 +14,7 @@ function toIsoDate(d: Date) {
 
 export default async function TutorDashboardPage() {
   const supabase = await createClient();
+  const profile = await getCurrentProfile();
   const now = new Date();
   const today = toIsoDate(now);
   const weekStart = toIsoDate(startOfWeek(now, { weekStartsOn: 0 }));
@@ -54,7 +56,9 @@ export default async function TutorDashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-bold text-text-primary">{getHebrewGreeting()}, אלירן!</h1>
+        <h1 className="text-xl font-bold text-text-primary">
+          {getHebrewGreeting()}{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
+        </h1>
         <p className="text-sm text-text-secondary">
           נתוני הכנסות/שעות יתווספו בשלבי הפיתוח הבאים.
         </p>

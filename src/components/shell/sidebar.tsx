@@ -7,10 +7,12 @@ import type { NavItem } from "@/lib/nav";
 export function Sidebar({
   items,
   roleLabel,
+  userName,
   onSamePageClick,
 }: {
   items: NavItem[];
   roleLabel: string;
+  userName?: string | null;
   /** Fires when the clicked link is the page already showing - no route
    * change will happen, so a caller closing a drawer on route-change can't
    * rely on that here and needs this explicit signal instead. */
@@ -23,8 +25,8 @@ export function Sidebar({
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary text-white">
           🎓
         </div>
-        <div>
-          <p className="text-sm font-bold text-text-primary">אלירן גלברג</p>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold text-text-primary">{userName ?? roleLabel}</p>
           <p className="text-xs text-text-muted">{roleLabel}</p>
         </div>
       </div>

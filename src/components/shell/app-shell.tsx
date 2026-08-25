@@ -35,7 +35,7 @@ export function AppShell({
   return (
     <div className="flex min-h-full flex-1">
       <aside className="hidden w-64 shrink-0 border-border bg-surface md:block md:border-s">
-        <Sidebar items={items} roleLabel={roleLabel} />
+        <Sidebar items={items} roleLabel={roleLabel} userName={userName} />
       </aside>
 
       {mobileNavOpen && (
@@ -45,7 +45,12 @@ export function AppShell({
             onClick={() => setMobileNavOpen(false)}
           />
           <div className="absolute inset-y-0 end-0 w-72 bg-surface shadow-card">
-            <Sidebar items={items} roleLabel={roleLabel} onSamePageClick={() => setMobileNavOpen(false)} />
+            <Sidebar
+              items={items}
+              roleLabel={roleLabel}
+              userName={userName}
+              onSamePageClick={() => setMobileNavOpen(false)}
+            />
           </div>
         </div>
       )}
