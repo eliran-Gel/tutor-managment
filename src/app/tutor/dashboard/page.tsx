@@ -39,19 +39,25 @@ export default async function TutorDashboardPage() {
     // sliced below, instead of 3 separate round trips.
     supabase
       .from("lessons")
-      .select("date")
+      .select("date, lesson_participants(price_charged)")
       .in("status", ["confirmed", "completed"])
       .gte("date", rangeStart)
       .lte("date", rangeEnd),
   ]);
 
-  const lessonDates = rangeLessons ?? [];
-  const kpis = [
-    { label: "תלמידים פעילים", value: activeStudents ?? "—" },
-    { label: "היום", value: lessonDates.filter((l) => l.date === today).length },
-    { label: "השבוע", value: lessonDates.filter((l) => l.date >= weekStart && l.date <= weekEnd).length },
-    { label: "החודש", value: lessonDates.filter((l) => l.date >= monthStart && l.date <= monthEnd).length },
-  ];
+  const lessonRows = rangeLessons ?? [];
+  function statsFor(from: string, to: string) {
+    const inRange = lessonRows.filter((l) => l.date >= from && l.date <= to);
+    const price = inRange.reduce(
+      (sum, l) => sum + l.lesson_participants.reduce((s, p) => s + p.price_charged, 0),
+      0,
+    );
+    return { count: inRange.length, price };
+  }
+
+  const todayStats = statsFor(today, today);
+  const weekStats = statsFor(weekStart, weekEnd);
+  const monthStats = statsFor(monthStart, monthEnd);
 
   return (
     <div className="flex flex-col gap-6">
@@ -59,18 +65,46 @@ export default async function TutorDashboardPage() {
         <h1 className="text-xl font-bold text-text-primary">
           {getHebrewGreeting()}{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
         </h1>
-        <p className="text-sm text-text-secondary">
-          נתוני הכנסות/שעות יתווספו בשלבי הפיתוח הבאים.
-        </p>
+        <p className="text-sm text-text-secondary">לחצו על כל קוביה כדי לראות את השיעורים המלאים.</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        {kpis.map((kpi) => (
-          <Card key={kpi.label}>
-            <p className="text-sm text-text-secondary">{kpi.label}</p>
-            <p className="mt-2 text-2xl font-bold text-text-primary">{kpi.value}</p>
+        <Link href="/tutor/students" className="block transition-transform duration-200 active:scale-95">
+          <Card className="h-full transition-shadow hover:shadow-none">
+            <p className="text-sm text-text-secondary">תלמידים פעילים</p>
+            <p className="mt-2 text-2xl font-bold text-text-primary">{activeStudents ?? "—"}</p>
           </Card>
-        ))}
+        </Link>
+
+        <Link href={`/tutor/calendar/day/${today}`} className="block transition-transform duration-200 active:scale-95">
+          <Card className="h-full transition-shadow hover:shadow-none">
+            <p className="text-sm text-text-secondary">היום</p>
+            <p className="mt-2 text-2xl font-bold text-text-primary">{todayStats.count}</p>
+            {todayStats.price > 0 && <p className="mt-0.5 text-sm text-text-secondary">₪{todayStats.price.toLocaleString("he-IL")}</p>}
+          </Card>
+        </Link>
+
+        <Link
+          href={`/tutor/calendar/range?start=${weekStart}&end=${weekEnd}&label=${encodeURIComponent("השבוע")}`}
+          className="block transition-transform duration-200 active:scale-95"
+        >
+          <Card className="h-full transition-shadow hover:shadow-none">
+            <p className="text-sm text-text-secondary">השבוע</p>
+            <p className="mt-2 text-2xl font-bold text-text-primary">{weekStats.count}</p>
+            {weekStats.price > 0 && <p className="mt-0.5 text-sm text-text-secondary">₪{weekStats.price.toLocaleString("he-IL")}</p>}
+          </Card>
+        </Link>
+
+        <Link
+          href={`/tutor/calendar/range?start=${monthStart}&end=${monthEnd}&label=${encodeURIComponent("החודש")}`}
+          className="block transition-transform duration-200 active:scale-95"
+        >
+          <Card className="h-full transition-shadow hover:shadow-none">
+            <p className="text-sm text-text-secondary">החודש</p>
+            <p className="mt-2 text-2xl font-bold text-text-primary">{monthStats.count}</p>
+            {monthStats.price > 0 && <p className="mt-0.5 text-sm text-text-secondary">₪{monthStats.price.toLocaleString("he-IL")}</p>}
+          </Card>
+        </Link>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
