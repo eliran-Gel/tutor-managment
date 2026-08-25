@@ -265,6 +265,7 @@ export type Database = {
           id: string
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
+          rejection_reason: string | null
           source: Database["public"]["Enums"]["lesson_source"]
           start_time: string
           status: Database["public"]["Enums"]["lesson_status"]
@@ -283,6 +284,7 @@ export type Database = {
           id?: string
           lesson_type?: Database["public"]["Enums"]["lesson_type"]
           online_url?: string | null
+          rejection_reason?: string | null
           source: Database["public"]["Enums"]["lesson_source"]
           start_time: string
           status?: Database["public"]["Enums"]["lesson_status"]
@@ -301,6 +303,7 @@ export type Database = {
           id?: string
           lesson_type?: Database["public"]["Enums"]["lesson_type"]
           online_url?: string | null
+          rejection_reason?: string | null
           source?: Database["public"]["Enums"]["lesson_source"]
           start_time?: string
           status?: Database["public"]["Enums"]["lesson_status"]
@@ -623,6 +626,7 @@ export type Database = {
           id: string
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
+          rejection_reason: string | null
           source: Database["public"]["Enums"]["lesson_source"]
           start_time: string
           status: Database["public"]["Enums"]["lesson_status"]
@@ -657,6 +661,35 @@ export type Database = {
           id: string
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
+          rejection_reason: string | null
+          source: Database["public"]["Enums"]["lesson_source"]
+          start_time: string
+          status: Database["public"]["Enums"]["lesson_status"]
+          subject_id: string | null
+          topic: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lessons"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      cancel_lesson_request: {
+        Args: { target_lesson_id: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          date: string
+          delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+          duration_minutes: number
+          end_time: string
+          forced: boolean
+          id: string
+          lesson_type: Database["public"]["Enums"]["lesson_type"]
+          online_url: string | null
+          rejection_reason: string | null
           source: Database["public"]["Enums"]["lesson_source"]
           start_time: string
           status: Database["public"]["Enums"]["lesson_status"]
@@ -697,6 +730,7 @@ export type Database = {
               id: string
               lesson_type: Database["public"]["Enums"]["lesson_type"]
               online_url: string | null
+              rejection_reason: string | null
               source: Database["public"]["Enums"]["lesson_source"]
               start_time: string
               status: Database["public"]["Enums"]["lesson_status"]
@@ -736,6 +770,7 @@ export type Database = {
               id: string
               lesson_type: Database["public"]["Enums"]["lesson_type"]
               online_url: string | null
+              rejection_reason: string | null
               source: Database["public"]["Enums"]["lesson_source"]
               start_time: string
               status: Database["public"]["Enums"]["lesson_status"]
@@ -788,33 +823,63 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      reject_lesson_request: {
-        Args: { target_lesson_id: string }
-        Returns: {
-          created_at: string
-          created_by: string
-          date: string
-          delivery_mode: Database["public"]["Enums"]["delivery_mode"]
-          duration_minutes: number
-          end_time: string
-          forced: boolean
-          id: string
-          lesson_type: Database["public"]["Enums"]["lesson_type"]
-          online_url: string | null
-          source: Database["public"]["Enums"]["lesson_source"]
-          start_time: string
-          status: Database["public"]["Enums"]["lesson_status"]
-          subject_id: string | null
-          topic: string | null
-          updated_at: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "lessons"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      reject_lesson_request:
+        | {
+            Args: { target_lesson_id: string }
+            Returns: {
+              created_at: string
+              created_by: string
+              date: string
+              delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+              duration_minutes: number
+              end_time: string
+              forced: boolean
+              id: string
+              lesson_type: Database["public"]["Enums"]["lesson_type"]
+              online_url: string | null
+              rejection_reason: string | null
+              source: Database["public"]["Enums"]["lesson_source"]
+              start_time: string
+              status: Database["public"]["Enums"]["lesson_status"]
+              subject_id: string | null
+              topic: string | null
+              updated_at: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "lessons"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { p_reason?: string; target_lesson_id: string }
+            Returns: {
+              created_at: string
+              created_by: string
+              date: string
+              delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+              duration_minutes: number
+              end_time: string
+              forced: boolean
+              id: string
+              lesson_type: Database["public"]["Enums"]["lesson_type"]
+              online_url: string | null
+              rejection_reason: string | null
+              source: Database["public"]["Enums"]["lesson_source"]
+              start_time: string
+              status: Database["public"]["Enums"]["lesson_status"]
+              subject_id: string | null
+              topic: string | null
+              updated_at: string
+            }
+            SetofOptions: {
+              from: "*"
+              to: "lessons"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       request_lesson: {
         Args: {
           p_date: string
@@ -836,6 +901,7 @@ export type Database = {
           id: string
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
+          rejection_reason: string | null
           source: Database["public"]["Enums"]["lesson_source"]
           start_time: string
           status: Database["public"]["Enums"]["lesson_status"]

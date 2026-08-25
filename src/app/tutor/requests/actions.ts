@@ -26,13 +26,17 @@ export async function approveRequest(lessonId: string) {
   return { success: true as const };
 }
 
-export async function rejectRequest(lessonId: string) {
+export async function rejectRequest(lessonId: string, reason?: string) {
   const { supabase } = await requireTutor();
 
-  const { error } = await supabase.rpc("reject_lesson_request", { target_lesson_id: lessonId });
-  if (error) throw new Error(error.message);
+  const { error } = await supabase.rpc("reject_lesson_request", {
+    target_lesson_id: lessonId,
+    p_reason: reason ?? "",
+  });
+  if (error) return { error: error.message };
 
   revalidateRequestPaths();
+  return { success: true as const };
 }
 
 export async function approveChangeRequest(requestId: string) {

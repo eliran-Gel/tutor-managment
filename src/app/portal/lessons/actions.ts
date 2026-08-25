@@ -156,3 +156,20 @@ export async function requestLesson(formData: FormData) {
   revalidatePath("/tutor/dashboard");
   return { success: true as const };
 }
+
+export async function cancelLessonRequest(lessonId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "יש להתחבר למערכת" };
+
+  const { error } = await supabase.rpc("cancel_lesson_request", { target_lesson_id: lessonId });
+  if (error) return { error: error.message };
+
+  revalidatePath("/portal/lessons");
+  revalidatePath("/portal/dashboard");
+  revalidatePath("/tutor/requests");
+  revalidatePath("/tutor/dashboard");
+  return { success: true as const };
+}

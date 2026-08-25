@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { cancelLesson } from "@/app/tutor/lessons/actions";
 
-export function LessonDayActions({ lessonId }: { lessonId: string }) {
+export function CancelLessonButton({ lessonId }: { lessonId: string }) {
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();

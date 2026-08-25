@@ -7,10 +7,15 @@ import { createClient } from "@/lib/supabase/server";
 
 const PREVIEW_COUNT = 3;
 
+function toIsoDate(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export async function LessonHistoryCard({ studentId }: { studentId: string }) {
   const supabase = await createClient();
   const rows = await fetchLessonHistory(supabase, studentId);
   const preview = rows.slice(0, PREVIEW_COUNT);
+  const today = toIsoDate(new Date());
 
   return (
     <Card>
@@ -24,7 +29,7 @@ export async function LessonHistoryCard({ studentId }: { studentId: string }) {
       ) : (
         <div className="flex flex-col gap-2">
           {preview.map((row) => (
-            <LessonHistoryRow key={row.lessons.id} row={row} />
+            <LessonHistoryRow key={row.lessons.id} row={row} showCancelAction={row.lessons.date >= today} />
           ))}
         </div>
       )}
