@@ -158,9 +158,9 @@ export function RequestChangeModal({
                   value={startTime}
                   onChange={setStartTime}
                   required
-                  slots={date ? availableSlots : []}
+                  slots={availableSlots}
                   loading={slotsLoading}
-                  emptyMessage={date ? "כל השעות תפוסות ביום זה" : "יש לבחור תאריך קודם"}
+                  noDateSelected={!date}
                 />
               </Field>
               <Field label="מקצוע חדש (אופציונלי)" htmlFor="rc-subject">
