@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15"
+    PostgrestVersion: "14.17"
   }
   graphql_public: {
     Tables: {
@@ -581,6 +581,27 @@ export type Database = {
           id?: boolean
           payment_reminder_days?: number
           updated_at?: string
+        }
+        Relationships: []
+      }
+      tutor_working_hours: {
+        Row: {
+          day_of_week: number
+          end_time: string | null
+          is_open: boolean
+          start_time: string | null
+        }
+        Insert: {
+          day_of_week: number
+          end_time?: string | null
+          is_open?: boolean
+          start_time?: string | null
+        }
+        Update: {
+          day_of_week?: number
+          end_time?: string | null
+          is_open?: boolean
+          start_time?: string | null
         }
         Relationships: []
       }

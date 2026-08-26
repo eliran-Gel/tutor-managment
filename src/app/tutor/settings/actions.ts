@@ -74,6 +74,40 @@ export async function createSubject(formData: FormData) {
   revalidatePath("/tutor/settings");
 }
 
+const workingHoursSchema = z
+  .array(
+    z.object({
+      day_of_week: z.number().int().min(0).max(6),
+      is_open: z.boolean(),
+      start_time: z.string().regex(/^\d{2}:\d{2}$/).nullable(),
+      end_time: z.string().regex(/^\d{2}:\d{2}$/).nullable(),
+    }),
+  )
+  .length(7)
+  .refine(
+    (rows) => rows.every((r) => !r.is_open || (r.start_time && r.end_time && r.end_time > r.start_time)),
+    { message: "בכל יום פתוח, שעת הסיום חייבת להיות אחרי שעת ההתחלה" },
+  );
+
+export async function updateWorkingHours(
+  rows: { day_of_week: number; is_open: boolean; start_time: string | null; end_time: string | null }[],
+) {
+  const { supabase } = await requireTutor();
+  const input = workingHoursSchema.parse(rows);
+
+  const { error } = await supabase.from("tutor_working_hours").upsert(
+    input.map((r) => ({
+      day_of_week: r.day_of_week,
+      is_open: r.is_open,
+      start_time: r.is_open ? r.start_time : null,
+      end_time: r.is_open ? r.end_time : null,
+    })),
+  );
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/tutor/settings");
+}
+
 export async function setSubjectActive(subjectId: string, active: boolean) {
   const { supabase } = await requireTutor();
 

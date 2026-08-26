@@ -4,14 +4,16 @@ import { BusinessLinksForm } from "./business-links-form";
 import { TutorSettingsForm } from "./tutor-settings-form";
 import { SubjectsCard } from "./subjects-card";
 import { CalendarFeedCard } from "./calendar-feed-card";
+import { WorkingHoursCard } from "./working-hours-card";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
 
-  const [{ data: links }, { data: settings }, { data: subjects }] = await Promise.all([
+  const [{ data: links }, { data: settings }, { data: subjects }, { data: workingHours }] = await Promise.all([
     supabase.from("business_links").select("*").eq("id", true).single(),
     supabase.from("tutor_settings").select("*").eq("id", true).single(),
     supabase.from("subjects").select("*").order("name"),
+    supabase.from("tutor_working_hours").select("*").order("day_of_week"),
   ]);
 
   return (
@@ -39,6 +41,8 @@ export default async function SettingsPage() {
         <SubjectsCard subjects={subjects ?? []} />
 
         <CalendarFeedCard token={process.env.TUTOR_CALENDAR_FEED_TOKEN ?? ""} />
+
+        <WorkingHoursCard workingHours={workingHours ?? []} />
       </div>
     </div>
   );

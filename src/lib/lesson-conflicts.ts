@@ -10,12 +10,13 @@ export function timeStrToMinutes(t: string) {
 }
 
 type ExistingLesson = { start_time: string; end_time: string };
+type WorkingHoursRow = { is_open: boolean; start_time: string | null; end_time: string | null };
 
 async function fetchDayConflictData(
   supabase: SupabaseClient<Database>,
   date: string,
   excludeLessonId?: string,
-): Promise<{ dayBlocks: AvailabilityBlock[]; existing: ExistingLesson[] }> {
+): Promise<{ dayBlocks: AvailabilityBlock[]; existing: ExistingLesson[]; workingHours: WorkingHoursRow | null }> {
   const dayLocal = new Date(`${date}T00:00:00`);
   const { data: blocks } = await supabase.from("availability_blocks").select("*");
   const dayBlocks = blocksForDate(blocks ?? [], dayLocal);
@@ -28,7 +29,13 @@ async function fetchDayConflictData(
   if (excludeLessonId) query = query.neq("id", excludeLessonId);
   const { data: existing } = await query;
 
-  return { dayBlocks, existing: existing ?? [] };
+  const { data: workingHours } = await supabase
+    .from("tutor_working_hours")
+    .select("is_open, start_time, end_time")
+    .eq("day_of_week", dayLocal.getDay())
+    .maybeSingle();
+
+  return { dayBlocks, existing: existing ?? [], workingHours };
 }
 
 function conflictAt(
@@ -36,8 +43,18 @@ function conflictAt(
   reqEndMin: number,
   dayBlocks: AvailabilityBlock[],
   existing: ExistingLesson[],
+  workingHours: WorkingHoursRow | null,
 ) {
-  const blocked = dayBlocks.some((block) => {
+  // No configured row defaults to "open" (matches pre-working-hours
+  // behavior) rather than silently blocking every day if the row is ever
+  // missing.
+  const outsideWorkingHours = workingHours
+    ? !workingHours.is_open ||
+      reqStartMin < timeStrToMinutes(workingHours.start_time!.slice(0, 5)) ||
+      reqEndMin > timeStrToMinutes(workingHours.end_time!.slice(0, 5))
+    : false;
+
+  const blockedByException = dayBlocks.some((block) => {
     const blockStart = toAppTime(block.start_at);
     const blockEnd = toAppTime(block.end_at);
     const blockStartMin = blockStart.getHours() * 60 + blockStart.getMinutes();
@@ -51,7 +68,7 @@ function conflictAt(
     return reqStartMin < existingEnd && reqEndMin > existingStart;
   });
 
-  return { blocked, doubleBooked };
+  return { blocked: outsideWorkingHours || blockedByException, doubleBooked };
 }
 
 /**
@@ -67,12 +84,13 @@ export async function checkLessonConflicts(
   endTime: string,
   excludeLessonId?: string,
 ) {
-  const { dayBlocks, existing } = await fetchDayConflictData(supabase, date, excludeLessonId);
+  const { dayBlocks, existing, workingHours } = await fetchDayConflictData(supabase, date, excludeLessonId);
   const { blocked, doubleBooked } = conflictAt(
     timeStrToMinutes(startTime),
     timeStrToMinutes(endTime),
     dayBlocks,
     existing,
+    workingHours,
   );
   return { blocked, doubleBooked, hasConflict: blocked || doubleBooked };
 }
@@ -91,7 +109,7 @@ export async function getAvailableStartTimes(
   durationMinutes: number,
   excludeLessonId?: string,
 ): Promise<string[]> {
-  const { dayBlocks, existing } = await fetchDayConflictData(supabase, date, excludeLessonId);
+  const { dayBlocks, existing, workingHours } = await fetchDayConflictData(supabase, date, excludeLessonId);
 
   return generateTimeSlots().filter((slot) => {
     const { endTime, crossesMidnight } = addMinutesToTime(slot, durationMinutes);
@@ -101,6 +119,7 @@ export async function getAvailableStartTimes(
       timeStrToMinutes(endTime),
       dayBlocks,
       existing,
+      workingHours,
     );
     return !blocked && !doubleBooked;
   });
