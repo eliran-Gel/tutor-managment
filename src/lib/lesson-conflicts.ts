@@ -96,12 +96,15 @@ export async function checkLessonConflicts(
 }
 
 /**
- * Every start time (of the standard 15-minute grid) that a lesson of
- * `durationMinutes` could start at on `date` without overlapping a blocked
- * period or an existing confirmed lesson - so the picker only ever offers
- * slots that would actually succeed, instead of surfacing the conflict only
- * after submission. `excludeLessonId` lets a reschedule ignore the lesson's
- * own current slot when checking itself for "conflicts".
+ * Every on-the-hour start time a lesson of `durationMinutes` could start at
+ * on `date` without overlapping a blocked period, working hours, or an
+ * existing confirmed lesson - so the picker only ever offers slots that
+ * would actually succeed, instead of surfacing the conflict only after
+ * submission. Students may only request/reschedule on the hour (the
+ * tutor's own manual creation keeps the finer 15-minute grid, unaffected -
+ * this is only used from the student-facing request/reschedule flows).
+ * `excludeLessonId` lets a reschedule ignore the lesson's own current slot
+ * when checking itself for "conflicts".
  */
 export async function getAvailableStartTimes(
   supabase: SupabaseClient<Database>,
@@ -111,7 +114,7 @@ export async function getAvailableStartTimes(
 ): Promise<string[]> {
   const { dayBlocks, existing, workingHours } = await fetchDayConflictData(supabase, date, excludeLessonId);
 
-  return generateTimeSlots().filter((slot) => {
+  return generateTimeSlots(0, 24, 60).filter((slot) => {
     const { endTime, crossesMidnight } = addMinutesToTime(slot, durationMinutes);
     if (crossesMidnight) return false;
     const { blocked, doubleBooked } = conflictAt(

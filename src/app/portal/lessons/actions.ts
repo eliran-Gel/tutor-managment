@@ -5,7 +5,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { LESSON_DURATIONS } from "@/lib/lessons";
 import { checkLessonConflicts, addMinutesToTime, getAvailableStartTimes } from "@/lib/lesson-conflicts";
-import { isValidTimeSlot } from "@/lib/time-slots";
+import { isValidHourSlot } from "@/lib/time-slots";
 
 export async function getAvailableStartTimesAction(
   date: string,
@@ -24,7 +24,7 @@ const changeRequestSchema = z
     requested_start_time: z
       .string()
       .regex(/^\d{2}:\d{2}$/)
-      .refine(isValidTimeSlot, "השעה חייבת להיות בכפולות של רבע שעה")
+      .refine(isValidHourSlot, "ניתן לבקש שיעור רק בשעה עגולה")
       .nullable(),
     requested_subject_id: z.string().uuid().nullable(),
     reason: z.string().trim().nullable(),
@@ -97,7 +97,7 @@ const requestSchema = z.object({
   start_time: z
     .string()
     .regex(/^\d{2}:\d{2}$/, "שעה לא תקינה")
-    .refine(isValidTimeSlot, "השעה חייבת להיות בכפולות של רבע שעה"),
+    .refine(isValidHourSlot, "ניתן לבקש שיעור רק בשעה עגולה"),
   duration_minutes: z.coerce
     .number()
     .int()
