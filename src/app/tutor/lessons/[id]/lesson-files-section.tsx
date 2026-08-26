@@ -4,7 +4,8 @@ import { useRef, useState, useTransition, type ChangeEvent } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { uploadLessonFile, deleteLessonFile, toggleFileVisibility } from "./actions";
+import { createClient } from "@/lib/supabase/client";
+import { createUploadTicket, confirmLessonFileUpload, deleteLessonFile, toggleFileVisibility } from "./actions";
 
 type FileRow = {
   id: string;
@@ -31,11 +32,36 @@ export function LessonFilesSection({ lessonId, files }: { lessonId: string; file
     e.target.value = "";
     if (!file) return;
     setError(null);
-    const formData = new FormData();
-    formData.set("file", file);
+
     startTransition(async () => {
-      const result = await uploadLessonFile(lessonId, formData);
-      if ("error" in result && result.error) setError(result.error);
+      try {
+        // File bytes never touch our own server - they'd have to pass
+        // through Vercel's function boundary, which hard-caps request
+        // bodies at 4.5MB regardless of any app-level setting (a real
+        // phone photo blows past that easily). The ticket below is
+        // authorized here, then the browser uploads straight to Storage.
+        const ticket = await createUploadTicket(lessonId, file.name, file.size);
+        const storagePath = "storagePath" in ticket ? ticket.storagePath : undefined;
+        const token = "token" in ticket ? ticket.token : undefined;
+        if (!storagePath || !token) {
+          setError("error" in ticket && ticket.error ? ticket.error : "לא ניתן היה להתחיל את ההעלאה");
+          return;
+        }
+
+        const supabase = createClient();
+        const { error: uploadError } = await supabase.storage
+          .from("lesson-files")
+          .uploadToSignedUrl(storagePath, token, file);
+        if (uploadError) {
+          setError(uploadError.message);
+          return;
+        }
+
+        const result = await confirmLessonFileUpload(lessonId, storagePath, file.name, file.type);
+        if ("error" in result && result.error) setError(result.error);
+      } catch {
+        setError("ההעלאה נכשלה - נסה/י שוב, ייתכן שהחיבור לאינטרנט לא יציב.");
+      }
     });
   }
 
@@ -94,7 +120,11 @@ export function LessonFilesSection({ lessonId, files }: { lessonId: string; file
                     disabled={isPending}
                     onClick={() =>
                       startTransition(async () => {
-                        await toggleFileVisibility(f.id, !f.visible_to_students, lessonId);
+                        try {
+                          await toggleFileVisibility(f.id, !f.visible_to_students, lessonId);
+                        } catch {
+                          setError("הפעולה נכשלה - נסה/י שוב.");
+                        }
                       })
                     }
                   >
@@ -107,7 +137,11 @@ export function LessonFilesSection({ lessonId, files }: { lessonId: string; file
                     disabled={isPending}
                     onClick={() =>
                       startTransition(async () => {
-                        await deleteLessonFile(f.id, f.storage_path, lessonId);
+                        try {
+                          await deleteLessonFile(f.id, f.storage_path, lessonId);
+                        } catch {
+                          setError("הפעולה נכשלה - נסה/י שוב.");
+                        }
                       })
                     }
                   >

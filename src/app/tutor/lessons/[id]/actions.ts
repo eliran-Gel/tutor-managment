@@ -55,21 +55,40 @@ export async function deleteHomework(id: string, lessonId: string) {
   return { success: true as const };
 }
 
-export async function uploadLessonFile(lessonId: string, formData: FormData) {
-  const file = formData.get("file") as File | null;
-  if (!file || file.size === 0) return { error: "יש לבחור קובץ" };
-  if (file.size > MAX_FILE_BYTES) return { error: "הקובץ גדול מדי (מקסימום 10MB)" };
+/**
+ * Server Actions' file bytes travel through the Vercel serverless function
+ * boundary, which enforces a hard 4.5MB request-body ceiling no app config
+ * can raise - a real phone photo blows past that easily, which is exactly
+ * what caused the ~30s hang and crash. So uploads never go through a
+ * Server Action at all: this mints a short-lived, path-scoped signed
+ * upload URL (the tutor-only check happens here, server-side, before the
+ * token is ever handed out), the browser uploads straight to Supabase
+ * Storage with it, and confirmLessonFileUpload below - a tiny JSON call,
+ * no file bytes - records the metadata row afterward.
+ */
+export async function createUploadTicket(lessonId: string, fileName: string, fileSize: number) {
+  if (fileSize > MAX_FILE_BYTES) return { error: "הקובץ גדול מדי (מקסימום 10MB)" };
 
   const { supabase } = await requireTutor();
-  const storagePath = `${lessonId}/${crypto.randomUUID()}-${file.name}`;
-  const { error: uploadError } = await supabase.storage.from("lesson-files").upload(storagePath, file);
-  if (uploadError) return { error: uploadError.message };
+  const storagePath = `${lessonId}/${crypto.randomUUID()}-${fileName}`;
+  const { data, error } = await supabase.storage.from("lesson-files").createSignedUploadUrl(storagePath);
+  if (error) return { error: error.message };
 
+  return { storagePath, token: data.token };
+}
+
+export async function confirmLessonFileUpload(
+  lessonId: string,
+  storagePath: string,
+  fileName: string,
+  mimeType: string,
+) {
+  const { supabase } = await requireTutor();
   const { error } = await supabase.from("lesson_files").insert({
     lesson_id: lessonId,
-    file_name: file.name,
+    file_name: fileName,
     storage_path: storagePath,
-    mime_type: file.type || "application/octet-stream",
+    mime_type: mimeType || "application/octet-stream",
     visible_to_students: true,
   });
   if (error) return { error: error.message };
