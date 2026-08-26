@@ -33,14 +33,14 @@ export async function assignHomework(input: {
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "פרטים לא תקינים" };
   const data = parsed.data;
 
-  const { error } = await supabase.from("homework").insert(
-    data.student_ids.map((student_id) => ({
-      lesson_id: data.lesson_id,
-      student_id,
-      description: data.description,
-      due_date: data.due_date,
-    })),
-  );
+  const { error } = await supabase.rpc("assign_homework", {
+    p_lesson_id: data.lesson_id,
+    p_student_ids: data.student_ids,
+    p_description: data.description,
+    // The generated RPC type doesn't reflect that this Postgres `date`
+    // param has no NOT NULL constraint - it genuinely accepts null.
+    p_due_date: data.due_date as string,
+  });
   if (error) return { error: error.message };
 
   revalidateLessonFilePaths(data.lesson_id);
@@ -84,12 +84,11 @@ export async function confirmLessonFileUpload(
   mimeType: string,
 ) {
   const { supabase } = await requireTutor();
-  const { error } = await supabase.from("lesson_files").insert({
-    lesson_id: lessonId,
-    file_name: fileName,
-    storage_path: storagePath,
-    mime_type: mimeType || "application/octet-stream",
-    visible_to_students: true,
+  const { error } = await supabase.rpc("confirm_lesson_file_upload", {
+    p_lesson_id: lessonId,
+    p_storage_path: storagePath,
+    p_file_name: fileName,
+    p_mime_type: mimeType || "application/octet-stream",
   });
   if (error) return { error: error.message };
 

@@ -745,6 +745,15 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      assign_homework: {
+        Args: {
+          p_description: string
+          p_due_date: string
+          p_lesson_id: string
+          p_student_ids: string[]
+        }
+        Returns: undefined
+      }
       calculate_lesson_price: {
         Args: {
           p_duration_minutes: number
@@ -804,6 +813,29 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "lessons"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      confirm_lesson_file_upload: {
+        Args: {
+          p_file_name: string
+          p_lesson_id: string
+          p_mime_type: string
+          p_storage_path: string
+        }
+        Returns: {
+          created_at: string
+          file_name: string
+          id: string
+          lesson_id: string
+          mime_type: string
+          storage_path: string
+          visible_to_students: boolean
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lesson_files"
           isOneToOne: true
           isSetofReturn: false
         }
