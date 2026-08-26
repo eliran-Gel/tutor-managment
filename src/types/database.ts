@@ -173,6 +173,86 @@ export type Database = {
           },
         ]
       }
+      homework: {
+        Row: {
+          created_at: string
+          description: string
+          due_date: string | null
+          id: string
+          is_done: boolean
+          lesson_id: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          due_date?: string | null
+          id?: string
+          is_done?: boolean
+          lesson_id: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          is_done?: boolean
+          lesson_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_materials: {
+        Row: {
+          created_at: string
+          file_name: string
+          id: string
+          lesson_id: string
+          storage_path: string
+          visible_to_students: boolean
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          id?: string
+          lesson_id: string
+          storage_path: string
+          visible_to_students?: boolean
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          id?: string
+          lesson_id?: string
+          storage_path?: string
+          visible_to_students?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_materials_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_participants: {
         Row: {
           created_at: string
@@ -220,6 +300,35 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_summaries: {
+        Row: {
+          created_at: string
+          id: string
+          lesson_id: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lesson_id: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_summaries_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
             referencedColumns: ["id"]
           },
         ]
@@ -817,6 +926,10 @@ export type Database = {
         Returns: undefined
       }
       delete_student: { Args: { p_student_id: string }; Returns: undefined }
+      is_lesson_participant: {
+        Args: { target_lesson_id: string }
+        Returns: boolean
+      }
       is_parent_of: { Args: { target_student_id: string }; Returns: boolean }
       is_tutor: { Args: never; Returns: boolean }
       owns_student: { Args: { target_student_id: string }; Returns: boolean }

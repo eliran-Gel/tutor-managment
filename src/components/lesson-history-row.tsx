@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { CancelLessonButton } from "@/components/cancel-lesson-button";
 import { LESSON_STATUS_LABELS, LESSON_STATUS_TONE, DELIVERY_MODE_LABELS } from "@/lib/lessons";
@@ -30,6 +31,12 @@ export function LessonHistoryRow({
           {row.payment_status === "paid" ? "שולם" : "לא שולם"}
         </Badge>
         <Badge tone={LESSON_STATUS_TONE[lesson.status]}>{LESSON_STATUS_LABELS[lesson.status]}</Badge>
+        <Link
+          href={`/tutor/lessons/${lesson.id}`}
+          className="text-sm font-medium text-brand-accent transition-transform duration-200 hover:underline active:scale-90"
+        >
+          ניהול שיעור ←
+        </Link>
         {showCancelAction && lesson.status === "confirmed" && <CancelLessonButton lessonId={lesson.id} />}
       </div>
     </div>
