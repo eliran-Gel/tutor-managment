@@ -218,12 +218,13 @@ export type Database = {
           },
         ]
       }
-      lesson_materials: {
+      lesson_files: {
         Row: {
           created_at: string
           file_name: string
           id: string
           lesson_id: string
+          mime_type: string
           storage_path: string
           visible_to_students: boolean
         }
@@ -232,6 +233,7 @@ export type Database = {
           file_name: string
           id?: string
           lesson_id: string
+          mime_type: string
           storage_path: string
           visible_to_students?: boolean
         }
@@ -240,12 +242,13 @@ export type Database = {
           file_name?: string
           id?: string
           lesson_id?: string
+          mime_type?: string
           storage_path?: string
           visible_to_students?: boolean
         }
         Relationships: [
           {
-            foreignKeyName: "lesson_materials_lesson_id_fkey"
+            foreignKeyName: "lesson_files_lesson_id_fkey"
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "lessons"
@@ -300,35 +303,6 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      lesson_summaries: {
-        Row: {
-          created_at: string
-          id: string
-          lesson_id: string
-          storage_path: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          lesson_id: string
-          storage_path: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          lesson_id?: string
-          storage_path?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lesson_summaries_lesson_id_fkey"
-            columns: ["lesson_id"]
-            isOneToOne: false
-            referencedRelation: "lessons"
             referencedColumns: ["id"]
           },
         ]

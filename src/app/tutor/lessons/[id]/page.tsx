@@ -6,22 +6,24 @@ import { LESSON_STATUS_LABELS, LESSON_STATUS_TONE, DELIVERY_MODE_LABELS } from "
 import { Badge } from "@/components/ui/badge";
 import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 import { HomeworkSection } from "./homework-section";
-import { SummarySection } from "./summary-section";
-import { MaterialsSection } from "./materials-section";
+import { LessonFilesSection } from "./lesson-files-section";
 
 export default async function TutorLessonDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: lesson }, { data: homework }, { data: summaries }, { data: materials }] = await Promise.all([
+  const [{ data: lesson }, { data: homework }, { data: files }] = await Promise.all([
     supabase
       .from("lessons")
       .select("id, date, start_time, end_time, status, delivery_mode, topic, subjects(name), lesson_participants(student_id, students(display_name))")
       .eq("id", id)
       .maybeSingle(),
     supabase.from("homework").select("id, student_id, description, due_date, is_done").eq("lesson_id", id).order("created_at"),
-    supabase.from("lesson_summaries").select("id, storage_path").eq("lesson_id", id).order("created_at", { ascending: false }),
-    supabase.from("lesson_materials").select("id, file_name, storage_path, visible_to_students").eq("lesson_id", id).order("created_at", { ascending: false }),
+    supabase
+      .from("lesson_files")
+      .select("id, file_name, storage_path, mime_type, visible_to_students")
+      .eq("lesson_id", id)
+      .order("created_at", { ascending: false }),
   ]);
 
   if (!lesson) notFound();
@@ -30,11 +32,8 @@ export default async function TutorLessonDetailPage({ params }: { params: Promis
     .filter((lp) => lp.students)
     .map((lp) => ({ student_id: lp.student_id, display_name: lp.students!.display_name }));
 
-  const summariesWithUrls = await Promise.all(
-    (summaries ?? []).map(async (s) => ({ ...s, signedUrl: await getSignedFileUrl(s.storage_path) })),
-  );
-  const materialsWithUrls = await Promise.all(
-    (materials ?? []).map(async (m) => ({ ...m, signedUrl: await getSignedFileUrl(m.storage_path) })),
+  const filesWithUrls = await Promise.all(
+    (files ?? []).map(async (f) => ({ ...f, signedUrl: await getSignedFileUrl(f.storage_path) })),
   );
 
   return (
@@ -61,8 +60,7 @@ export default async function TutorLessonDetailPage({ params }: { params: Promis
       </div>
 
       <HomeworkSection lessonId={id} participants={participants} homework={homework ?? []} />
-      <SummarySection lessonId={id} summaries={summariesWithUrls} />
-      <MaterialsSection lessonId={id} materials={materialsWithUrls} />
+      <LessonFilesSection lessonId={id} files={filesWithUrls} />
     </div>
   );
 }

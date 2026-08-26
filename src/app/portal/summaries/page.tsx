@@ -6,8 +6,9 @@ import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 export default async function PortalSummariesPage() {
   const supabase = await createClient();
   const { data: summaries } = await supabase
-    .from("lesson_summaries")
+    .from("lesson_files")
     .select("id, storage_path, lessons(date, subjects(name))")
+    .ilike("mime_type", "image/%")
     .order("created_at", { ascending: false });
 
   const withUrls = await Promise.all(

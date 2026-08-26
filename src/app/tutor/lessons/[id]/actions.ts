@@ -55,59 +55,21 @@ export async function deleteHomework(id: string, lessonId: string) {
   return { success: true as const };
 }
 
-async function uploadLessonFile(
-  supabase: Awaited<ReturnType<typeof requireTutor>>["supabase"],
-  lessonId: string,
-  file: File,
-): Promise<{ error: string } | { storagePath: string }> {
-  if (file.size > MAX_FILE_BYTES) return { error: "הקובץ גדול מדי (מקסימום 10MB)" };
-
-  const storagePath = `${lessonId}/${crypto.randomUUID()}-${file.name}`;
-  const { error } = await supabase.storage.from("lesson-files").upload(storagePath, file);
-  if (error) return { error: error.message };
-
-  return { storagePath };
-}
-
-export async function uploadSummaryImage(lessonId: string, formData: FormData) {
-  const file = formData.get("file") as File | null;
-  if (!file || file.size === 0) return { error: "יש לבחור תמונה" };
-  if (!file.type.startsWith("image/")) return { error: "יש להעלות קובץ תמונה" };
-
-  const { supabase } = await requireTutor();
-  const result = await uploadLessonFile(supabase, lessonId, file);
-  if ("error" in result) return result;
-
-  const { error } = await supabase
-    .from("lesson_summaries")
-    .insert({ lesson_id: lessonId, storage_path: result.storagePath });
-  if (error) return { error: error.message };
-
-  revalidateLessonFilePaths(lessonId);
-  return { success: true as const };
-}
-
-export async function deleteSummary(id: string, storagePath: string, lessonId: string) {
-  const { supabase } = await requireTutor();
-  await supabase.storage.from("lesson-files").remove([storagePath]);
-  const { error } = await supabase.from("lesson_summaries").delete().eq("id", id);
-  if (error) return { error: error.message };
-  revalidateLessonFilePaths(lessonId);
-  return { success: true as const };
-}
-
-export async function uploadMaterial(lessonId: string, formData: FormData) {
+export async function uploadLessonFile(lessonId: string, formData: FormData) {
   const file = formData.get("file") as File | null;
   if (!file || file.size === 0) return { error: "יש לבחור קובץ" };
+  if (file.size > MAX_FILE_BYTES) return { error: "הקובץ גדול מדי (מקסימום 10MB)" };
 
   const { supabase } = await requireTutor();
-  const result = await uploadLessonFile(supabase, lessonId, file);
-  if ("error" in result) return result;
+  const storagePath = `${lessonId}/${crypto.randomUUID()}-${file.name}`;
+  const { error: uploadError } = await supabase.storage.from("lesson-files").upload(storagePath, file);
+  if (uploadError) return { error: uploadError.message };
 
-  const { error } = await supabase.from("lesson_materials").insert({
+  const { error } = await supabase.from("lesson_files").insert({
     lesson_id: lessonId,
     file_name: file.name,
-    storage_path: result.storagePath,
+    storage_path: storagePath,
+    mime_type: file.type || "application/octet-stream",
     visible_to_students: true,
   });
   if (error) return { error: error.message };
@@ -116,18 +78,18 @@ export async function uploadMaterial(lessonId: string, formData: FormData) {
   return { success: true as const };
 }
 
-export async function toggleMaterialVisibility(id: string, visible: boolean, lessonId: string) {
+export async function toggleFileVisibility(id: string, visible: boolean, lessonId: string) {
   const { supabase } = await requireTutor();
-  const { error } = await supabase.from("lesson_materials").update({ visible_to_students: visible }).eq("id", id);
+  const { error } = await supabase.from("lesson_files").update({ visible_to_students: visible }).eq("id", id);
   if (error) return { error: error.message };
   revalidateLessonFilePaths(lessonId);
   return { success: true as const };
 }
 
-export async function deleteMaterial(id: string, storagePath: string, lessonId: string) {
+export async function deleteLessonFile(id: string, storagePath: string, lessonId: string) {
   const { supabase } = await requireTutor();
   await supabase.storage.from("lesson-files").remove([storagePath]);
-  const { error } = await supabase.from("lesson_materials").delete().eq("id", id);
+  const { error } = await supabase.from("lesson_files").delete().eq("id", id);
   if (error) return { error: error.message };
   revalidateLessonFilePaths(lessonId);
   return { success: true as const };

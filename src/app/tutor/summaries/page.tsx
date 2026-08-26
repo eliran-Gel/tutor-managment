@@ -7,8 +7,9 @@ import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 export default async function TutorSummariesPage() {
   const supabase = await createClient();
   const { data: summaries } = await supabase
-    .from("lesson_summaries")
+    .from("lesson_files")
     .select("id, storage_path, lessons(id, date, subjects(name))")
+    .ilike("mime_type", "image/%")
     .order("created_at", { ascending: false })
     .limit(60);
 
