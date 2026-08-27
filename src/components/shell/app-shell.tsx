@@ -14,6 +14,7 @@ export function AppShell({
   profileHref,
   userId,
   notifications,
+  quickAction,
   children,
 }: {
   items: NavItem[];
@@ -22,6 +23,7 @@ export function AppShell({
   profileHref?: string;
   userId?: string | null;
   notifications?: NotificationRow[];
+  quickAction?: ReactNode;
   children: ReactNode;
 }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -67,6 +69,7 @@ export function AppShell({
           profileHref={profileHref}
           userId={userId}
           notifications={notifications}
+          quickAction={quickAction}
         />
         <main className="min-w-0 flex-1 bg-background px-4 py-6 md:px-8">{children}</main>
       </div>

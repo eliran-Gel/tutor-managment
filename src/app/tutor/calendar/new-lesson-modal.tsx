@@ -20,7 +20,15 @@ type Subject = Tables<"subjects">;
 
 const emptyParticipant = { student_id: "", newName: "" };
 
-export function NewLessonModal({ students, subjects }: { students: Student[]; subjects: Subject[] }) {
+export function NewLessonModal({
+  students,
+  subjects,
+  triggerClassName,
+}: {
+  students: Student[];
+  subjects: Subject[];
+  triggerClassName?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [lessonType, setLessonType] = useState<"individual" | "group">("individual");
   const [participants, setParticipants] = useState([{ ...emptyParticipant }]);
@@ -145,7 +153,7 @@ export function NewLessonModal({ students, subjects }: { students: Student[]; su
 
   return (
     <>
-      <Button type="button" onClick={() => setOpen(true)}>
+      <Button type="button" onClick={() => setOpen(true)} className={triggerClassName}>
         שיעור חדש
       </Button>
 

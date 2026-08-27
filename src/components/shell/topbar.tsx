@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { SignOutButton } from "@/components/sign-out-button";
@@ -12,12 +13,14 @@ export function Topbar({
   profileHref,
   userId,
   notifications,
+  quickAction,
 }: {
   onMenuClick?: () => void;
   userName?: string | null;
   profileHref?: string;
   userId?: string | null;
   notifications?: NotificationRow[];
+  quickAction?: ReactNode;
 }) {
   return (
     <header className="flex items-center justify-between border-b border-border bg-surface px-4 py-3 md:px-6">
@@ -36,7 +39,8 @@ export function Topbar({
         </svg>
       </button>
 
-      <div className="flex min-w-0 items-center gap-4">
+      <div className="flex min-w-0 items-center gap-3">
+        {quickAction}
         {userName && profileHref && (
           <Link
             href={profileHref}
