@@ -31,14 +31,14 @@ export async function GET(request: NextRequest) {
       .filter((name): name is string => Boolean(name));
     const subjectName = lesson.subjects?.name ?? "שיעור";
 
-    const descriptionParts = [DELIVERY_MODE_LABELS[lesson.delivery_mode]];
+    const descriptionParts = [subjectName, DELIVERY_MODE_LABELS[lesson.delivery_mode]];
     if (lesson.topic) descriptionParts.push(lesson.topic);
 
     return {
       uid: `lesson-${lesson.id}@tutor-managment`,
       start,
       end,
-      summary: studentNames.length > 0 ? `${subjectName} עם ${studentNames.join(", ")}` : subjectName,
+      summary: studentNames.length > 0 ? studentNames.join(", ") : subjectName,
       description: descriptionParts.join(" · "),
       location: lesson.delivery_mode === "online" ? (lesson.online_url ?? undefined) : undefined,
     };
