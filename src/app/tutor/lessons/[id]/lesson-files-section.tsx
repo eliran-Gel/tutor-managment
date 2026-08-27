@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
+import { FileViewerModal } from "@/components/file-viewer-modal";
 import { createUploadTicket, confirmLessonFileUpload, deleteLessonFile, toggleFileVisibility } from "./actions";
 
 type FileRow = {
@@ -25,6 +26,7 @@ const ACCEPT = "image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt";
 export function LessonFilesSection({ lessonId, files }: { lessonId: string; files: FileRow[] }) {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [viewingFile, setViewingFile] = useState<FileRow | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
@@ -81,12 +83,14 @@ export function LessonFilesSection({ lessonId, files }: { lessonId: string; file
               <div key={f.id} className="flex flex-wrap items-center justify-between gap-2 rounded-control border border-border px-3 py-2">
                 <div className="flex min-w-0 items-center gap-3">
                   {isImage && f.signedUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={f.signedUrl}
-                      alt={f.file_name}
-                      className="h-12 w-12 shrink-0 rounded-control border border-border object-cover"
-                    />
+                    <button type="button" onClick={() => setViewingFile(f)} className="shrink-0">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={f.signedUrl}
+                        alt={f.file_name}
+                        className="h-12 w-12 rounded-control border border-border object-cover"
+                      />
+                    </button>
                   ) : (
                     <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-control border border-border bg-surface-muted text-xs text-text-muted">
                       קובץ
@@ -94,14 +98,13 @@ export function LessonFilesSection({ lessonId, files }: { lessonId: string; file
                   )}
                   <div className="min-w-0">
                     {f.signedUrl ? (
-                      <a
-                        href={f.signedUrl}
-                        target="_blank"
-                        rel="noreferrer"
+                      <button
+                        type="button"
+                        onClick={() => setViewingFile(f)}
                         className="truncate text-sm font-medium text-brand-accent hover:underline"
                       >
                         {f.file_name}
-                      </a>
+                      </button>
                     ) : (
                       <span className="truncate text-sm text-text-muted">{f.file_name}</span>
                     )}
@@ -161,6 +164,8 @@ export function LessonFilesSection({ lessonId, files }: { lessonId: string; file
         </Button>
         {error && <p className="text-sm text-status-destructive">{error}</p>}
       </div>
+
+      <FileViewerModal file={viewingFile} onClose={() => setViewingFile(null)} />
     </Card>
   );
 }

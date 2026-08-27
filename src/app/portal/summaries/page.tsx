@@ -1,13 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { getSignedFileUrl } from "@/lib/lesson-files";
 import { Card } from "@/components/ui/card";
-import { formatIsoDateWithWeekday } from "@/lib/dates/format";
+import { SummariesGallery } from "./summaries-gallery";
 
 export default async function PortalSummariesPage() {
   const supabase = await createClient();
   const { data: summaries } = await supabase
     .from("lesson_files")
-    .select("id, storage_path, lessons(date, subjects(name))")
+    .select("id, file_name, storage_path, mime_type, lessons(date, subjects(name))")
     .ilike("mime_type", "image/%")
     .order("created_at", { ascending: false });
 
@@ -28,27 +28,7 @@ export default async function PortalSummariesPage() {
         </Card>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {withUrls.map((s) => (
-          <div key={s.id} className="flex flex-col gap-1.5">
-            {s.signedUrl ? (
-              <a href={s.signedUrl} target="_blank" rel="noreferrer">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={s.signedUrl} alt="סיכום שיעור" className="aspect-square w-full rounded-control border border-border object-cover" />
-              </a>
-            ) : (
-              <div className="flex aspect-square w-full items-center justify-center rounded-control border border-border bg-surface-muted text-xs text-text-muted">
-                שגיאה בטעינה
-              </div>
-            )}
-            {s.lessons && (
-              <p className="truncate text-xs text-text-muted">
-                {s.lessons.subjects?.name ?? "שיעור"} · {formatIsoDateWithWeekday(s.lessons.date)}
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
+      <SummariesGallery summaries={withUrls} />
     </div>
   );
 }

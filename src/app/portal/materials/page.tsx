@@ -1,13 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { getSignedFileUrl } from "@/lib/lesson-files";
 import { Card } from "@/components/ui/card";
-import { formatIsoDateWithWeekday } from "@/lib/dates/format";
+import { MaterialsList } from "./materials-list";
 
 export default async function PortalMaterialsPage() {
   const supabase = await createClient();
   const { data: materials } = await supabase
     .from("lesson_files")
-    .select("id, file_name, storage_path, lessons(date, subjects(name))")
+    .select("id, file_name, storage_path, mime_type, lessons(date, subjects(name))")
     .not("mime_type", "ilike", "image/%")
     .order("created_at", { ascending: false });
 
@@ -28,26 +28,7 @@ export default async function PortalMaterialsPage() {
         </Card>
       )}
 
-      <div className="flex flex-col gap-2">
-        {withUrls.map((m) => (
-          <Card key={m.id} className="flex flex-wrap items-center justify-between gap-2">
-            <div className="min-w-0">
-              {m.signedUrl ? (
-                <a href={m.signedUrl} target="_blank" rel="noreferrer" className="truncate text-sm font-medium text-brand-accent hover:underline">
-                  {m.file_name}
-                </a>
-              ) : (
-                <span className="truncate text-sm text-text-muted">{m.file_name}</span>
-              )}
-              {m.lessons && (
-                <p className="mt-0.5 truncate text-xs text-text-muted">
-                  {m.lessons.subjects?.name ?? "שיעור"} · {formatIsoDateWithWeekday(m.lessons.date)}
-                </p>
-              )}
-            </div>
-          </Card>
-        ))}
-      </div>
+      <MaterialsList materials={withUrls} />
     </div>
   );
 }
