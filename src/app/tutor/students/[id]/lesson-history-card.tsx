@@ -14,7 +14,13 @@ function toIsoDate(d: Date) {
 export async function LessonHistoryCard({ studentId }: { studentId: string }) {
   const supabase = await createClient();
   const rows = await fetchLessonHistory(supabase, studentId);
-  const preview = rows.slice(0, PREVIEW_COUNT);
+  // Confirmed lessons are what the tutor most likely came here to check
+  // (is there an upcoming lesson, is it still on) - surface those first in
+  // the quick-glance preview; other statuses only fill remaining slots.
+  // Both groups stay in their existing date-desc order from fetchLessonHistory.
+  const confirmedRows = rows.filter((r) => r.lessons.status === "confirmed");
+  const otherRows = rows.filter((r) => r.lessons.status !== "confirmed");
+  const preview = [...confirmedRows, ...otherRows].slice(0, PREVIEW_COUNT);
   const today = toIsoDate(new Date());
 
   return (

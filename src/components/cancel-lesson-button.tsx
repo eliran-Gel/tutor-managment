@@ -11,9 +11,9 @@ export function CancelLessonButton({ lessonId }: { lessonId: string }) {
 
   if (confirming) {
     return (
-      <div className="flex w-full min-w-0 flex-col items-end gap-2 sm:w-auto">
-        <span className="w-full break-words text-xs text-status-destructive sm:text-end">לבטל את השיעור?</span>
-        <div className="flex shrink-0 items-center gap-2">
+      <div className="flex w-full min-w-0 max-w-full flex-col items-end gap-2">
+        <span className="w-full break-words text-end text-xs text-status-destructive">לבטל את השיעור?</span>
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <Button type="button" variant="secondary" disabled={isPending} onClick={() => setConfirming(false)}>
             חזרה
           </Button>

@@ -25,7 +25,7 @@ export function LessonHistoryRow({
           {lesson.topic && ` · ${lesson.topic}`}
         </p>
       </div>
-      <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+      <div className="flex min-w-0 max-w-full flex-wrap items-center justify-end gap-2">
         <span className="text-sm font-medium text-text-secondary">₪{row.price_charged}</span>
         <Badge tone={row.payment_status === "paid" ? "confirmed" : "pending"}>
           {row.payment_status === "paid" ? "שולם" : "לא שולם"}

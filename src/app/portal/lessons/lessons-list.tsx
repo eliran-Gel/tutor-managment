@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { LESSON_STATUS_LABELS, LESSON_STATUS_TONE, DELIVERY_MODE_LABELS } from "@/lib/lessons";
+import { LESSON_STATUS_LABELS, LESSON_STATUS_TONE, DELIVERY_MODE_LABELS, type LessonStatus } from "@/lib/lessons";
 import { formatIsoDate } from "@/lib/dates/format";
 import {
   relativeMonthBucket,
@@ -70,11 +70,16 @@ function CancelRequestButton({ lessonId }: { lessonId: string }) {
 
 export function LessonsList({ lessons, subjects, isTutor }: { lessons: LessonRow[]; subjects: Tables<"subjects">[]; isTutor: boolean }) {
   const [bucketFilter, setBucketFilter] = useState<RelativeMonthBucket | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<LessonStatus | "all">("all");
 
   const bucketsPresent = useMemo(() => new Set(lessons.map((l) => relativeMonthBucket(l.date))), [lessons]);
+  const statusesPresent = useMemo(() => Array.from(new Set(lessons.map((l) => l.status))), [lessons]);
   const filtered = useMemo(
-    () => (bucketFilter === "all" ? lessons : lessons.filter((l) => relativeMonthBucket(l.date) === bucketFilter)),
-    [lessons, bucketFilter],
+    () =>
+      lessons
+        .filter((l) => bucketFilter === "all" || relativeMonthBucket(l.date) === bucketFilter)
+        .filter((l) => statusFilter === "all" || l.status === statusFilter),
+    [lessons, bucketFilter, statusFilter],
   );
 
   if (lessons.length === 0) {
@@ -105,37 +110,70 @@ export function LessonsList({ lessons, subjects, isTutor }: { lessons: LessonRow
         ))}
       </div>
 
-      <div className="flex flex-col gap-2">
-        {filtered.map((lesson) => (
-          <Card key={lesson.id} className="min-w-0">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                <p className="break-words font-medium text-text-primary">{lesson.subjects?.name ?? "ללא מקצוע"}</p>
-                <Badge tone={LESSON_STATUS_TONE[lesson.status]}>{LESSON_STATUS_LABELS[lesson.status]}</Badge>
-              </div>
-              {!isTutor && lesson.status === "confirmed" && (
-                <RequestChangeModal
-                  lessonId={lesson.id}
-                  currentDate={lesson.date}
-                  currentStartTime={lesson.start_time}
-                  currentDurationMinutes={lesson.duration_minutes}
-                  subjects={subjects}
-                />
-              )}
-              {!isTutor && lesson.status === "requested" && <CancelRequestButton lessonId={lesson.id} />}
-            </div>
-            <p className="mt-1 break-words text-sm text-text-muted">
-              {formatIsoDate(lesson.date)} · {lesson.start_time.slice(0, 5)}–{lesson.end_time.slice(0, 5)} ·{" "}
-              {DELIVERY_MODE_LABELS[lesson.delivery_mode]}
-            </p>
-            {lesson.topic && <p className="mt-1 break-words text-sm text-text-secondary">{lesson.topic}</p>}
-            {lesson.status === "rejected" && lesson.rejection_reason && (
-              <p className="mt-1 break-words text-sm text-status-destructive">
-                הערת המורה: {lesson.rejection_reason}
-              </p>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => setStatusFilter("all")}
+          className={cn(
+            "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+            statusFilter === "all"
+              ? "border-brand-accent bg-brand-accent text-white"
+              : "border-border text-text-secondary hover:bg-surface-muted",
+          )}
+        >
+          כל הסטטוסים
+        </button>
+        {statusesPresent.map((status) => (
+          <button
+            key={status}
+            type="button"
+            onClick={() => setStatusFilter(status)}
+            className={cn(
+              "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+              statusFilter === status
+                ? "border-brand-accent bg-brand-accent text-white"
+                : "border-border text-text-secondary hover:bg-surface-muted",
             )}
-          </Card>
+          >
+            {LESSON_STATUS_LABELS[status]}
+          </button>
         ))}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        {filtered.map((lesson) => {
+          const isPast = new Date(`${lesson.date}T${lesson.start_time}`) < new Date();
+          return (
+            <Card key={lesson.id} className="min-w-0">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  <p className="break-words font-medium text-text-primary">{lesson.subjects?.name ?? "ללא מקצוע"}</p>
+                  <Badge tone={LESSON_STATUS_TONE[lesson.status]}>{LESSON_STATUS_LABELS[lesson.status]}</Badge>
+                </div>
+                {!isTutor && !isPast && lesson.status === "confirmed" && (
+                  <RequestChangeModal
+                    lessonId={lesson.id}
+                    currentDate={lesson.date}
+                    currentStartTime={lesson.start_time}
+                    currentDurationMinutes={lesson.duration_minutes}
+                    subjects={subjects}
+                  />
+                )}
+                {!isTutor && lesson.status === "requested" && <CancelRequestButton lessonId={lesson.id} />}
+              </div>
+              <p className="mt-1 break-words text-sm text-text-muted">
+                {formatIsoDate(lesson.date)} · {lesson.start_time.slice(0, 5)}–{lesson.end_time.slice(0, 5)} ·{" "}
+                {DELIVERY_MODE_LABELS[lesson.delivery_mode]}
+              </p>
+              {lesson.topic && <p className="mt-1 break-words text-sm text-text-secondary">{lesson.topic}</p>}
+              {lesson.status === "rejected" && lesson.rejection_reason && (
+                <p className="mt-1 break-words text-sm text-status-destructive">
+                  הערת המורה: {lesson.rejection_reason}
+                </p>
+              )}
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
