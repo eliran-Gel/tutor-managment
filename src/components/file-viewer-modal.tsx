@@ -15,7 +15,7 @@ export function FileViewerModal({ file, onClose }: { file: ViewableFile | null; 
   if (!file) return null;
 
   return (
-    <Modal open onClose={onClose} title={file.file_name} widthClassName="max-w-3xl">
+    <Modal open onClose={onClose} title={file.file_name} showTitle={false} widthClassName="max-w-3xl">
       {!file.signedUrl ? (
         <p className="text-sm text-status-destructive">שגיאה בטעינת הקובץ.</p>
       ) : file.mime_type.startsWith("image/") ? (

@@ -7,12 +7,17 @@ export function Modal({
   open,
   onClose,
   title,
+  showTitle = true,
   children,
   widthClassName = "max-w-md",
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
+  /** Set false to keep `title` as the dialog's accessible name without
+   * rendering it visually (e.g. a file viewer where the content itself
+   * makes the filename redundant). */
+  showTitle?: boolean;
   children: ReactNode;
   /** Override the default `max-w-md` for content that needs more room
    * (e.g. an embedded image/PDF preview). */
@@ -38,8 +43,8 @@ export function Modal({
         aria-label={title}
         className={`relative flex max-h-[90vh] w-full ${widthClassName} flex-col rounded-card border border-border bg-surface shadow-card`}
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-border px-6 py-4">
-          <h2 className="text-base font-semibold text-text-primary">{title}</h2>
+        <div className="flex shrink-0 items-center justify-end border-b border-border px-6 py-4">
+          {showTitle && <h2 className="me-auto text-base font-semibold text-text-primary">{title}</h2>}
           <button
             type="button"
             onClick={onClose}
