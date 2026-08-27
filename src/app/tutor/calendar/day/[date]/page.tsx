@@ -10,6 +10,7 @@ import { formatAppTime } from "@/lib/dates/timezone";
 import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 import { CancelLessonButton } from "@/components/cancel-lesson-button";
 import { RequestRowActions } from "@/app/tutor/requests/request-row-actions";
+import { ClickableLessonCard } from "@/components/clickable-lesson-card";
 
 function toIsoDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -99,7 +100,11 @@ export default async function CalendarDayPage({ params }: { params: Promise<{ da
                 );
 
           return (
-            <Card key={lesson.id} className="flex flex-wrap items-center justify-between gap-3">
+            <ClickableLessonCard
+              key={lesson.id}
+              lessonId={lesson.id}
+              className="flex flex-wrap items-center justify-between gap-3"
+            >
               <div className="min-w-0">
                 <p className="font-semibold text-text-primary">
                   {lesson.start_time.slice(0, 5)}–{lesson.end_time.slice(0, 5)} · {lesson.subjects?.name ?? "שיעור"}
@@ -117,7 +122,7 @@ export default async function CalendarDayPage({ params }: { params: Promise<{ da
                 {lesson.status === "confirmed" && <CancelLessonButton lessonId={lesson.id} />}
                 {lesson.status === "requested" && <RequestRowActions lessonId={lesson.id} />}
               </div>
-            </Card>
+            </ClickableLessonCard>
           );
         })}
       </div>

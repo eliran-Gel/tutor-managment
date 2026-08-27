@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type MouseEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { approveRequest, rejectRequest } from "./actions";
 
@@ -10,6 +10,13 @@ export function RequestRowActions({ lessonId }: { lessonId: string }) {
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  // This block is sometimes nested inside a clickable card that navigates
+  // elsewhere - stop clicks (including into the textarea) from bubbling
+  // up to that card's own handler.
+  function stopPropagation(e: MouseEvent) {
+    e.stopPropagation();
+  }
 
   function submitReject() {
     setAction("reject");
@@ -23,7 +30,7 @@ export function RequestRowActions({ lessonId }: { lessonId: string }) {
 
   if (rejecting) {
     return (
-      <div className="flex w-full min-w-0 flex-col items-end gap-2 sm:w-64">
+      <div className="flex w-full min-w-0 flex-col items-end gap-2 sm:w-64" onClick={stopPropagation}>
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}
@@ -55,7 +62,7 @@ export function RequestRowActions({ lessonId }: { lessonId: string }) {
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col items-end gap-1" onClick={stopPropagation}>
       <div className="flex gap-2">
         <Button type="button" variant="secondary" disabled={isPending} onClick={() => setRejecting(true)}>
           דחייה

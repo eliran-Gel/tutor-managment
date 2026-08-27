@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, type MouseEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { cancelLesson } from "@/app/tutor/lessons/actions";
 
@@ -9,9 +9,16 @@ export function CancelLessonButton({ lessonId }: { lessonId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  // This button (and its confirm step) is sometimes nested inside a
+  // clickable card that navigates elsewhere - stop the click from
+  // bubbling up to that card's own handler.
+  function stopPropagation(e: MouseEvent) {
+    e.stopPropagation();
+  }
+
   if (confirming) {
     return (
-      <div className="flex w-full min-w-0 max-w-full flex-col items-end gap-2">
+      <div className="flex w-full min-w-0 max-w-full flex-col items-end gap-2" onClick={stopPropagation}>
         <span className="w-full break-words text-end text-xs text-status-destructive">לבטל את השיעור?</span>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <Button type="button" variant="secondary" disabled={isPending} onClick={() => setConfirming(false)}>
@@ -39,7 +46,14 @@ export function CancelLessonButton({ lessonId }: { lessonId: string }) {
   }
 
   return (
-    <Button type="button" variant="secondary" onClick={() => setConfirming(true)}>
+    <Button
+      type="button"
+      variant="secondary"
+      onClick={(e) => {
+        stopPropagation(e);
+        setConfirming(true);
+      }}
+    >
       ביטול שיעור
     </Button>
   );
