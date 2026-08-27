@@ -99,7 +99,7 @@ export function NotificationBell({
   async function handleMarkAllRead() {
     const now = new Date().toISOString();
     setNotifications((prev) => prev.map((n) => (n.read_at ? n : { ...n, read_at: now })));
-    await markAllNotificationsRead(userId);
+    await markAllNotificationsRead();
   }
 
   async function handleDeleteOne(e: ReactMouseEvent, id: string) {
@@ -111,7 +111,7 @@ export function NotificationBell({
   async function handleDeleteAll() {
     setConfirmingDeleteAll(false);
     setNotifications([]);
-    await deleteAllNotifications(userId);
+    await deleteAllNotifications();
   }
 
   return (
