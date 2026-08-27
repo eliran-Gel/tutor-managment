@@ -1,54 +1,56 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedFileUrl } from "@/lib/lesson-files";
-import { Card } from "@/components/ui/card";
-import { formatIsoDateWithWeekday } from "@/lib/dates/format";
+import { SummariesBrowser, type StudentSummaries } from "./summaries-browser";
 
 export default async function TutorSummariesPage() {
   const supabase = await createClient();
-  const { data: summaries } = await supabase
-    .from("lesson_files")
-    .select("id, storage_path, lessons(id, date, subjects(name))")
-    .ilike("mime_type", "image/%")
-    .order("created_at", { ascending: false })
-    .limit(60);
 
-  const withUrls = await Promise.all(
-    (summaries ?? []).map(async (s) => ({ ...s, signedUrl: await getSignedFileUrl(s.storage_path) })),
+  const [{ data: students }, { data: lessons, error }] = await Promise.all([
+    supabase.from("students").select("id, display_name").is("archived_at", null).order("display_name"),
+    supabase
+      .from("lessons")
+      .select(
+        "id, date, start_time, subjects(name), lesson_participants(student_id), lesson_files(id, file_name, storage_path, mime_type)",
+      )
+      .eq("status", "confirmed")
+      .order("date", { ascending: false }),
+  ]);
+
+  const lessonsWithUrls = await Promise.all(
+    (lessons ?? []).map(async (lesson) => {
+      const summaryFiles = await Promise.all(
+        lesson.lesson_files
+          .filter((f) => f.mime_type.startsWith("image/"))
+          .map(async (f) => ({ ...f, signedUrl: await getSignedFileUrl(f.storage_path) })),
+      );
+      return { ...lesson, summaryFiles };
+    }),
   );
+
+  const studentSummaries: StudentSummaries[] = (students ?? []).map((student) => ({
+    id: student.id,
+    displayName: student.display_name,
+    lessons: lessonsWithUrls
+      .filter((lesson) => lesson.lesson_participants.some((p) => p.student_id === student.id))
+      .map((lesson) => ({
+        id: lesson.id,
+        date: lesson.date,
+        startTime: lesson.start_time,
+        subjectName: lesson.subjects?.name ?? "שיעור",
+        summaryFiles: lesson.summaryFiles,
+      })),
+  }));
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-xl font-bold text-text-primary">סיכומי שיעורים</h1>
-        <p className="text-sm text-text-secondary">כל תמונות הסיכום שהועלו, מהחדש לישן.</p>
+        <p className="text-sm text-text-secondary">בחרו תלמיד/ה כדי לראות את השיעורים שאושרו ולפתוח את הסיכום שלהם.</p>
       </div>
 
-      {withUrls.length === 0 && (
-        <Card>
-          <p className="text-sm text-text-muted">עדיין לא הועלו סיכומי שיעור.</p>
-        </Card>
-      )}
+      {error && <p className="text-sm text-status-destructive">שגיאה בטעינת הנתונים: {error.message}</p>}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {withUrls.map((s) => (
-          <Link key={s.id} href={s.lessons ? `/tutor/lessons/${s.lessons.id}` : "#"} className="flex flex-col gap-1.5">
-            {s.signedUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={s.signedUrl} alt="סיכום שיעור" className="aspect-square w-full rounded-control border border-border object-cover" />
-            ) : (
-              <div className="flex aspect-square w-full items-center justify-center rounded-control border border-border bg-surface-muted text-xs text-text-muted">
-                שגיאה בטעינה
-              </div>
-            )}
-            {s.lessons && (
-              <p className="truncate text-xs text-text-muted">
-                {s.lessons.subjects?.name ?? "שיעור"} · {formatIsoDateWithWeekday(s.lessons.date)}
-              </p>
-            )}
-          </Link>
-        ))}
-      </div>
+      <SummariesBrowser students={studentSummaries} />
     </div>
   );
 }
