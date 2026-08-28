@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
   const { data: lessons } = await supabase
     .from("lessons")
     .select(
-      "id, date, start_time, end_time, status, delivery_mode, topic, online_url, subjects(name), lesson_participants(students(display_name))",
+      "id, date, start_time, end_time, status, delivery_mode, topic, online_url, subjects(name), lesson_participants(payment_status, students(display_name))",
     )
     .in("status", ["confirmed", "completed"])
     .order("date");
@@ -30,6 +30,15 @@ export async function GET(request: NextRequest) {
       .map((lp) => lp.students?.display_name)
       .filter((name): name is string => Boolean(name));
     const subjectName = lesson.subjects?.name ?? "שיעור";
+    // Apple Calendar has no way to color a single event within a
+    // subscribed ICS feed (color is set per-calendar, not per-event) -
+    // the user's own suggestion after hearing that constraint was to mark
+    // it in the title instead, so a fully-paid lesson (every participant,
+    // relevant for group lessons too) gets a "שולם" prefix.
+    const isFullyPaid =
+      lesson.lesson_participants.length > 0 &&
+      lesson.lesson_participants.every((lp) => lp.payment_status === "paid");
+    const namePart = studentNames.length > 0 ? studentNames.join(", ") : subjectName;
 
     const descriptionParts = [subjectName, DELIVERY_MODE_LABELS[lesson.delivery_mode]];
     if (lesson.topic) descriptionParts.push(lesson.topic);
@@ -38,7 +47,7 @@ export async function GET(request: NextRequest) {
       uid: `lesson-${lesson.id}@tutor-managment`,
       start,
       end,
-      summary: studentNames.length > 0 ? studentNames.join(", ") : subjectName,
+      summary: isFullyPaid ? `שולם · ${namePart}` : namePart,
       description: descriptionParts.join(" · "),
       location: lesson.delivery_mode === "online" ? (lesson.online_url ?? undefined) : undefined,
     };
