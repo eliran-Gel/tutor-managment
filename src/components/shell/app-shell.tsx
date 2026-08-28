@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import type { NavItem } from "@/lib/nav";
 import type { NotificationRow } from "@/lib/notifications";
+import { PushPermissionCard } from "@/components/push-permission-card";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 
@@ -71,7 +72,10 @@ export function AppShell({
           notifications={notifications}
           quickAction={quickAction}
         />
-        <main className="min-w-0 flex-1 bg-background px-4 py-6 md:px-8">{children}</main>
+        <main className="min-w-0 flex-1 bg-background px-4 py-6 md:px-8">
+          {userId && <PushPermissionCard />}
+          {children}
+        </main>
       </div>
     </div>
   );

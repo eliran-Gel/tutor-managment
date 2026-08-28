@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -524,6 +524,41 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          profile_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          profile_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_internal_notes: {
         Row: {
           id: string
@@ -963,63 +998,34 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      reject_lesson_request:
-        | {
-            Args: { target_lesson_id: string }
-            Returns: {
-              created_at: string
-              created_by: string
-              date: string
-              delivery_mode: Database["public"]["Enums"]["delivery_mode"]
-              duration_minutes: number
-              end_time: string
-              forced: boolean
-              id: string
-              lesson_type: Database["public"]["Enums"]["lesson_type"]
-              online_url: string | null
-              rejection_reason: string | null
-              source: Database["public"]["Enums"]["lesson_source"]
-              start_time: string
-              status: Database["public"]["Enums"]["lesson_status"]
-              subject_id: string | null
-              topic: string | null
-              updated_at: string
-            }
-            SetofOptions: {
-              from: "*"
-              to: "lessons"
-              isOneToOne: true
-              isSetofReturn: false
-            }
-          }
-        | {
-            Args: { p_reason?: string; target_lesson_id: string }
-            Returns: {
-              created_at: string
-              created_by: string
-              date: string
-              delivery_mode: Database["public"]["Enums"]["delivery_mode"]
-              duration_minutes: number
-              end_time: string
-              forced: boolean
-              id: string
-              lesson_type: Database["public"]["Enums"]["lesson_type"]
-              online_url: string | null
-              rejection_reason: string | null
-              source: Database["public"]["Enums"]["lesson_source"]
-              start_time: string
-              status: Database["public"]["Enums"]["lesson_status"]
-              subject_id: string | null
-              topic: string | null
-              updated_at: string
-            }
-            SetofOptions: {
-              from: "*"
-              to: "lessons"
-              isOneToOne: true
-              isSetofReturn: false
-            }
-          }
+      reject_lesson_request: {
+        Args: { p_reason?: string; target_lesson_id: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          date: string
+          delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+          duration_minutes: number
+          end_time: string
+          forced: boolean
+          id: string
+          lesson_type: Database["public"]["Enums"]["lesson_type"]
+          online_url: string | null
+          rejection_reason: string | null
+          source: Database["public"]["Enums"]["lesson_source"]
+          start_time: string
+          status: Database["public"]["Enums"]["lesson_status"]
+          subject_id: string | null
+          topic: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lessons"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       request_lesson: {
         Args: {
           p_date: string
@@ -1088,6 +1094,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      set_push_trigger_secret: { Args: { p_value: string }; Returns: undefined }
     }
     Enums: {
       change_request_status: "pending" | "approved" | "rejected"
