@@ -7,6 +7,7 @@ import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { DELIVERY_MODE_LABELS } from "@/lib/lessons";
 import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 import { getHebrewGreeting } from "@/lib/greeting";
+import { fetchOverduePayments } from "@/lib/payments";
 
 function toIsoDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -27,23 +28,25 @@ export default async function TutorDashboardPage() {
   const rangeStart = weekStart < monthStart ? weekStart : monthStart;
   const rangeEnd = weekEnd > monthEnd ? weekEnd : monthEnd;
 
-  const [{ count: activeStudents }, { data: pendingRequests }, { data: rangeLessons }] = await Promise.all([
-    supabase.from("students").select("id", { count: "exact", head: true }).is("archived_at", null),
-    supabase
-      .from("lessons")
-      .select("*, subjects(name), requester:profiles!lessons_created_by_fkey(full_name, email)")
-      .eq("status", "requested")
-      .order("created_at")
-      .limit(5),
-    // Lessons in the today/week/month union range - fetched once and
-    // sliced below, instead of 3 separate round trips.
-    supabase
-      .from("lessons")
-      .select("date, lesson_participants(price_charged)")
-      .in("status", ["confirmed", "completed"])
-      .gte("date", rangeStart)
-      .lte("date", rangeEnd),
-  ]);
+  const [{ count: activeStudents }, { data: pendingRequests }, { data: rangeLessons }, overduePayments] =
+    await Promise.all([
+      supabase.from("students").select("id", { count: "exact", head: true }).is("archived_at", null),
+      supabase
+        .from("lessons")
+        .select("*, subjects(name), requester:profiles!lessons_created_by_fkey(full_name, email)")
+        .eq("status", "requested")
+        .order("created_at")
+        .limit(5),
+      // Lessons in the today/week/month union range - fetched once and
+      // sliced below, instead of 3 separate round trips.
+      supabase
+        .from("lessons")
+        .select("date, lesson_participants(price_charged)")
+        .in("status", ["confirmed", "completed"])
+        .gte("date", rangeStart)
+        .lte("date", rangeEnd),
+      fetchOverduePayments(supabase),
+    ]);
 
   const lessonRows = rangeLessons ?? [];
   function statsFor(from: string, to: string) {
@@ -138,9 +141,25 @@ export default async function TutorDashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle>תשלומים ממתינים</CardTitle>
-            <Badge tone="pending">0</Badge>
+            <Badge tone="pending">{overduePayments.length}</Badge>
           </CardHeader>
-          <p className="text-sm text-text-muted">אין תשלומים ממתינים כרגע.</p>
+          {overduePayments.length === 0 ? (
+            <p className="text-sm text-text-muted">אין תשלומים ממתינים כרגע.</p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {overduePayments.slice(0, 5).map((row) => (
+                <li key={row.participantId} className="min-w-0 rounded-control border border-border px-3 py-2 text-sm">
+                  <p className="break-words font-medium text-text-primary">{row.studentName}</p>
+                  <p className="break-words text-text-muted">
+                    {row.subjectName} · {formatIsoDateWithWeekday(row.date)} · ₪{row.price}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+          <Link href="/tutor/payments" className="mt-3 inline-block text-sm font-medium text-brand-accent transition-transform duration-200 hover:underline active:scale-90">
+            לכל התשלומים ←
+          </Link>
         </Card>
       </div>
     </div>

@@ -35,3 +35,10 @@ export const DELIVERY_MODE_LABELS: Record<Database["public"]["Enums"]["delivery_
   online: "מקוון",
   in_person: "פרונטלי",
 };
+
+export const PAYMENT_METHOD_LABELS: Record<Database["public"]["Enums"]["payment_method"], string> = {
+  cash: "מזומן",
+  bit: "ביט",
+  paybox: "פייבוקס",
+  other: "אחר",
+};

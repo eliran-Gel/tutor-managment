@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedFileUrl } from "@/lib/lesson-files";
 import { LESSON_STATUS_LABELS, LESSON_STATUS_TONE, DELIVERY_MODE_LABELS } from "@/lib/lessons";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { MarkPaymentControl } from "@/components/mark-payment-control";
 import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 import { HomeworkSection } from "./homework-section";
 import { LessonFilesSection } from "./lesson-files-section";
@@ -15,7 +17,9 @@ export default async function TutorLessonDetailPage({ params }: { params: Promis
   const [{ data: lesson }, { data: homework }, { data: files }] = await Promise.all([
     supabase
       .from("lessons")
-      .select("id, date, start_time, end_time, status, delivery_mode, topic, subjects(name), lesson_participants(student_id, students(display_name))")
+      .select(
+        "id, date, start_time, end_time, status, delivery_mode, topic, subjects(name), lesson_participants(id, student_id, price_charged, payment_status, payment_method, students(display_name))",
+      )
       .eq("id", id)
       .maybeSingle(),
     supabase.from("homework").select("id, student_id, description, due_date, is_done").eq("lesson_id", id).order("created_at"),
@@ -58,6 +62,35 @@ export default async function TutorLessonDetailPage({ params }: { params: Promis
           {lesson.topic && ` · ${lesson.topic}`}
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>תשלום</CardTitle>
+        </CardHeader>
+        {lesson.lesson_participants.length === 0 ? (
+          <p className="text-sm text-text-muted">אין משתתפים משויכים עדיין.</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {lesson.lesson_participants.map((p) => (
+              <div
+                key={p.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-control border border-border px-3 py-2"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-text-primary">{p.students?.display_name ?? "תלמיד/ה"}</p>
+                  <p className="text-sm text-text-muted">₪{p.price_charged}</p>
+                </div>
+                <MarkPaymentControl
+                  participantId={p.id}
+                  lessonId={id}
+                  paymentStatus={p.payment_status}
+                  paymentMethod={p.payment_method}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
 
       <HomeworkSection lessonId={id} participants={participants} homework={homework ?? []} />
       <LessonFilesSection lessonId={id} files={filesWithUrls} />
