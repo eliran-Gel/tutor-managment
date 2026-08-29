@@ -1,16 +1,24 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { CancelLessonButton } from "@/components/cancel-lesson-button";
+import { DeleteLessonHistoryButton } from "@/components/delete-lesson-history-button";
 import { LESSON_STATUS_LABELS, LESSON_STATUS_TONE, DELIVERY_MODE_LABELS } from "@/lib/lessons";
 import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 import type { LessonHistoryRow as LessonHistoryRowData } from "@/lib/lesson-history";
 
+const DELETABLE_STATUSES = new Set(["rejected", "cancelled"]);
+
 export function LessonHistoryRow({
   row,
   showCancelAction = false,
+  studentId,
 }: {
   row: LessonHistoryRowData;
   showCancelAction?: boolean;
+  /** Enables the permanent-delete action for dead-end statuses (rejected/
+   * cancelled) - omit to hide it (e.g. contexts where studentId isn't
+   * cheaply available). */
+  studentId?: string;
 }) {
   const lesson = row.lessons;
   return (
@@ -38,6 +46,9 @@ export function LessonHistoryRow({
           ניהול שיעור ←
         </Link>
         {showCancelAction && lesson.status === "confirmed" && <CancelLessonButton lessonId={lesson.id} />}
+        {studentId && DELETABLE_STATUSES.has(lesson.status) && (
+          <DeleteLessonHistoryButton lessonId={lesson.id} studentId={studentId} />
+        )}
       </div>
     </div>
   );

@@ -35,7 +35,7 @@ function toIsoDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export function HistoryList({ rows }: { rows: LessonHistoryRowData[] }) {
+export function HistoryList({ rows, studentId }: { rows: LessonHistoryRowData[]; studentId: string }) {
   const today = toIsoDate(new Date());
   const [statusFilter, setStatusFilter] = useState<LessonStatus | "all">("all");
   const [bucketFilter, setBucketFilter] = useState<RelativeMonthBucket | "all">("all");
@@ -121,7 +121,12 @@ export function HistoryList({ rows }: { rows: LessonHistoryRowData[] }) {
           <div key={monthKey} className="flex flex-col gap-2">
             <h2 className="text-sm font-semibold text-text-secondary">{monthLabel(monthKey)}</h2>
             {monthRows.map((row) => (
-              <LessonHistoryRow key={row.lessons.id} row={row} showCancelAction={row.lessons.date >= today} />
+              <LessonHistoryRow
+                key={row.lessons.id}
+                row={row}
+                showCancelAction={row.lessons.date >= today}
+                studentId={studentId}
+              />
             ))}
           </div>
         ))

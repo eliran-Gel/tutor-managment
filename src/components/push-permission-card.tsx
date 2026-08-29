@@ -3,24 +3,19 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { subscribeToPush } from "@/app/push/actions";
+import { enablePushNotifications, isIOSDevice, isStandaloneDisplay } from "@/lib/push-subscribe";
 
 const DISMISS_KEY = "push_prompt_dismissed";
-
-function urlBase64ToUint8Array(base64String: string) {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const rawData = atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
-  return outputArray;
-}
 
 /**
  * iOS Safari has no in-browser push permission prompt at all - Web Push
  * only works there once the site is added to the home screen (iOS 16.4+).
  * So on iOS-not-yet-installed we show install instructions instead of a
  * permission button that would silently do nothing.
+ *
+ * This is a one-shot, dismissible nudge - once closed it never reappears
+ * on that device (by design, so it doesn't nag). Enabling later is still
+ * possible from the profile page's permanent notification settings.
  */
 export function PushPermissionCard() {
   const [mode, setMode] = useState<"none" | "ios-install" | "enable">("none");
@@ -35,11 +30,7 @@ export function PushPermissionCard() {
     if (typeof window === "undefined" || !("Notification" in window)) return;
     if (localStorage.getItem(DISMISS_KEY)) return;
 
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const nav = navigator as Navigator & { standalone?: boolean };
-    const isStandalone = window.matchMedia("(display-mode: standalone)").matches || nav.standalone === true;
-
-    if (isIOS && !isStandalone) {
+    if (isIOSDevice() && !isStandaloneDisplay()) {
       setMode("ios-install");
     } else if (Notification.permission === "default") {
       setMode("enable");
@@ -56,39 +47,9 @@ export function PushPermissionCard() {
     setError(null);
     setIsSubscribing(true);
     try {
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        setError("לא ניתנה הרשאה להתראות.");
-        return;
-      }
-
-      const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
-      if (!publicKey) {
-        setError("שגיאת הגדרה - נסו שוב מאוחר יותר.");
-        return;
-      }
-
-      const registration = await navigator.serviceWorker.register("/sw.js");
-      await navigator.serviceWorker.ready;
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicKey),
-      });
-      const json = subscription.toJSON();
-      if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
-        setError("ההרשמה להתראות נכשלה - נסה/י שוב.");
-        return;
-      }
-
-      const result = await subscribeToPush({
-        endpoint: json.endpoint,
-        keys: { p256dh: json.keys.p256dh, auth: json.keys.auth },
-      });
-      if (result?.error) {
-        setError(result.error);
-        return;
-      }
-      dismiss();
+      const result = await enablePushNotifications();
+      if (result.error) setError(result.error);
+      else dismiss();
     } catch {
       setError("ההפעלה נכשלה - נסה/י שוב.");
     } finally {

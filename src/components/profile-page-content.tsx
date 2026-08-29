@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ChangePasswordForm } from "@/components/change-password-form";
 import { EditNameForm } from "@/components/edit-name-form";
 import { EditGradeSchoolForm } from "@/components/edit-grade-school-form";
+import { NotificationSettingsCard } from "@/components/notification-settings-card";
 
 export async function ProfilePageContent() {
   const profile = await getCurrentProfile();
@@ -55,6 +56,8 @@ export async function ProfilePageContent() {
           />
         </Card>
       )}
+
+      <NotificationSettingsCard />
 
       <Card className="max-w-md">
         <CardHeader>

@@ -35,7 +35,12 @@ export async function LessonHistoryCard({ studentId }: { studentId: string }) {
       ) : (
         <div className="flex flex-col gap-2">
           {preview.map((row) => (
-            <LessonHistoryRow key={row.lessons.id} row={row} showCancelAction={row.lessons.date >= today} />
+            <LessonHistoryRow
+              key={row.lessons.id}
+              row={row}
+              showCancelAction={row.lessons.date >= today}
+              studentId={studentId}
+            />
           ))}
         </div>
       )}

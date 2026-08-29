@@ -70,7 +70,7 @@ export default async function StudentHistoryPage({ params }: { params: Promise<{
         </Card>
       )}
 
-      <HistoryList rows={rows} />
+      <HistoryList rows={rows} studentId={id} />
     </div>
   );
 }

@@ -57,6 +57,18 @@ export async function deleteStudent(studentId: string) {
   return { success: true as const };
 }
 
+export async function deleteLessonFromHistory(lessonId: string, studentId: string) {
+  const { supabase } = await requireTutor();
+
+  const { error } = await supabase.rpc("delete_lesson_from_history", { target_lesson_id: lessonId });
+  if (error) return { error: error.message };
+
+  revalidatePath(`/tutor/students/${studentId}`);
+  revalidatePath(`/tutor/students/${studentId}/history`);
+  revalidatePath("/tutor/calendar");
+  return { success: true as const };
+}
+
 export async function setStudentArchived(studentId: string, archived: boolean) {
   const { supabase } = await requireTutor();
 

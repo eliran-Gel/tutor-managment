@@ -1017,6 +1017,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      delete_lesson_from_history: {
+        Args: { target_lesson_id: string }
+        Returns: undefined
+      }
       delete_student: { Args: { p_student_id: string }; Returns: undefined }
       edit_lesson_request: {
         Args: {
