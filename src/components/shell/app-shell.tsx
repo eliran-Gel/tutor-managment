@@ -5,8 +5,11 @@ import { usePathname } from "next/navigation";
 import type { NavItem } from "@/lib/nav";
 import type { NotificationRow } from "@/lib/notifications";
 import { PushPermissionCard } from "@/components/push-permission-card";
+import { cn } from "@/lib/cn";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
+
+const DRAWER_TRANSITION_MS = 200;
 
 export function AppShell({
   items,
@@ -28,6 +31,8 @@ export function AppShell({
   children: ReactNode;
 }) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [drawerMounted, setDrawerMounted] = useState(false);
+  const [drawerVisible, setDrawerVisible] = useState(false);
   const pathname = usePathname();
 
   // Close the drawer only once the destination route has actually taken
@@ -38,6 +43,19 @@ export function AppShell({
   useEffect(() => {
     setMobileNavOpen(false);
   }, [pathname]);
+
+  // Same "stay mounted through the closing transition" pattern as Modal -
+  // the drawer used to just vanish instantly instead of sliding away.
+  useEffect(() => {
+    if (mobileNavOpen) {
+      setDrawerMounted(true);
+      const raf = requestAnimationFrame(() => setDrawerVisible(true));
+      return () => cancelAnimationFrame(raf);
+    }
+    setDrawerVisible(false);
+    const timeout = setTimeout(() => setDrawerMounted(false), DRAWER_TRANSITION_MS);
+    return () => clearTimeout(timeout);
+  }, [mobileNavOpen]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   return (
@@ -46,13 +64,25 @@ export function AppShell({
         <Sidebar items={items} roleLabel={roleLabel} userName={userName} />
       </aside>
 
-      {mobileNavOpen && (
+      {drawerMounted && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div
-            className="absolute inset-0 bg-black/40"
+            className={cn(
+              "absolute inset-0 bg-black/40 transition-opacity duration-200",
+              drawerVisible ? "opacity-100" : "opacity-0",
+            )}
             onClick={() => setMobileNavOpen(false)}
           />
-          <div className="absolute inset-y-0 end-0 w-72 bg-surface shadow-card">
+          <div
+            className={cn(
+              // The app is RTL-only, so the drawer sits at the visual left
+              // edge (`end-0`) - sliding it in means coming from further
+              // left, i.e. a negative translateX (not RTL-logical, but
+              // there's no LTR mode to worry about getting backwards).
+              "absolute inset-y-0 end-0 w-72 bg-surface shadow-card transition-transform duration-200 ease-out",
+              drawerVisible ? "translate-x-0" : "-translate-x-full",
+            )}
+          >
             <Sidebar
               items={items}
               roleLabel={roleLabel}

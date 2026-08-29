@@ -133,7 +133,7 @@ export function NotificationBell({
       </button>
 
       {open && (
-        <div className="absolute end-0 z-20 mt-2 w-80 max-w-[90vw] overflow-hidden rounded-control border border-border bg-surface shadow-lg">
+        <div className="animate-dropdown-in absolute end-0 z-20 mt-2 w-80 max-w-[90vw] overflow-hidden rounded-control border border-border bg-surface shadow-lg">
           <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2.5">
             <p className="text-sm font-semibold text-text-primary">התראות</p>
             <div className="flex items-center gap-3">

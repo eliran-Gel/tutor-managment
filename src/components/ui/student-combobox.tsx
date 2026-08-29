@@ -59,7 +59,7 @@ export function StudentCombobox({
         className="w-full rounded-control border border-border bg-background px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-accent"
       />
       {open && (
-        <div className="absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-control border border-border bg-surface shadow-lg">
+        <div className="animate-dropdown-in absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-control border border-border bg-surface shadow-lg">
           <button
             type="button"
             onMouseDown={(e) => {
