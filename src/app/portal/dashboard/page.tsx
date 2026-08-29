@@ -13,22 +13,35 @@ export default async function PortalDashboardPage() {
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const [{ data: links }, { data: nextLesson }, { data: subjects }, { data: ownStudent }] = await Promise.all([
-    supabase.from("business_links").select("*").eq("id", true).single(),
-    supabase
-      .from("lessons")
-      .select("*, subjects(name)")
-      .eq("status", "confirmed")
-      .gte("date", today)
-      .order("date")
-      .order("start_time")
-      .limit(1)
-      .maybeSingle(),
-    supabase.from("subjects").select("*").eq("active", true).order("name"),
-    profile?.role === "student"
-      ? supabase.from("students").select("grade, school_name").eq("profile_id", profile.id).maybeSingle()
-      : Promise.resolve({ data: null }),
-  ]);
+  const [{ data: links }, { data: nextLesson }, { data: nextPendingLesson }, { data: subjects }, { data: ownStudent }] =
+    await Promise.all([
+      supabase.from("business_links").select("*").eq("id", true).single(),
+      supabase
+        .from("lessons")
+        .select("*, subjects(name)")
+        .eq("status", "confirmed")
+        .gte("date", today)
+        .order("date")
+        .order("start_time")
+        .limit(1)
+        .maybeSingle(),
+      // Only shown when there's no confirmed lesson yet - a request still
+      // awaiting the tutor's decision, so the student isn't just staring
+      // at "no lesson scheduled" while something is actually in progress.
+      supabase
+        .from("lessons")
+        .select("*, subjects(name)")
+        .eq("status", "requested")
+        .gte("date", today)
+        .order("date")
+        .order("start_time")
+        .limit(1)
+        .maybeSingle(),
+      supabase.from("subjects").select("*").eq("active", true).order("name"),
+      profile?.role === "student"
+        ? supabase.from("students").select("grade, school_name").eq("profile_id", profile.id).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
 
   const needsGradeSchool = ownStudent && (ownStudent.grade == null || !ownStudent.school_name);
 
@@ -71,6 +84,15 @@ export default async function PortalDashboardPage() {
               {formatIsoDate(nextLesson.date)} · {nextLesson.start_time.slice(0, 5)}–
               {nextLesson.end_time.slice(0, 5)} · {DELIVERY_MODE_LABELS[nextLesson.delivery_mode]}
             </p>
+          </>
+        ) : nextPendingLesson ? (
+          <>
+            <p className="mt-2 text-lg font-semibold">{nextPendingLesson.subjects?.name ?? "שיעור"}</p>
+            <p className="mt-1 text-sm opacity-90">
+              {formatIsoDate(nextPendingLesson.date)} · {nextPendingLesson.start_time.slice(0, 5)}–
+              {nextPendingLesson.end_time.slice(0, 5)}
+            </p>
+            <p className="mt-1 text-sm font-medium opacity-90">טרם אושר על ידי המורה</p>
           </>
         ) : (
           <p className="mt-2 text-lg font-semibold">עדיין אין שיעור מתוזמן</p>

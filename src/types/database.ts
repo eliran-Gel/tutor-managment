@@ -258,6 +258,7 @@ export type Database = {
       }
       lesson_participants: {
         Row: {
+          cancellation_note: string | null
           created_at: string
           id: string
           lesson_id: string
@@ -269,6 +270,7 @@ export type Database = {
           student_id: string
         }
         Insert: {
+          cancellation_note?: string | null
           created_at?: string
           id?: string
           lesson_id: string
@@ -280,6 +282,7 @@ export type Database = {
           student_id: string
         }
         Update: {
+          cancellation_note?: string | null
           created_at?: string
           id?: string
           lesson_id?: string

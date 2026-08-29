@@ -18,7 +18,7 @@ export default async function TutorLessonDetailPage({ params }: { params: Promis
     supabase
       .from("lessons")
       .select(
-        "id, date, start_time, end_time, status, delivery_mode, topic, subjects(name), lesson_participants(id, student_id, price_charged, payment_status, payment_method, students(display_name))",
+        "id, date, start_time, end_time, status, delivery_mode, topic, subjects(name), lesson_participants(id, student_id, price_charged, payment_status, payment_method, cancellation_note, students(display_name))",
       )
       .eq("id", id)
       .maybeSingle(),
@@ -79,6 +79,7 @@ export default async function TutorLessonDetailPage({ params }: { params: Promis
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-text-primary">{p.students?.display_name ?? "תלמיד/ה"}</p>
                   <p className="text-sm text-text-muted">₪{p.price_charged}</p>
+                  {p.cancellation_note && <p className="mt-0.5 text-xs text-status-destructive">{p.cancellation_note}</p>}
                 </div>
                 <MarkPaymentControl
                   participantId={p.id}

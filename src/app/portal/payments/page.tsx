@@ -13,7 +13,9 @@ export default async function PortalPaymentsPage() {
   // only per-lesson status.
   const { data: rows } = await supabase
     .from("lesson_participants")
-    .select("id, price_charged, payment_status, payment_method, students(display_name), lessons(date, start_time, subjects(name))")
+    .select(
+      "id, price_charged, payment_status, payment_method, cancellation_note, students(display_name), lessons(date, start_time, subjects(name))",
+    )
     .order("date", { referencedTable: "lessons", ascending: false });
 
   return (
@@ -40,6 +42,7 @@ export default async function PortalPaymentsPage() {
                   {row.lessons && `${formatIsoDateWithWeekday(row.lessons.date)} · ${row.lessons.start_time.slice(0, 5)} · `}
                   ₪{row.price_charged}
                 </p>
+                {row.cancellation_note && <p className="mt-0.5 text-xs text-text-muted">{row.cancellation_note}</p>}
               </div>
               <Badge tone={row.payment_status === "paid" ? "confirmed" : "pending"}>
                 {row.payment_status === "paid"

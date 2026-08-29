@@ -30,6 +30,7 @@ export default async function TutorPaymentsPage() {
                 <p className="text-sm text-text-muted">
                   {row.subjectName} · {formatIsoDateWithWeekday(row.date)} · {row.startTime.slice(0, 5)} · ₪{row.price}
                 </p>
+                {row.cancellationNote && <p className="mt-0.5 text-xs text-status-destructive">{row.cancellationNote}</p>}
               </div>
               <MarkPaymentControl participantId={row.participantId} lessonId={row.lessonId} paymentStatus="unpaid" />
             </Card>

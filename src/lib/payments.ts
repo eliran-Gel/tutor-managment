@@ -10,6 +10,7 @@ export type OverduePayment = {
   startTime: string;
   subjectName: string;
   studentName: string;
+  cancellationNote: string | null;
 };
 
 /**
@@ -35,9 +36,11 @@ export async function fetchOverduePayments(
   const { data: lessons } = await supabase
     .from("lessons")
     .select(
-      "id, date, start_time, subjects(name), lesson_participants(id, price_charged, payment_status, students(display_name))",
+      "id, date, start_time, subjects(name), lesson_participants(id, price_charged, payment_status, cancellation_note, students(display_name))",
     )
-    .eq("status", "confirmed")
+    // Includes cancelled lessons too - a late-cancellation fee is still
+    // owed even though the lesson itself never happened.
+    .in("status", ["confirmed", "cancelled"])
     .lte("date", thresholdIso)
     .order("date", { ascending: true });
 
@@ -53,6 +56,7 @@ export async function fetchOverduePayments(
         startTime: lesson.start_time,
         subjectName: lesson.subjects?.name ?? "שיעור",
         studentName: participant.students?.display_name ?? "תלמיד/ה",
+        cancellationNote: participant.cancellation_note,
       });
     }
   }
