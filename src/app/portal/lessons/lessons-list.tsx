@@ -13,6 +13,7 @@ import {
 } from "@/lib/relative-month-buckets";
 import { cn } from "@/lib/cn";
 import { RequestChangeModal } from "./request-change-modal";
+import { RequestLessonModal } from "./request-lesson-modal";
 import { cancelLessonRequest } from "./actions";
 import type { Tables } from "@/types/database";
 
@@ -159,7 +160,26 @@ export function LessonsList({ lessons, subjects, isTutor }: { lessons: LessonRow
                     subjects={subjects}
                   />
                 )}
-                {!isTutor && lesson.status === "requested" && <CancelRequestButton lessonId={lesson.id} />}
+                {!isTutor && lesson.status === "requested" && (
+                  <div className="flex shrink-0 items-center gap-2">
+                    <RequestLessonModal
+                      subjects={subjects}
+                      triggerLabel="עריכה"
+                      triggerVariant="secondary"
+                      triggerClassName="text-xs"
+                      editingLesson={{
+                        id: lesson.id,
+                        date: lesson.date,
+                        start_time: lesson.start_time,
+                        duration_minutes: lesson.duration_minutes,
+                        subject_id: lesson.subject_id ?? "",
+                        delivery_mode: lesson.delivery_mode,
+                        topic: lesson.topic,
+                      }}
+                    />
+                    <CancelRequestButton lessonId={lesson.id} />
+                  </div>
+                )}
               </div>
               <p className="mt-1 break-words text-sm text-text-muted">
                 {formatIsoDate(lesson.date)} · {lesson.start_time.slice(0, 5)}–{lesson.end_time.slice(0, 5)} ·{" "}

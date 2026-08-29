@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   graphql_public: {
     Tables: {
@@ -723,6 +723,54 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist_entries: {
+        Row: {
+          created_at: string
+          created_by: string
+          date: string
+          id: string
+          note: string | null
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["waitlist_status"]
+          subject_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          date: string
+          id?: string
+          note?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["waitlist_status"]
+          subject_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          date?: string
+          id?: string
+          note?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["waitlist_status"]
+          subject_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_entries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waitlist_entries_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -967,12 +1015,68 @@ export type Database = {
         Returns: undefined
       }
       delete_student: { Args: { p_student_id: string }; Returns: undefined }
+      edit_lesson_request: {
+        Args: {
+          p_date: string
+          p_delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+          p_duration_minutes: number
+          p_end_time: string
+          p_start_time: string
+          p_subject_id: string
+          p_topic: string
+          target_lesson_id: string
+        }
+        Returns: {
+          created_at: string
+          created_by: string
+          date: string
+          delivery_mode: Database["public"]["Enums"]["delivery_mode"]
+          duration_minutes: number
+          end_time: string
+          forced: boolean
+          id: string
+          lesson_type: Database["public"]["Enums"]["lesson_type"]
+          online_url: string | null
+          rejection_reason: string | null
+          source: Database["public"]["Enums"]["lesson_source"]
+          start_time: string
+          status: Database["public"]["Enums"]["lesson_status"]
+          subject_id: string | null
+          topic: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "lessons"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       is_lesson_participant: {
         Args: { target_lesson_id: string }
         Returns: boolean
       }
       is_parent_of: { Args: { target_student_id: string }; Returns: boolean }
       is_tutor: { Args: never; Returns: boolean }
+      join_waitlist: {
+        Args: { p_date: string; p_note: string; p_subject_id: string }
+        Returns: {
+          created_at: string
+          created_by: string
+          date: string
+          id: string
+          note: string | null
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["waitlist_status"]
+          subject_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "waitlist_entries"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       owns_student: { Args: { target_student_id: string }; Returns: boolean }
       reject_change_request: {
         Args: { p_request_id: string }
@@ -1112,6 +1216,7 @@ export type Database = {
       payment_method: "cash" | "bit" | "paybox" | "other"
       payment_status: "unpaid" | "paid"
       user_role: "tutor" | "parent" | "student"
+      waitlist_status: "waiting" | "fulfilled" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1258,6 +1363,7 @@ export const Constants = {
       payment_method: ["cash", "bit", "paybox", "other"],
       payment_status: ["unpaid", "paid"],
       user_role: ["tutor", "parent", "student"],
+      waitlist_status: ["waiting", "fulfilled", "cancelled"],
     },
   },
 } as const

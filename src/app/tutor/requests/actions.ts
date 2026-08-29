@@ -64,3 +64,16 @@ export async function rejectChangeRequest(requestId: string) {
   revalidateRequestPaths();
   return { success: true as const };
 }
+
+export async function resolveWaitlistEntry(id: string, status: "fulfilled" | "cancelled") {
+  const { supabase } = await requireTutor();
+
+  const { error } = await supabase
+    .from("waitlist_entries")
+    .update({ status, resolved_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) return { error: error.message };
+
+  revalidateRequestPaths();
+  return { success: true as const };
+}

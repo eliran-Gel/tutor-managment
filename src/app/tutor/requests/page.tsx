@@ -4,10 +4,11 @@ import { DELIVERY_MODE_LABELS } from "@/lib/lessons";
 import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 import { RequestRowActions } from "./request-row-actions";
 import { ChangeRequestRowActions } from "./change-request-row-actions";
+import { WaitlistRowActions } from "./waitlist-row-actions";
 
 export default async function RequestsPage() {
   const supabase = await createClient();
-  const [{ data: requests }, { data: changeRequests }] = await Promise.all([
+  const [{ data: requests }, { data: changeRequests }, { data: waitlist }] = await Promise.all([
     supabase
       .from("lessons")
       .select("*, subjects(name), requester:profiles!lessons_created_by_fkey(full_name, email)")
@@ -19,6 +20,13 @@ export default async function RequestsPage() {
         "*, requester:profiles!change_requests_requested_by_fkey(full_name, email), lessons(date, start_time, end_time, subjects(name)), requested_subject:subjects!change_requests_requested_subject_id_fkey(name)",
       )
       .eq("status", "pending")
+      .order("created_at"),
+    // Oldest first = first-come-first-served, so the tutor can see at a
+    // glance who to offer an opening to first.
+    supabase
+      .from("waitlist_entries")
+      .select("*, subjects(name), requester:profiles!waitlist_entries_created_by_fkey(full_name, email)")
+      .eq("status", "waiting")
       .order("created_at"),
   ]);
 
@@ -97,6 +105,38 @@ export default async function RequestsPage() {
             </div>
             <div className="shrink-0">
               <ChangeRequestRowActions requestId={cr.id} />
+            </div>
+          </Card>
+        ))}
+      </div>
+
+      <div>
+        <h2 className="text-lg font-bold text-text-primary">רשימת המתנה</h2>
+        <p className="text-sm text-text-secondary">
+          מסודר לפי מי שביקש/ה ראשון/ה. חסוי מתלמידים - הם רואים רק את הבקשה שלהם.
+        </p>
+      </div>
+
+      {waitlist && waitlist.length === 0 && (
+        <Card>
+          <p className="text-sm text-text-muted">אין ממתינים כרגע.</p>
+        </Card>
+      )}
+
+      <div className="flex flex-col gap-2">
+        {waitlist?.map((entry, index) => (
+          <Card key={entry.id} className="min-w-0 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="truncate font-medium text-text-primary">
+                #{index + 1} · {entry.requester?.full_name ?? entry.requester?.email ?? "משתמש לא ידוע"}
+              </p>
+              <p className="mt-1 break-words text-sm text-text-secondary">
+                {entry.subjects?.name ?? "ללא מקצוע"} · {formatIsoDateWithWeekday(entry.date)}
+              </p>
+              {entry.note && <p className="mt-1 break-words text-sm text-text-muted">{entry.note}</p>}
+            </div>
+            <div className="shrink-0">
+              <WaitlistRowActions id={entry.id} date={entry.date} />
             </div>
           </Card>
         ))}

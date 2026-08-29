@@ -7,24 +7,48 @@ import { Button } from "@/components/ui/button";
 import { TimeSlotSelect } from "@/components/ui/time-slot-select";
 import { LESSON_DURATIONS } from "@/lib/lessons";
 import { calculateLessonPrice } from "@/lib/pricing";
-import { requestLesson, getAvailableStartTimesAction } from "./actions";
+import { requestLesson, editLessonRequest, getAvailableStartTimesAction } from "./actions";
+import { joinWaitlist } from "@/app/portal/waitlist/actions";
 import type { Tables } from "@/types/database";
+
+export type EditableLesson = {
+  id: string;
+  date: string;
+  start_time: string;
+  duration_minutes: number;
+  subject_id: string;
+  delivery_mode: "online" | "in_person";
+  topic: string | null;
+};
 
 export function RequestLessonModal({
   subjects,
   triggerClassName,
+  triggerLabel = "קביעת שיעור",
+  triggerVariant = "primary",
+  editingLesson,
 }: {
   subjects: Tables<"subjects">[];
   triggerClassName?: string;
+  triggerLabel?: string;
+  triggerVariant?: "primary" | "secondary";
+  /** When set, the modal edits this still-pending request instead of
+   * creating a new one - prefills every field from it. */
+  editingLesson?: EditableLesson;
 }) {
+  const isEditing = Boolean(editingLesson);
   const [open, setOpen] = useState(false);
-  const [date, setDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [duration, setDuration] = useState(60);
+  const [date, setDate] = useState(editingLesson?.date ?? "");
+  const [startTime, setStartTime] = useState(editingLesson ? editingLesson.start_time.slice(0, 5) : "");
+  const [duration, setDuration] = useState(editingLesson?.duration_minutes ?? 60);
+  const [subjectId, setSubjectId] = useState(editingLesson?.subject_id ?? subjects[0]?.id ?? "");
   const [availableSlots, setAvailableSlots] = useState<string[] | undefined>(undefined);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [showWaitlistForm, setShowWaitlistForm] = useState(false);
+  const [waitlistNote, setWaitlistNote] = useState("");
+  const [waitlistSuccess, setWaitlistSuccess] = useState(false);
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -40,7 +64,7 @@ export function RequestLessonModal({
     if (!date) return;
     let cancelled = false;
     setSlotsLoading(true);
-    getAvailableStartTimesAction(date, duration).then((slots) => {
+    getAvailableStartTimesAction(date, duration, editingLesson?.id).then((slots) => {
       if (cancelled) return;
       setAvailableSlots(slots);
       setSlotsLoading(false);
@@ -49,16 +73,25 @@ export function RequestLessonModal({
     return () => {
       cancelled = true;
     };
-  }, [date, duration]);
+  }, [date, duration, editingLesson?.id]);
   /* eslint-enable react-hooks/set-state-in-effect */
+
+  const isFullyBooked = Boolean(date) && !slotsLoading && availableSlots !== undefined && availableSlots.length === 0;
+
+  function resetAndClose() {
+    formRef.current?.reset();
+    setShowWaitlistForm(false);
+    setWaitlistNote("");
+    setOpen(false);
+  }
 
   return (
     <>
-      <Button type="button" onClick={() => setOpen(true)} className={triggerClassName}>
-        קביעת שיעור
+      <Button type="button" variant={triggerVariant} onClick={() => setOpen(true)} className={triggerClassName}>
+        {triggerLabel}
       </Button>
 
-      <Modal open={open} onClose={() => setOpen(false)} title="בקשת שיעור חדש">
+      <Modal open={open} onClose={() => setOpen(false)} title={isEditing ? "עריכת בקשה" : "בקשת שיעור חדש"}>
         {subjects.length === 0 ? (
           <p className="text-sm text-text-muted">
             עדיין לא הוגדרו מקצועות במערכת. יש לפנות למורה.
@@ -69,18 +102,15 @@ export function RequestLessonModal({
             className="flex flex-col gap-4"
             action={(formData) => {
               setError(null);
+              if (isEditing) formData.set("lesson_id", editingLesson!.id);
               startTransition(async () => {
-                const result = await requestLesson(formData);
+                const result = isEditing ? await editLessonRequest(formData) : await requestLesson(formData);
                 if (result?.error) {
                   setError(result.error);
                 } else {
                   setSuccess(true);
-                  formRef.current?.reset();
-                  setDate("");
-                  setStartTime("");
-                  setAvailableSlots(undefined);
                   setTimeout(() => {
-                    setOpen(false);
+                    resetAndClose();
                     setSuccess(false);
                   }, 1200);
                 }
@@ -92,6 +122,8 @@ export function RequestLessonModal({
                 id="subject_id"
                 name="subject_id"
                 required
+                value={subjectId}
+                onChange={(e) => setSubjectId(e.target.value)}
                 className="rounded-control border border-border bg-background px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-accent"
               >
                 {subjects.map((s) => (
@@ -137,7 +169,7 @@ export function RequestLessonModal({
                 name="start_time"
                 value={startTime}
                 onChange={setStartTime}
-                required
+                required={!showWaitlistForm}
                 slots={availableSlots}
                 loading={slotsLoading}
                 noDateSelected={!date}
@@ -152,7 +184,7 @@ export function RequestLessonModal({
               <select
                 id="delivery_mode"
                 name="delivery_mode"
-                defaultValue="in_person"
+                defaultValue={editingLesson?.delivery_mode ?? "in_person"}
                 className="rounded-control border border-border bg-background px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-accent"
               >
                 <option value="in_person">פרונטלי</option>
@@ -161,23 +193,82 @@ export function RequestLessonModal({
             </Field>
 
             <Field label="נושא (אופציונלי)" htmlFor="topic">
-              <TextInput id="topic" name="topic" placeholder="למשל: הכנה למבחן" />
+              <TextInput id="topic" name="topic" placeholder="למשל: הכנה למבחן" defaultValue={editingLesson?.topic ?? ""} />
             </Field>
 
             {error && <p className="text-sm text-status-destructive">{error}</p>}
             {success && (
-              <p className="text-sm text-status-confirmed">הבקשה נשלחה! ממתינה לאישור המורה.</p>
+              <p className="text-sm text-status-confirmed">
+                {isEditing ? "הבקשה עודכנה!" : "הבקשה נשלחה! ממתינה לאישור המורה."}
+              </p>
             )}
 
             <div className="mt-2 flex justify-end gap-2">
               <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
                 ביטול
               </Button>
-              <Button type="submit" disabled={isPending}>
-                {isPending ? "שולח..." : "שליחת בקשה"}
+              <Button type="submit" disabled={isPending || isFullyBooked}>
+                {isPending ? "שולח..." : isEditing ? "שמירת שינויים" : "שליחת בקשה"}
               </Button>
             </div>
           </form>
+        )}
+
+        {isFullyBooked && subjects.length > 0 && (
+          <div className="mt-4 border-t border-border pt-4">
+            {!showWaitlistForm ? (
+              <div className="flex flex-col gap-2">
+                <p className="text-sm text-text-secondary">
+                  אין שעות פנויות בתאריך הזה. אפשר להצטרף לרשימת המתנה - אם יתפנה מקום, המורה יוכל ליצור איתך קשר.
+                </p>
+                <Button type="button" variant="secondary" className="w-fit" onClick={() => setShowWaitlistForm(true)}>
+                  הצטרפות לרשימת המתנה
+                </Button>
+              </div>
+            ) : waitlistSuccess ? (
+              <p className="text-sm text-status-confirmed">נוספת לרשימת ההמתנה!</p>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <Field label="הערה (אופציונלי) - למשל: רק אחרי 18:00, כל היום מתאים" htmlFor="waitlist_note">
+                  <TextInput
+                    id="waitlist_note"
+                    value={waitlistNote}
+                    onChange={(e) => setWaitlistNote(e.target.value)}
+                    placeholder="פרטים נוספים על השעות שמתאימות לך"
+                  />
+                </Field>
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="secondary" onClick={() => setShowWaitlistForm(false)}>
+                    ביטול
+                  </Button>
+                  <Button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => {
+                      setError(null);
+                      const fd = new FormData();
+                      fd.set("date", date);
+                      fd.set("subject_id", subjectId);
+                      fd.set("note", waitlistNote);
+                      startTransition(async () => {
+                        const result = await joinWaitlist(fd);
+                        if (result?.error) setError(result.error);
+                        else {
+                          setWaitlistSuccess(true);
+                          setTimeout(() => {
+                            resetAndClose();
+                            setWaitlistSuccess(false);
+                          }, 1200);
+                        }
+                      });
+                    }}
+                  >
+                    {isPending ? "מצטרף/ת..." : "הצטרפות לרשימת המתנה"}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </Modal>
     </>
