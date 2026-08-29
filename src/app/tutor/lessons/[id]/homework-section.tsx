@@ -25,6 +25,7 @@ export function HomeworkSection({
   participants: ParticipantOption[];
   homework: HomeworkRow[];
 }) {
+  const [showForm, setShowForm] = useState(false);
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [selected, setSelected] = useState<string[]>(() => participants.map((p) => p.student_id));
@@ -49,6 +50,7 @@ export function HomeworkSection({
       } else {
         setDescription("");
         setDueDate("");
+        setShowForm(false);
       }
     });
   }
@@ -91,43 +93,55 @@ export function HomeworkSection({
         </div>
       )}
 
-      <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4">
-        <Field label="תיאור" htmlFor="hw-description">
-          <TextInput
-            id="hw-description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="למשל: תרגילים 1-5 בעמוד 42"
-          />
-        </Field>
-        <Field label="תאריך יעד (אופציונלי)" htmlFor="hw-due-date">
-          <TextInput id="hw-due-date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
-        </Field>
+      {showForm ? (
+        <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4">
+          <Field label="תיאור" htmlFor="hw-description">
+            <TextInput
+              id="hw-description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="למשל: תרגילים 1-5 בעמוד 42"
+              autoFocus
+            />
+          </Field>
+          <Field label="תאריך יעד (אופציונלי)" htmlFor="hw-due-date">
+            <TextInput id="hw-due-date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+          </Field>
 
-        {participants.length > 1 && (
-          <div className="flex flex-col gap-1.5">
-            <p className="text-sm font-medium text-text-primary">עבור</p>
-            {participants.map((p) => (
-              <label key={p.student_id} className="flex items-center gap-2 text-sm text-text-secondary">
-                <input
-                  type="checkbox"
-                  checked={selected.includes(p.student_id)}
-                  onChange={() => toggleSelected(p.student_id)}
-                />
-                {p.display_name}
-              </label>
-            ))}
+          {participants.length > 1 && (
+            <div className="flex flex-col gap-1.5">
+              <p className="text-sm font-medium text-text-primary">עבור</p>
+              {participants.map((p) => (
+                <label key={p.student_id} className="flex items-center gap-2 text-sm text-text-secondary">
+                  <input
+                    type="checkbox"
+                    checked={selected.includes(p.student_id)}
+                    onChange={() => toggleSelected(p.student_id)}
+                  />
+                  {p.display_name}
+                </label>
+              ))}
+            </div>
+          )}
+
+          {error && <p className="text-sm text-status-destructive">{error}</p>}
+
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="secondary" disabled={isPending} onClick={() => setShowForm(false)}>
+              ביטול
+            </Button>
+            <Button type="button" disabled={isPending || !description.trim() || selected.length === 0} onClick={submit}>
+              {isPending ? "מוסיף..." : "הוספה"}
+            </Button>
           </div>
-        )}
-
-        {error && <p className="text-sm text-status-destructive">{error}</p>}
-
-        <div className="flex justify-end">
-          <Button type="button" disabled={isPending || !description.trim() || selected.length === 0} onClick={submit}>
-            {isPending ? "מוסיף..." : "הוספת שיעורי בית"}
+        </div>
+      ) : (
+        <div className="mt-4 border-t border-border pt-4">
+          <Button type="button" variant="secondary" onClick={() => setShowForm(true)}>
+            + הוספת שיעורי בית
           </Button>
         </div>
-      </div>
+      )}
     </Card>
   );
 }

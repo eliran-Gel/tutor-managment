@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { BusinessLinksForm } from "./business-links-form";
@@ -43,6 +44,21 @@ export default async function SettingsPage() {
         <CalendarFeedCard token={process.env.TUTOR_CALENDAR_FEED_TOKEN ?? ""} />
 
         <WorkingHoursCard workingHours={workingHours ?? []} />
+
+        <Card>
+          <CardHeader>
+            <CardTitle>חסימת שעות</CardTitle>
+          </CardHeader>
+          <p className="mb-4 text-xs text-text-muted">
+            חריגות חד-פעמיות לשעות העבודה הרגילות - חופשה, פגישה, יום סגור.
+          </p>
+          <Link
+            href="/tutor/availability"
+            className="inline-block text-sm font-medium text-brand-accent transition-transform duration-200 hover:underline active:scale-90"
+          >
+            ניהול חסימות ←
+          </Link>
+        </Card>
       </div>
     </div>
   );

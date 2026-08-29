@@ -2,8 +2,9 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { getSignedFileUrl } from "@/lib/lesson-files";
 import { DELIVERY_MODE_LABELS } from "@/lib/lessons";
-import { formatIsoDate } from "@/lib/dates/format";
+import { formatIsoDate, formatIsoDateWithWeekday } from "@/lib/dates/format";
 import { getHebrewGreeting } from "@/lib/greeting";
 import { RequestLessonModal } from "../lessons/request-lesson-modal";
 
@@ -13,8 +14,15 @@ export default async function PortalDashboardPage() {
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const [{ data: links }, { data: nextLesson }, { data: nextPendingLesson }, { data: subjects }, { data: ownStudent }] =
-    await Promise.all([
+  const [
+    { data: links },
+    { data: nextLesson },
+    { data: nextPendingLesson },
+    { data: subjects },
+    { data: ownStudent },
+    { data: latestSummary },
+    { count: openHomeworkCount },
+  ] = await Promise.all([
       supabase.from("business_links").select("*").eq("id", true).single(),
       supabase
         .from("lessons")
@@ -41,9 +49,18 @@ export default async function PortalDashboardPage() {
       profile?.role === "student"
         ? supabase.from("students").select("grade, school_name").eq("profile_id", profile.id).maybeSingle()
         : Promise.resolve({ data: null }),
+      supabase
+        .from("lesson_files")
+        .select("id, storage_path, lessons(date, subjects(name))")
+        .ilike("mime_type", "image/%")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase.from("homework").select("id", { count: "exact", head: true }).eq("is_done", false),
     ]);
 
   const needsGradeSchool = ownStudent && (ownStudent.grade == null || !ownStudent.school_name);
+  const latestSummaryUrl = latestSummary ? await getSignedFileUrl(latestSummary.storage_path) : null;
 
   const quickLinks = [
     { label: "אתר", href: links?.website_url },
@@ -108,14 +125,32 @@ export default async function PortalDashboardPage() {
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <p className="text-sm font-semibold text-text-primary">סיכום השיעור האחרון</p>
-          <p className="mt-2 text-sm text-text-muted">אין עדיין סיכומים שפורסמו.</p>
-        </Card>
-        <Card>
-          <p className="text-sm font-semibold text-text-primary">שיעורי בית</p>
-          <p className="mt-2 text-sm text-text-muted">אין משימות פתוחות כרגע.</p>
-        </Card>
+        <Link href="/portal/summaries" className="block transition-transform duration-200 active:scale-95">
+          <Card className="flex h-full items-center gap-3 transition-shadow hover:shadow-none">
+            {latestSummaryUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={latestSummaryUrl} alt="" className="h-14 w-14 shrink-0 rounded-control border border-border object-cover" />
+            ) : null}
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-text-primary">סיכום השיעור האחרון</p>
+              {latestSummary?.lessons ? (
+                <p className="mt-1 text-sm text-text-muted">
+                  {latestSummary.lessons.subjects?.name ?? "שיעור"} · {formatIsoDateWithWeekday(latestSummary.lessons.date)}
+                </p>
+              ) : (
+                <p className="mt-1 text-sm text-text-muted">אין עדיין סיכומים שפורסמו.</p>
+              )}
+            </div>
+          </Card>
+        </Link>
+        <Link href="/portal/homework" className="block transition-transform duration-200 active:scale-95">
+          <Card className="h-full transition-shadow hover:shadow-none">
+            <p className="text-sm font-semibold text-text-primary">שיעורי בית</p>
+            <p className="mt-2 text-sm text-text-muted">
+              {openHomeworkCount ? `${openHomeworkCount} משימות פתוחות` : "אין משימות פתוחות כרגע."}
+            </p>
+          </Card>
+        </Link>
       </div>
 
       {(links?.contact_info || quickLinks.length > 0) && (
