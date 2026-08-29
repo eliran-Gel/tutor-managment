@@ -245,3 +245,23 @@ export async function cancelLessonRequest(lessonId: string) {
   revalidatePath("/tutor/dashboard");
   return { success: true as const };
 }
+
+// A rejected/cancelled request is dead weight in "השיעורים שלי" (it never
+// resulted in an actual lesson) - lets the student who made it clear it
+// away permanently. Same delete_lesson_from_history RPC the tutor's
+// per-student history page uses, which independently re-checks that the
+// caller is either the tutor or this lesson's own created_by.
+export async function deleteLessonFromHistory(lessonId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "יש להתחבר למערכת" };
+
+  const { error } = await supabase.rpc("delete_lesson_from_history", { target_lesson_id: lessonId });
+  if (error) return { error: error.message };
+
+  revalidatePath("/portal/lessons");
+  revalidatePath("/portal/dashboard");
+  return { success: true as const };
+}

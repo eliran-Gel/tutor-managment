@@ -14,10 +14,12 @@ import {
 import { cn } from "@/lib/cn";
 import { RequestChangeModal } from "./request-change-modal";
 import { RequestLessonModal } from "./request-lesson-modal";
-import { cancelLessonRequest } from "./actions";
+import { cancelLessonRequest, deleteLessonFromHistory } from "./actions";
 import type { Tables } from "@/types/database";
 
 type LessonRow = Tables<"lessons"> & { subjects: { name: string } | null };
+
+const DELETABLE_STATUSES = new Set(["rejected", "cancelled"]);
 
 const BUCKET_ORDER: (RelativeMonthBucket | "all")[] = [
   "all",
@@ -65,6 +67,46 @@ function CancelRequestButton({ lessonId }: { lessonId: string }) {
   return (
     <Button type="button" variant="secondary" className="text-xs" onClick={() => setConfirming(true)}>
       ביטול בקשה
+    </Button>
+  );
+}
+
+function DeleteHistoryButton({ lessonId }: { lessonId: string }) {
+  const [confirming, setConfirming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  if (confirming) {
+    return (
+      <div className="flex flex-col items-end gap-1">
+        <div className="flex shrink-0 items-center gap-2">
+          <Button type="button" variant="secondary" disabled={isPending} onClick={() => setConfirming(false)}>
+            חזרה
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={isPending}
+            onClick={() =>
+              startTransition(async () => {
+                setError(null);
+                const result = await deleteLessonFromHistory(lessonId);
+                if (result?.error) setError(result.error);
+                else setConfirming(false);
+              })
+            }
+          >
+            {isPending ? "מוחק..." : "כן, מחיקה"}
+          </Button>
+        </div>
+        {error && <p className="max-w-56 break-words text-xs text-status-destructive">{error}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <Button type="button" variant="secondary" className="text-xs" onClick={() => setConfirming(true)}>
+      מחיקה
     </Button>
   );
 }
@@ -180,6 +222,7 @@ export function LessonsList({ lessons, subjects, isTutor }: { lessons: LessonRow
                     <CancelRequestButton lessonId={lesson.id} />
                   </div>
                 )}
+                {!isTutor && DELETABLE_STATUSES.has(lesson.status) && <DeleteHistoryButton lessonId={lesson.id} />}
               </div>
               <p className="mt-1 break-words text-sm text-text-muted">
                 {formatIsoDate(lesson.date)} · {lesson.start_time.slice(0, 5)}–{lesson.end_time.slice(0, 5)} ·{" "}
