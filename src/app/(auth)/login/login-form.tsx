@@ -46,7 +46,14 @@ export function LoginForm() {
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        // Without this, Google can silently sign in with whatever account
+        // is already active in the browser instead of asking - easy to
+        // land in someone else's account with zero indication anything
+        // went wrong. This forces the account picker every time.
+        queryParams: { prompt: "select_account" },
+      },
     });
     if (error) setStatus({ type: "error", message: error.message });
   }
