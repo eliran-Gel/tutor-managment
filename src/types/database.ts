@@ -151,6 +151,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "change_requests_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "v_lesson_income"
+            referencedColumns: ["lesson_id"]
+          },
+          {
             foreignKeyName: "change_requests_requested_by_fkey"
             columns: ["requested_by"]
             isOneToOne: false
@@ -210,11 +217,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "homework_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "v_lesson_income"
+            referencedColumns: ["lesson_id"]
+          },
+          {
             foreignKeyName: "homework_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_activity"
+            referencedColumns: ["student_id"]
           },
         ]
       }
@@ -253,6 +274,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "lessons"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_files_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "v_lesson_income"
+            referencedColumns: ["lesson_id"]
           },
         ]
       }
@@ -302,11 +330,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "lesson_participants_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "v_lesson_income"
+            referencedColumns: ["lesson_id"]
+          },
+          {
             foreignKeyName: "lesson_participants_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_participants_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_activity"
+            referencedColumns: ["student_id"]
           },
         ]
       }
@@ -336,6 +378,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "lessons"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_tutor_notes_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: true
+            referencedRelation: "v_lesson_income"
+            referencedColumns: ["lesson_id"]
           },
         ]
       }
@@ -489,6 +538,13 @@ export type Database = {
             referencedRelation: "students"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "parent_students_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_activity"
+            referencedColumns: ["student_id"]
+          },
         ]
       }
       profiles: {
@@ -594,6 +650,13 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "students"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_internal_notes_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "v_student_activity"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "student_internal_notes_updated_by_fkey"
@@ -776,7 +839,58 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_lesson_income: {
+        Row: {
+          date: string | null
+          duration_minutes: number | null
+          lesson_id: string | null
+          payment_method: Database["public"]["Enums"]["payment_method"] | null
+          payment_received_at: string | null
+          payment_status: Database["public"]["Enums"]["payment_status"] | null
+          price_charged: number | null
+          status: Database["public"]["Enums"]["lesson_status"] | null
+          student_id: string | null
+          student_name: string | null
+          subject_id: string | null
+          subject_name: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_participants_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_participants_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_activity"
+            referencedColumns: ["student_id"]
+          },
+          {
+            foreignKeyName: "lessons_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_student_activity: {
+        Row: {
+          archived_at: string | null
+          created_at: string | null
+          display_name: string | null
+          first_lesson_date: string | null
+          is_guest: boolean | null
+          last_lesson_date: string | null
+          lesson_count: number | null
+          student_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       approve_change_request: {
