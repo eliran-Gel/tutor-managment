@@ -903,6 +903,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      claim_guest_student: {
+        Args: { p_profile_id: string; p_student_id: string }
+        Returns: undefined
+      }
       confirm_lesson_file_upload: {
         Args: {
           p_file_name: string

@@ -167,15 +167,16 @@ export async function claimGuestByEmail(studentId: string, formData: FormData) {
     };
   }
 
-  const { error: updateErr } = await supabase
-    .from("students")
-    .update({ profile_id: profile.id, is_guest: false, claimed_at: new Date().toISOString() })
-    .eq("id", studentId);
+  // RPC (not a plain .update()) because this may need to migrate data off
+  // a duplicate students row auto-created for this profile on their own
+  // first sign-in (see the migration for why that happens) before the
+  // claim itself can succeed - a bare UPDATE has no way to do that.
+  const { error: claimErr } = await supabase.rpc("claim_guest_student", {
+    p_student_id: studentId,
+    p_profile_id: profile.id,
+  });
 
-  if (updateErr) {
-    if (updateErr.code === "23505") return { error: "המשתמש הזה כבר מקושר לתלמיד/ה אחר/ת במערכת." };
-    throw new Error(updateErr.message);
-  }
+  if (claimErr) throw new Error(claimErr.message);
 
   revalidatePath(`/tutor/students/${studentId}`);
   return { success: true as const };
