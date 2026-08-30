@@ -4,8 +4,13 @@ import { cn } from "@/lib/cn";
 type Variant = "primary" | "secondary" | "ghost" | "destructive";
 
 const variantClasses: Record<Variant, string> = {
+  // The "pressed" shadow (from the marketing site's .btn-primary) sits a
+  // few px below the button and compresses toward flat on press, instead
+  // of the flat opacity-fade every other variant uses - reserved for
+  // primary since it's the one call-to-action per screen worth the extra
+  // flourish.
   primary:
-    "bg-brand-primary text-white hover:opacity-90 focus-visible:ring-brand-accent",
+    "bg-brand-primary text-white shadow-[0_4px_0_var(--color-brand-primary-shadow)] hover:brightness-95 focus-visible:ring-brand-accent active:translate-y-[3px] active:shadow-[0_1px_0_var(--color-brand-primary-shadow)]",
   secondary:
     "bg-surface-muted text-text-primary border border-border hover:bg-border/60 focus-visible:ring-brand-accent",
   ghost:

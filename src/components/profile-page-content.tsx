@@ -22,7 +22,7 @@ export async function ProfilePageContent() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-bold text-text-primary">פרופיל</h1>
+      <h1 className="text-xl font-bold font-display text-text-primary">פרופיל</h1>
 
       <Card className="max-w-md">
         <CardHeader>

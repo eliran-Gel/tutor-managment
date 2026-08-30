@@ -50,7 +50,7 @@ export default async function CalendarDayPage({ params }: { params: Promise<{ da
           >
             ‹ חזרה ליומן החודשי
           </Link>
-          <h1 className="mt-1 text-xl font-bold text-text-primary">{formatIsoDateWithWeekday(date)}</h1>
+          <h1 className="mt-1 text-xl font-bold font-display text-text-primary">{formatIsoDateWithWeekday(date)}</h1>
         </div>
         <div className="flex items-center gap-1">
           <Link

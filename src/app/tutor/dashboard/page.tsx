@@ -65,7 +65,7 @@ export default async function TutorDashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-bold text-text-primary">
+        <h1 className="text-xl font-bold font-display text-text-primary">
           {getHebrewGreeting()}{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
         </h1>
         <p className="text-sm text-text-secondary">לחצו על כל קוביה כדי לראות את השיעורים המלאים.</p>
@@ -75,14 +75,14 @@ export default async function TutorDashboardPage() {
         <Link href="/tutor/students" className="block transition-transform duration-200 active:scale-95">
           <Card className="h-full transition-shadow hover:shadow-none">
             <p className="text-sm text-text-secondary">תלמידים פעילים</p>
-            <p className="mt-2 text-2xl font-bold text-text-primary">{activeStudents ?? "—"}</p>
+            <p className="mt-2 text-2xl font-bold font-display text-text-primary">{activeStudents ?? "—"}</p>
           </Card>
         </Link>
 
         <Link href={`/tutor/calendar/day/${today}`} className="block transition-transform duration-200 active:scale-95">
           <Card className="h-full transition-shadow hover:shadow-none">
             <p className="text-sm text-text-secondary">היום</p>
-            <p className="mt-2 text-2xl font-bold text-text-primary">{todayStats.count}</p>
+            <p className="mt-2 text-2xl font-bold font-display text-text-primary">{todayStats.count}</p>
             {todayStats.price > 0 && <p className="mt-0.5 text-sm text-text-secondary">₪{todayStats.price.toLocaleString("he-IL")}</p>}
           </Card>
         </Link>
@@ -93,7 +93,7 @@ export default async function TutorDashboardPage() {
         >
           <Card className="h-full transition-shadow hover:shadow-none">
             <p className="text-sm text-text-secondary">השבוע</p>
-            <p className="mt-2 text-2xl font-bold text-text-primary">{weekStats.count}</p>
+            <p className="mt-2 text-2xl font-bold font-display text-text-primary">{weekStats.count}</p>
             {weekStats.price > 0 && <p className="mt-0.5 text-sm text-text-secondary">₪{weekStats.price.toLocaleString("he-IL")}</p>}
           </Card>
         </Link>
@@ -104,7 +104,7 @@ export default async function TutorDashboardPage() {
         >
           <Card className="h-full transition-shadow hover:shadow-none">
             <p className="text-sm text-text-secondary">החודש</p>
-            <p className="mt-2 text-2xl font-bold text-text-primary">{monthStats.count}</p>
+            <p className="mt-2 text-2xl font-bold font-display text-text-primary">{monthStats.count}</p>
             {monthStats.price > 0 && <p className="mt-0.5 text-sm text-text-secondary">₪{monthStats.price.toLocaleString("he-IL")}</p>}
           </Card>
         </Link>

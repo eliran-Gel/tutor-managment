@@ -144,7 +144,7 @@ export function LessonsList({ lessons, subjects, isTutor }: { lessons: LessonRow
             className={cn(
               "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
               bucketFilter === bucket
-                ? "border-brand-accent bg-brand-accent text-white"
+                ? "border-brand-highlight-strong bg-brand-highlight font-semibold text-text-primary"
                 : "border-border text-text-secondary hover:bg-surface-muted",
             )}
           >
@@ -174,7 +174,7 @@ export function LessonsList({ lessons, subjects, isTutor }: { lessons: LessonRow
             className={cn(
               "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
               statusFilter === status
-                ? "border-brand-accent bg-brand-accent text-white"
+                ? "border-brand-highlight-strong bg-brand-highlight font-semibold text-text-primary"
                 : "border-border text-text-secondary hover:bg-surface-muted",
             )}
           >

@@ -19,7 +19,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-bold text-text-primary">הגדרות</h1>
+      <h1 className="text-xl font-bold font-display text-text-primary">הגדרות</h1>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>

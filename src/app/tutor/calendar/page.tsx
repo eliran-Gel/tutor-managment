@@ -72,7 +72,7 @@ export default async function CalendarPage({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-text-primary">יומן</h1>
+        <h1 className="text-xl font-bold font-display text-text-primary">יומן</h1>
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/tutor/calendar"

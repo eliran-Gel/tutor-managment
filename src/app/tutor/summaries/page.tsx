@@ -44,7 +44,7 @@ export default async function TutorSummariesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-bold text-text-primary">סיכומי שיעורים</h1>
+        <h1 className="text-xl font-bold font-display text-text-primary">סיכומי שיעורים</h1>
         <p className="text-sm text-text-secondary">בחרו תלמיד/ה כדי לראות את השיעורים שאושרו ולפתוח את הסיכום שלהם.</p>
       </div>
 

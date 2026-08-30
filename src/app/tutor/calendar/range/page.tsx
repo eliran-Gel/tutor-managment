@@ -40,7 +40,7 @@ export default async function CalendarRangePage({
         >
           ‹ חזרה לדף הראשי
         </Link>
-        <h1 className="mt-1 text-xl font-bold text-text-primary">
+        <h1 className="mt-1 text-xl font-bold font-display text-text-primary">
           כל השיעורים · {label ?? `${formatIsoDate(start)}–${formatIsoDate(end)}`}
         </h1>
         <p className="text-sm text-text-secondary">
@@ -51,11 +51,11 @@ export default async function CalendarRangePage({
       <div className="grid grid-cols-2 gap-4 sm:w-fit">
         <Card>
           <p className="text-sm text-text-secondary">שיעורים</p>
-          <p className="mt-2 text-2xl font-bold text-text-primary">{billable.length}</p>
+          <p className="mt-2 text-2xl font-bold font-display text-text-primary">{billable.length}</p>
         </Card>
         <Card>
           <p className="text-sm text-text-secondary">סה&quot;כ מחיר</p>
-          <p className="mt-2 text-2xl font-bold text-text-primary">₪{totalPrice.toLocaleString("he-IL")}</p>
+          <p className="mt-2 text-2xl font-bold font-display text-text-primary">₪{totalPrice.toLocaleString("he-IL")}</p>
         </Card>
       </div>
 

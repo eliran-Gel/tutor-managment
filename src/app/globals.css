@@ -3,6 +3,11 @@
 
 @theme inline {
   --font-sans: var(--font-rubik);
+  /* Outfit has no Hebrew glyphs, so on our all-Hebrew body copy this falls
+     straight back to font-sans (Rubik) - exactly like on the marketing
+     site, where it only actually renders on digits/Latin snippets. Used
+     for headings and stat numbers to echo that same branded look. */
+  --font-display: var(--font-outfit), var(--font-rubik);
 
   --color-background: var(--background);
   --color-surface: var(--surface);
@@ -14,6 +19,9 @@
 
   --color-brand-primary: var(--brand-primary);
   --color-brand-accent: var(--brand-accent);
+  --color-brand-highlight: var(--brand-highlight);
+  --color-brand-highlight-strong: var(--brand-highlight-strong);
+  --color-brand-primary-shadow: var(--brand-primary-shadow);
 
   --color-status-confirmed: var(--status-confirmed);
   --color-status-confirmed-bg: var(--status-confirmed-bg);
@@ -42,7 +50,12 @@ html {
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  /* Faint graph-paper texture borrowed from the marketing site's
+     background - --background-grid resolves to `none` in dark mode
+     (see tokens.css), so this is a light-mode-only touch. */
+  background-image: var(--background-grid);
+  background-size: 28px 28px;
   color: var(--text-primary);
   font-family: var(--font-rubik), Arial, Helvetica, sans-serif;
   overflow-x: auto;

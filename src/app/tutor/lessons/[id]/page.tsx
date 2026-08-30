@@ -50,7 +50,7 @@ export default async function TutorLessonDetailPage({ params }: { params: Promis
           ‹ חזרה ליומן
         </Link>
         <div className="mt-1 flex flex-wrap items-center gap-2">
-          <h1 className="text-xl font-bold text-text-primary">
+          <h1 className="text-xl font-bold font-display text-text-primary">
             {formatIsoDateWithWeekday(lesson.date)} · {lesson.start_time.slice(0, 5)}–{lesson.end_time.slice(0, 5)} ·{" "}
             {lesson.subjects?.name ?? "שיעור"}
           </h1>

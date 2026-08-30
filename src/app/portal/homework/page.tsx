@@ -14,7 +14,7 @@ export default async function PortalHomeworkPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-bold text-text-primary">שיעורי בית</h1>
+        <h1 className="text-xl font-bold font-display text-text-primary">שיעורי בית</h1>
         <p className="text-sm text-text-secondary">כל שיעורי הבית שהוקצו לך.</p>
       </div>
 

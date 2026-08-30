@@ -18,7 +18,7 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
       <div>
-        <h1 className="text-2xl font-bold text-text-primary">
+        <h1 className="text-2xl font-bold font-display text-text-primary">
           אלירן גלברג — מורה פרטי
         </h1>
         <p className="mt-2 text-text-secondary">מורה פרטי למתמטיקה, פיזיקה ומחשבים</p>

@@ -40,7 +40,7 @@ export default async function StudentHistoryPage({ params }: { params: Promise<{
         >
           ‹ חזרה לעמוד התלמיד/ה
         </Link>
-        <h1 className="mt-1 min-w-0 break-words text-xl font-bold text-text-primary">
+        <h1 className="mt-1 min-w-0 break-words text-xl font-bold font-display text-text-primary">
           היסטוריה מלאה · {student.display_name}
         </h1>
       </div>
@@ -49,7 +49,7 @@ export default async function StudentHistoryPage({ params }: { params: Promise<{
         {stats.map((stat) => (
           <Card key={stat.label}>
             <p className="text-xs text-text-secondary">{stat.label}</p>
-            <p className="mt-1 text-xl font-bold text-text-primary">{stat.value}</p>
+            <p className="mt-1 text-xl font-bold font-display text-text-primary">{stat.value}</p>
           </Card>
         ))}
       </div>

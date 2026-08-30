@@ -11,7 +11,7 @@ export default async function TutorPaymentsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-bold text-text-primary">תשלומים ממתינים</h1>
+        <h1 className="text-xl font-bold font-display text-text-primary">תשלומים ממתינים</h1>
         <p className="text-sm text-text-secondary">
           שיעורים מאושרים שעברו ועדיין לא סומנו כשולמו, לפי הסף שהוגדר בהגדרות.
         </p>

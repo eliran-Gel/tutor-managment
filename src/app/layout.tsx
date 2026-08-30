@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Rubik } from "next/font/google";
+import { Rubik, Outfit } from "next/font/google";
 import { cookies } from "next/headers";
 import { IosActiveFix } from "@/components/ios-active-fix";
 import "./globals.css";
@@ -7,6 +7,16 @@ import "./globals.css";
 const rubik = Rubik({
   variable: "--font-rubik",
   subsets: ["hebrew", "latin"],
+});
+
+// No Hebrew subset - Outfit doesn't have Hebrew glyphs at all. Used only
+// for headings/stat numbers (see --font-display in globals.css), where it
+// renders on digits/Latin text and silently falls back to Rubik for
+// Hebrew, matching the marketing site's own (partly accidental) mixed look.
+const outfit = Outfit({
+  variable: "--font-outfit",
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -59,7 +69,7 @@ export default async function RootLayout({
       lang="he"
       dir="rtl"
       data-theme={theme}
-      className={`${rubik.variable} h-full antialiased`}
+      className={`${rubik.variable} ${outfit.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-text-primary">
         <IosActiveFix />

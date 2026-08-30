@@ -9,7 +9,7 @@ export default function SignupPage() {
     <main className="flex min-h-full flex-1 items-center justify-center px-4 py-16">
       <div className="w-full max-w-sm rounded-card border border-border bg-surface p-8 shadow-card">
         <div className="mb-6 text-center">
-          <h1 className="text-xl font-bold text-text-primary">הרשמה למערכת</h1>
+          <h1 className="text-xl font-bold font-display text-text-primary">הרשמה למערכת</h1>
           <p className="mt-1 text-sm text-text-secondary">
             אלירן גלברג - מורה פרטי
           </p>

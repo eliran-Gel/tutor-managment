@@ -36,7 +36,7 @@ export default async function StudentDetailPage({
     <div className="flex flex-col gap-6">
       <div className="flex min-w-0 flex-col gap-3">
         <div className="flex min-w-0 flex-wrap items-center gap-3">
-          <h1 className="min-w-0 break-words text-xl font-bold text-text-primary">{student.display_name}</h1>
+          <h1 className="min-w-0 break-words text-xl font-bold font-display text-text-primary">{student.display_name}</h1>
           {student.is_guest && <Badge tone="pending" className="shrink-0">אורח/ת</Badge>}
           {student.archived_at && <Badge tone="destructive" className="shrink-0">בארכיון</Badge>}
         </div>
