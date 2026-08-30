@@ -6,7 +6,7 @@ const structuredData = {
   "@type": "Person",
   name: "אלירן גלברג",
   jobTitle: "מורה פרטי",
-  url: "https://elirangelberg.com",
+  url: "https://app.elirangelberg.com",
   knowsAbout: ["מתמטיקה", "פיזיקה", "מחשבים"],
 };
 

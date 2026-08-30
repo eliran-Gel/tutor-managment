@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
       // and no reason to expose the app's internal route structure.
       disallow: ["/tutor", "/portal", "/auth", "/api"],
     },
-    sitemap: "https://elirangelberg.com/sitemap.xml",
+    sitemap: "https://app.elirangelberg.com/sitemap.xml",
   };
 }

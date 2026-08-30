@@ -20,7 +20,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://elirangelberg.com"),
+  metadataBase: new URL("https://app.elirangelberg.com"),
   title: {
     default: "אלירן גלברג - מורה פרטי | ניהול",
     template: "%s | אלירן גלברג - מורה פרטי",
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "אלירן גלברג - מורה פרטי",
     description: "מורה פרטי למתמטיקה, פיזיקה ומחשבים. קביעת שיעורים וניהול התקדמות לתלמידים ולהורים.",
-    url: "https://elirangelberg.com",
+    url: "https://app.elirangelberg.com",
     siteName: "אלירן גלברג - מורה פרטי",
     locale: "he_IL",
     type: "website",
