@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
 import { PAYMENT_METHOD_LABELS } from "@/lib/lessons";
+import { ExportButton } from "./export-button";
 
 type Period = "month" | "quarter" | "year" | "all";
 
@@ -106,21 +107,24 @@ export default async function TutorAnalyticsPage({
         <p className="text-sm text-text-secondary">סקירה כספית ותפעולית - {PERIOD_LABELS[period]}.</p>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {(Object.keys(PERIOD_LABELS) as Period[]).map((p) => (
-          <Link
-            key={p}
-            href={`/tutor/analytics?period=${p}`}
-            className={cn(
-              "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-              p === period
-                ? "border-brand-accent bg-brand-accent text-white"
-                : "border-border text-text-secondary hover:bg-surface-muted",
-            )}
-          >
-            {PERIOD_LABELS[p]}
-          </Link>
-        ))}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
+          {(Object.keys(PERIOD_LABELS) as Period[]).map((p) => (
+            <Link
+              key={p}
+              href={`/tutor/analytics?period=${p}`}
+              className={cn(
+                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                p === period
+                  ? "border-brand-accent bg-brand-accent text-white"
+                  : "border-border text-text-secondary hover:bg-surface-muted",
+              )}
+            >
+              {PERIOD_LABELS[p]}
+            </Link>
+          ))}
+        </div>
+        <ExportButton rows={rows} periodLabel={PERIOD_LABELS[period]} />
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
