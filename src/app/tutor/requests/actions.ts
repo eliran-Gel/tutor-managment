@@ -65,6 +65,16 @@ export async function rejectChangeRequest(requestId: string) {
   return { success: true as const };
 }
 
+export async function resolveLead(id: string, status: "contacted" | "dismissed") {
+  const { supabase } = await requireTutor();
+
+  const { error } = await supabase.from("marketing_leads").update({ status }).eq("id", id);
+  if (error) return { error: error.message };
+
+  revalidatePath("/tutor/requests");
+  return { success: true as const };
+}
+
 export async function resolveWaitlistEntry(id: string, status: "fulfilled" | "cancelled") {
   const { supabase } = await requireTutor();
 

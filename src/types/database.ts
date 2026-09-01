@@ -463,6 +463,36 @@ export type Database = {
           },
         ]
       }
+      marketing_leads: {
+        Row: {
+          created_at: string
+          full_name: string
+          grade: string | null
+          id: string
+          message: string | null
+          phone: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          full_name: string
+          grade?: string | null
+          id?: string
+          message?: string | null
+          phone: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          grade?: string | null
+          id?: string
+          message?: string | null
+          phone?: string
+          status?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null

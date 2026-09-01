@@ -5,10 +5,14 @@ import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 import { RequestRowActions } from "./request-row-actions";
 import { ChangeRequestRowActions } from "./change-request-row-actions";
 import { WaitlistRowActions } from "./waitlist-row-actions";
+import { LeadRowActions } from "./lead-row-actions";
 
 export default async function RequestsPage() {
   const supabase = await createClient();
-  const [{ data: requests }, { data: changeRequests }, { data: waitlist }] = await Promise.all([
+  const [{ data: leads }, { data: requests }, { data: changeRequests }, { data: waitlist }] = await Promise.all([
+    // Oldest first - a lead from someone who's been waiting longest for a
+    // callback should surface at the top, same reasoning as the waitlist.
+    supabase.from("marketing_leads").select("*").eq("status", "new").order("created_at"),
     supabase
       .from("lessons")
       .select("*, subjects(name), requester:profiles!lessons_created_by_fkey(full_name, email)")
@@ -33,7 +37,41 @@ export default async function RequestsPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-xl font-bold font-display text-text-primary">בקשות לשיעורים</h1>
+        <h1 className="text-xl font-bold font-display text-text-primary">בקשות ופניות</h1>
+        <p className="text-sm text-text-secondary">כל מה שממתין לתשומת לב שלך, במקום אחד.</p>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-bold text-text-primary">פניות חדשות מהאתר</h2>
+        <p className="text-sm text-text-secondary">אנשים שהשאירו פרטים באתר השיווקי ועדיין לא לקוחות רשומים.</p>
+      </div>
+
+      {leads && leads.length === 0 && (
+        <Card>
+          <p className="text-sm text-text-muted">אין פניות חדשות כרגע.</p>
+        </Card>
+      )}
+
+      <div className="flex flex-col gap-2">
+        {leads?.map((lead) => (
+          <Card key={lead.id} className="min-w-0 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="truncate font-medium text-text-primary">{lead.full_name}</p>
+              <p className="mt-1 break-words text-sm text-text-secondary">
+                <a href={`tel:${lead.phone}`} className="text-brand-accent hover:underline">
+                  {lead.phone}
+                </a>
+                {lead.grade && ` · ${lead.grade}`}
+              </p>
+              {lead.message && <p className="mt-1 break-words text-sm text-text-muted">{lead.message}</p>}
+            </div>
+            <LeadRowActions id={lead.id} />
+          </Card>
+        ))}
+      </div>
+
+      <div>
+        <h2 className="text-lg font-bold text-text-primary">בקשות לשיעורים</h2>
         <p className="text-sm text-text-secondary">אישור בקשה יוצר שיעור מאושר ביומן.</p>
       </div>
 
