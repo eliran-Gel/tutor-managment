@@ -19,9 +19,6 @@ const leadSchema = z.object({
     .regex(/^0\d{8,9}$/, "מספר טלפון לא תקין"),
   grade: z.string().trim().max(50).optional().nullable(),
   message: z.string().trim().max(500).optional().nullable(),
-  // Honeypot: a real visitor never sees or fills this field (hidden via
-  // CSS on the form); a bot filling every field on the page will.
-  website: z.string().max(0).optional().or(z.literal("")),
 });
 
 function corsHeaders() {
@@ -46,18 +43,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "בקשה לא תקינה" }, { status: 400, headers });
   }
 
+  // Honeypot: a real visitor never sees or fills this field (hidden via
+  // CSS on the form, never rendered as display:none so bots that
+  // specifically skip hidden fields still find it); a bot filling every
+  // field on the page will. Checked on the *raw* body, before schema
+  // validation - a bot's own field values might otherwise fail validation
+  // first and get an honest rejection instead of a fake success, defeating
+  // the point of not tipping it off.
+  if (typeof body === "object" && body !== null && "website" in body && (body as { website?: unknown }).website) {
+    return NextResponse.json({ success: true }, { headers });
+  }
+
   const parsed = leadSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message ?? "פרטים לא תקינים" },
       { status: 400, headers },
     );
-  }
-
-  // Honeypot tripped - pretend success so the bot doesn't learn anything
-  // from the response, but never touch the database.
-  if (parsed.data.website) {
-    return NextResponse.json({ success: true }, { headers });
   }
 
   const supabase = createAdminClient();
