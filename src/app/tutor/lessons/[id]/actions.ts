@@ -6,6 +6,29 @@ import { requireTutor } from "@/lib/auth/require-tutor";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
+// Storage keys have to be plain-ASCII-safe (Supabase's client rejects
+// anything else up front with "Invalid key: ..." before a request is even
+// sent) - but the file name a person actually sees in the UI is a
+// *different* value, stored separately via confirmLessonFileUpload's
+// fileName argument, so this only affects the invisible bucket path, never
+// what's displayed. This bit for a while: any Hebrew-named file (a pasted
+// screenshot named "הדבקה-...", or just a tutor's own "שיעור 5.pdf" picked
+// from disk) hit this and silently failed at the ticket step with no
+// upload ever starting.
+function safeStorageSegment(name: string) {
+  const dot = name.lastIndexOf(".");
+  const base = dot > 0 ? name.slice(0, dot) : name;
+  const ext = dot > 0 ? name.slice(dot) : "";
+  const safeBase =
+    base
+      .normalize("NFKD")
+      .replace(/[^\w-]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "") || "file";
+  const safeExt = ext.replace(/[^\w.]/g, "");
+  return safeBase + safeExt;
+}
+
 function revalidateLessonFilePaths(lessonId: string) {
   revalidatePath(`/tutor/lessons/${lessonId}`);
   revalidatePath("/tutor/homework");
@@ -70,7 +93,7 @@ export async function createUploadTicket(lessonId: string, fileName: string, fil
   if (fileSize > MAX_FILE_BYTES) return { error: "הקובץ גדול מדי (מקסימום 10MB)" };
 
   const { supabase } = await requireTutor();
-  const storagePath = `${lessonId}/${crypto.randomUUID()}-${fileName}`;
+  const storagePath = `${lessonId}/${crypto.randomUUID()}-${safeStorageSegment(fileName)}`;
   const { data, error } = await supabase.storage.from("lesson-files").createSignedUploadUrl(storagePath);
   if (error) return { error: error.message };
 
