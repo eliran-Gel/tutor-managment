@@ -8,6 +8,8 @@ import { DELIVERY_MODE_LABELS } from "@/lib/lessons";
 import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 import { getHebrewGreeting } from "@/lib/greeting";
 import { fetchOverduePayments } from "@/lib/payments";
+import { Reveal } from "@/components/reveal";
+import { AnimatedCounter } from "@/components/animated-counter";
 
 function toIsoDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -72,95 +74,115 @@ export default async function TutorDashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Link href="/tutor/students" className="block transition-transform duration-200 active:scale-95">
-          <Card className="h-full transition-shadow hover:shadow-none">
-            <p className="text-sm text-text-secondary">תלמידים פעילים</p>
-            <p className="mt-2 text-2xl font-bold font-display text-text-primary">{activeStudents ?? "—"}</p>
-          </Card>
-        </Link>
+        <Reveal delay={0}>
+          <Link href="/tutor/students" className="block transition-transform duration-200 active:scale-95">
+            <Card className="h-full transition-shadow hover:shadow-none">
+              <p className="text-sm text-text-secondary">תלמידים פעילים</p>
+              <p className="mt-2 text-2xl font-bold font-display text-text-primary">
+                <AnimatedCounter value={activeStudents ?? 0} />
+              </p>
+            </Card>
+          </Link>
+        </Reveal>
 
-        <Link href={`/tutor/calendar/day/${today}`} className="block transition-transform duration-200 active:scale-95">
-          <Card className="h-full transition-shadow hover:shadow-none">
-            <p className="text-sm text-text-secondary">היום</p>
-            <p className="mt-2 text-2xl font-bold font-display text-text-primary">{todayStats.count}</p>
-            {todayStats.price > 0 && <p className="mt-0.5 text-sm text-text-secondary">₪{todayStats.price.toLocaleString("he-IL")}</p>}
-          </Card>
-        </Link>
+        <Reveal delay={0.05}>
+          <Link href={`/tutor/calendar/day/${today}`} className="block transition-transform duration-200 active:scale-95">
+            <Card className="h-full transition-shadow hover:shadow-none">
+              <p className="text-sm text-text-secondary">היום</p>
+              <p className="mt-2 text-2xl font-bold font-display text-text-primary">
+                <AnimatedCounter value={todayStats.count} />
+              </p>
+              {todayStats.price > 0 && <p className="mt-0.5 text-sm text-text-secondary">₪{todayStats.price.toLocaleString("he-IL")}</p>}
+            </Card>
+          </Link>
+        </Reveal>
 
-        <Link
-          href={`/tutor/calendar/range?start=${weekStart}&end=${weekEnd}&label=${encodeURIComponent("השבוע")}`}
-          className="block transition-transform duration-200 active:scale-95"
-        >
-          <Card className="h-full transition-shadow hover:shadow-none">
-            <p className="text-sm text-text-secondary">השבוע</p>
-            <p className="mt-2 text-2xl font-bold font-display text-text-primary">{weekStats.count}</p>
-            {weekStats.price > 0 && <p className="mt-0.5 text-sm text-text-secondary">₪{weekStats.price.toLocaleString("he-IL")}</p>}
-          </Card>
-        </Link>
+        <Reveal delay={0.1}>
+          <Link
+            href={`/tutor/calendar/range?start=${weekStart}&end=${weekEnd}&label=${encodeURIComponent("השבוע")}`}
+            className="block transition-transform duration-200 active:scale-95"
+          >
+            <Card className="h-full transition-shadow hover:shadow-none">
+              <p className="text-sm text-text-secondary">השבוע</p>
+              <p className="mt-2 text-2xl font-bold font-display text-text-primary">
+                <AnimatedCounter value={weekStats.count} />
+              </p>
+              {weekStats.price > 0 && <p className="mt-0.5 text-sm text-text-secondary">₪{weekStats.price.toLocaleString("he-IL")}</p>}
+            </Card>
+          </Link>
+        </Reveal>
 
-        <Link
-          href={`/tutor/calendar/range?start=${monthStart}&end=${monthEnd}&label=${encodeURIComponent("החודש")}`}
-          className="block transition-transform duration-200 active:scale-95"
-        >
-          <Card className="h-full transition-shadow hover:shadow-none">
-            <p className="text-sm text-text-secondary">החודש</p>
-            <p className="mt-2 text-2xl font-bold font-display text-text-primary">{monthStats.count}</p>
-            {monthStats.price > 0 && <p className="mt-0.5 text-sm text-text-secondary">₪{monthStats.price.toLocaleString("he-IL")}</p>}
-          </Card>
-        </Link>
+        <Reveal delay={0.15}>
+          <Link
+            href={`/tutor/calendar/range?start=${monthStart}&end=${monthEnd}&label=${encodeURIComponent("החודש")}`}
+            className="block transition-transform duration-200 active:scale-95"
+          >
+            <Card className="h-full transition-shadow hover:shadow-none">
+              <p className="text-sm text-text-secondary">החודש</p>
+              <p className="mt-2 text-2xl font-bold font-display text-text-primary">
+                <AnimatedCounter value={monthStats.count} />
+              </p>
+              {monthStats.price > 0 && <p className="mt-0.5 text-sm text-text-secondary">₪{monthStats.price.toLocaleString("he-IL")}</p>}
+            </Card>
+          </Link>
+        </Reveal>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>בקשות לשיעורים ממתינות</CardTitle>
-            <Badge tone="pending">{pendingRequests?.length ?? 0}</Badge>
-          </CardHeader>
-          {pendingRequests && pendingRequests.length === 0 ? (
-            <p className="text-sm text-text-muted">אין בקשות ממתינות כרגע.</p>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {pendingRequests?.map((req) => (
-                <li key={req.id} className="min-w-0 rounded-control border border-border px-3 py-2 text-sm">
-                  <p className="break-words font-medium text-text-primary">
-                    {req.requester?.full_name ?? req.requester?.email}
-                  </p>
-                  <p className="break-words text-text-muted">
-                    {req.subjects?.name} · {formatIsoDateWithWeekday(req.date)} · {req.start_time.slice(0, 5)} ·{" "}
-                    {DELIVERY_MODE_LABELS[req.delivery_mode]}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-          <Link href="/tutor/requests" className="mt-3 inline-block text-sm font-medium text-brand-accent transition-transform duration-200 hover:underline active:scale-90">
-            לכל הבקשות ←
-          </Link>
-        </Card>
+        <Reveal delay={0.1}>
+          <Card>
+            <CardHeader>
+              <CardTitle>בקשות לשיעורים ממתינות</CardTitle>
+              <Badge tone="pending">{pendingRequests?.length ?? 0}</Badge>
+            </CardHeader>
+            {pendingRequests && pendingRequests.length === 0 ? (
+              <p className="text-sm text-text-muted">אין בקשות ממתינות כרגע.</p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {pendingRequests?.map((req) => (
+                  <li key={req.id} className="min-w-0 rounded-control border border-border px-3 py-2 text-sm">
+                    <p className="break-words font-medium text-text-primary">
+                      {req.requester?.full_name ?? req.requester?.email}
+                    </p>
+                    <p className="break-words text-text-muted">
+                      {req.subjects?.name} · {formatIsoDateWithWeekday(req.date)} · {req.start_time.slice(0, 5)} ·{" "}
+                      {DELIVERY_MODE_LABELS[req.delivery_mode]}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Link href="/tutor/requests" className="mt-3 inline-block text-sm font-medium text-brand-accent transition-transform duration-200 hover:underline active:scale-90">
+              לכל הבקשות ←
+            </Link>
+          </Card>
+        </Reveal>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>תשלומים ממתינים</CardTitle>
-            <Badge tone="pending">{overduePayments.length}</Badge>
-          </CardHeader>
-          {overduePayments.length === 0 ? (
-            <p className="text-sm text-text-muted">אין תשלומים ממתינים כרגע.</p>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {overduePayments.slice(0, 5).map((row) => (
-                <li key={row.participantId} className="min-w-0 rounded-control border border-border px-3 py-2 text-sm">
-                  <p className="break-words font-medium text-text-primary">{row.studentName}</p>
-                  <p className="break-words text-text-muted">
-                    {row.subjectName} · {formatIsoDateWithWeekday(row.date)} · ₪{row.price}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-          <Link href="/tutor/payments" className="mt-3 inline-block text-sm font-medium text-brand-accent transition-transform duration-200 hover:underline active:scale-90">
-            לכל התשלומים ←
-          </Link>
-        </Card>
+        <Reveal delay={0.15}>
+          <Card>
+            <CardHeader>
+              <CardTitle>תשלומים ממתינים</CardTitle>
+              <Badge tone="pending">{overduePayments.length}</Badge>
+            </CardHeader>
+            {overduePayments.length === 0 ? (
+              <p className="text-sm text-text-muted">אין תשלומים ממתינים כרגע.</p>
+            ) : (
+              <ul className="flex flex-col gap-2">
+                {overduePayments.slice(0, 5).map((row) => (
+                  <li key={row.participantId} className="min-w-0 rounded-control border border-border px-3 py-2 text-sm">
+                    <p className="break-words font-medium text-text-primary">{row.studentName}</p>
+                    <p className="break-words text-text-muted">
+                      {row.subjectName} · {formatIsoDateWithWeekday(row.date)} · ₪{row.price}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Link href="/tutor/payments" className="mt-3 inline-block text-sm font-medium text-brand-accent transition-transform duration-200 hover:underline active:scale-90">
+              לכל התשלומים ←
+            </Link>
+          </Card>
+        </Reveal>
       </div>
     </div>
   );

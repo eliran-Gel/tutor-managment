@@ -7,6 +7,7 @@ import { DELIVERY_MODE_LABELS } from "@/lib/lessons";
 import { formatIsoDate, formatIsoDateWithWeekday } from "@/lib/dates/format";
 import { getHebrewGreeting } from "@/lib/greeting";
 import { RequestLessonModal } from "../lessons/request-lesson-modal";
+import { Reveal } from "@/components/reveal";
 
 export default async function PortalDashboardPage() {
   const supabase = await createClient();
@@ -79,102 +80,112 @@ export default async function PortalDashboardPage() {
       </div>
 
       {needsGradeSchool && (
-        <Card className="border-status-pending bg-status-pending-bg">
-          <p className="text-sm font-medium text-status-pending">
-            כדאי להשלים את הפרופיל: יש להוסיף כיתה ובית ספר.
-          </p>
-          <Link
-            href="/portal/profile"
-            className="mt-2 inline-block text-sm font-semibold text-status-pending underline transition-transform duration-200 active:scale-90"
-          >
-            מעבר לפרופיל
-          </Link>
-        </Card>
+        <Reveal>
+          <Card className="border-status-pending bg-status-pending-bg">
+            <p className="text-sm font-medium text-status-pending">
+              כדאי להשלים את הפרופיל: יש להוסיף כיתה ובית ספר.
+            </p>
+            <Link
+              href="/portal/profile"
+              className="mt-2 inline-block text-sm font-semibold text-status-pending underline transition-transform duration-200 active:scale-90"
+            >
+              מעבר לפרופיל
+            </Link>
+          </Card>
+        </Reveal>
       )}
 
-      <Card className="bg-brand-primary text-white">
-        <p className="text-sm opacity-80">השיעור הבא שלך</p>
-        {nextLesson ? (
-          <>
-            <p className="mt-2 text-lg font-semibold">{nextLesson.subjects?.name ?? "שיעור"}</p>
-            <p className="mt-1 text-sm opacity-90">
-              {formatIsoDate(nextLesson.date)} · {nextLesson.start_time.slice(0, 5)}–
-              {nextLesson.end_time.slice(0, 5)} · {DELIVERY_MODE_LABELS[nextLesson.delivery_mode]}
-            </p>
-          </>
-        ) : nextPendingLesson ? (
-          <>
-            <p className="mt-2 text-lg font-semibold">{nextPendingLesson.subjects?.name ?? "שיעור"}</p>
-            <p className="mt-1 text-sm opacity-90">
-              {formatIsoDate(nextPendingLesson.date)} · {nextPendingLesson.start_time.slice(0, 5)}–
-              {nextPendingLesson.end_time.slice(0, 5)}
-            </p>
-            <p className="mt-1 text-sm font-medium opacity-90">טרם אושר על ידי המורה</p>
-          </>
-        ) : (
-          <p className="mt-2 text-lg font-semibold">עדיין אין שיעור מתוזמן</p>
-        )}
-        {profile?.role === "student" && (
-          <div className="mt-4">
-            <RequestLessonModal
-              subjects={subjects ?? []}
-              triggerClassName="bg-white/10 text-white hover:bg-white/20"
-            />
-          </div>
-        )}
-      </Card>
+      <Reveal delay={0.05}>
+        <Card className="bg-brand-primary text-white">
+          <p className="text-sm opacity-80">השיעור הבא שלך</p>
+          {nextLesson ? (
+            <>
+              <p className="mt-2 text-lg font-semibold">{nextLesson.subjects?.name ?? "שיעור"}</p>
+              <p className="mt-1 text-sm opacity-90">
+                {formatIsoDate(nextLesson.date)} · {nextLesson.start_time.slice(0, 5)}–
+                {nextLesson.end_time.slice(0, 5)} · {DELIVERY_MODE_LABELS[nextLesson.delivery_mode]}
+              </p>
+            </>
+          ) : nextPendingLesson ? (
+            <>
+              <p className="mt-2 text-lg font-semibold">{nextPendingLesson.subjects?.name ?? "שיעור"}</p>
+              <p className="mt-1 text-sm opacity-90">
+                {formatIsoDate(nextPendingLesson.date)} · {nextPendingLesson.start_time.slice(0, 5)}–
+                {nextPendingLesson.end_time.slice(0, 5)}
+              </p>
+              <p className="mt-1 text-sm font-medium opacity-90">טרם אושר על ידי המורה</p>
+            </>
+          ) : (
+            <p className="mt-2 text-lg font-semibold">עדיין אין שיעור מתוזמן</p>
+          )}
+          {profile?.role === "student" && (
+            <div className="mt-4">
+              <RequestLessonModal
+                subjects={subjects ?? []}
+                triggerClassName="bg-white/10 text-white hover:bg-white/20"
+              />
+            </div>
+          )}
+        </Card>
+      </Reveal>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Link href="/portal/summaries" className="block transition-transform duration-200 active:scale-95">
-          <Card className="flex h-full items-center gap-3 transition-shadow hover:shadow-none">
-            {latestSummaryUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={latestSummaryUrl} alt="" className="h-14 w-14 shrink-0 rounded-control border border-border object-cover" />
-            ) : null}
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-text-primary">סיכום השיעור האחרון</p>
-              {latestSummary?.lessons ? (
-                <p className="mt-1 text-sm text-text-muted">
-                  {latestSummary.lessons.subjects?.name ?? "שיעור"} · {formatIsoDateWithWeekday(latestSummary.lessons.date)}
-                </p>
-              ) : (
-                <p className="mt-1 text-sm text-text-muted">אין עדיין סיכומים שפורסמו.</p>
-              )}
-            </div>
-          </Card>
-        </Link>
-        <Link href="/portal/homework" className="block transition-transform duration-200 active:scale-95">
-          <Card className="h-full transition-shadow hover:shadow-none">
-            <p className="text-sm font-semibold text-text-primary">שיעורי בית</p>
-            <p className="mt-2 text-sm text-text-muted">
-              {openHomeworkCount ? `${openHomeworkCount} משימות פתוחות` : "אין משימות פתוחות כרגע."}
-            </p>
-          </Card>
-        </Link>
+        <Reveal delay={0.1}>
+          <Link href="/portal/summaries" className="block transition-transform duration-200 active:scale-95">
+            <Card className="flex h-full items-center gap-3 transition-shadow hover:shadow-none">
+              {latestSummaryUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={latestSummaryUrl} alt="" className="h-14 w-14 shrink-0 rounded-control border border-border object-cover" />
+              ) : null}
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-text-primary">סיכום השיעור האחרון</p>
+                {latestSummary?.lessons ? (
+                  <p className="mt-1 text-sm text-text-muted">
+                    {latestSummary.lessons.subjects?.name ?? "שיעור"} · {formatIsoDateWithWeekday(latestSummary.lessons.date)}
+                  </p>
+                ) : (
+                  <p className="mt-1 text-sm text-text-muted">אין עדיין סיכומים שפורסמו.</p>
+                )}
+              </div>
+            </Card>
+          </Link>
+        </Reveal>
+        <Reveal delay={0.15}>
+          <Link href="/portal/homework" className="block transition-transform duration-200 active:scale-95">
+            <Card className="h-full transition-shadow hover:shadow-none">
+              <p className="text-sm font-semibold text-text-primary">שיעורי בית</p>
+              <p className="mt-2 text-sm text-text-muted">
+                {openHomeworkCount ? `${openHomeworkCount} משימות פתוחות` : "אין משימות פתוחות כרגע."}
+              </p>
+            </Card>
+          </Link>
+        </Reveal>
       </div>
 
       {(links?.contact_info || quickLinks.length > 0) && (
-        <Card>
-          <p className="mb-3 text-sm font-semibold text-text-primary">יצירת קשר וקישורים</p>
-          {links?.contact_info && (
-            <p className="mb-3 text-sm text-text-secondary">{links.contact_info}</p>
-          )}
-          {quickLinks.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {quickLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-control border border-border px-3 py-1.5 text-sm font-medium text-text-secondary transition-transform duration-200 hover:bg-surface-muted hover:text-text-primary active:scale-90"
-                >
-                  {link.label}
-                </a>
-              ))}
-            </div>
-          )}
-        </Card>
+        <Reveal delay={0.2}>
+          <Card>
+            <p className="mb-3 text-sm font-semibold text-text-primary">יצירת קשר וקישורים</p>
+            {links?.contact_info && (
+              <p className="mb-3 text-sm text-text-secondary">{links.contact_info}</p>
+            )}
+            {quickLinks.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {quickLinks.map((link) => (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-control border border-border px-3 py-1.5 text-sm font-medium text-text-secondary transition-transform duration-200 hover:bg-surface-muted hover:text-text-primary active:scale-90"
+                  >
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+            )}
+          </Card>
+        </Reveal>
       )}
     </div>
   );

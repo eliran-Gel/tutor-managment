@@ -3,11 +3,12 @@
 
 @theme inline {
   --font-sans: var(--font-rubik);
-  /* Outfit has no Hebrew glyphs, so on our all-Hebrew body copy this falls
-     straight back to font-sans (Rubik) - exactly like on the marketing
-     site, where it only actually renders on digits/Latin snippets. Used
-     for headings and stat numbers to echo that same branded look. */
-  --font-display: var(--font-outfit), var(--font-rubik);
+  /* Suez One actually has Hebrew glyphs (unlike the Outfit face this
+     replaced, which was invisible on every Hebrew heading and only ever
+     rendered on stray digits) - so headings and stat numbers now visibly
+     read as a different, more characterful face from the Rubik body copy,
+     not a silent no-op. */
+  --font-display: var(--font-suez-one), var(--font-rubik);
 
   --color-background: var(--background);
   --color-surface: var(--surface);
@@ -47,6 +48,13 @@ html {
   /* Without this, iOS/Android also flash their own gray tap-highlight box
      on every press, on top of our custom active: press animations. */
   -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {

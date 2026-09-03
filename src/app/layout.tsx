@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Rubik, Outfit } from "next/font/google";
+import { Rubik, Suez_One } from "next/font/google";
 import { cookies } from "next/headers";
 import { IosActiveFix } from "@/components/ios-active-fix";
+import { MotionProvider } from "@/components/motion-provider";
 import "./globals.css";
 
 const rubik = Rubik({
@@ -9,14 +10,16 @@ const rubik = Rubik({
   subsets: ["hebrew", "latin"],
 });
 
-// No Hebrew subset - Outfit doesn't have Hebrew glyphs at all. Used only
-// for headings/stat numbers (see --font-display in globals.css), where it
-// renders on digits/Latin text and silently falls back to Rubik for
-// Hebrew, matching the marketing site's own (partly accidental) mixed look.
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+// A real Hebrew-supporting display face for headings/stat numbers (see
+// --font-display in globals.css) - Outfit used to sit here, but it has no
+// Hebrew glyphs at all, so on an all-Hebrew app it was invisible on every
+// heading and only ever showed up on digits. Suez One actually renders on
+// Hebrew text, so headings finally look distinct from the Rubik body copy
+// instead of silently matching it everywhere.
+const suezOne = Suez_One({
+  variable: "--font-suez-one",
+  subsets: ["hebrew", "latin"],
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -69,11 +72,11 @@ export default async function RootLayout({
       lang="he"
       dir="rtl"
       data-theme={theme}
-      className={`${rubik.variable} ${outfit.variable} h-full antialiased`}
+      className={`${rubik.variable} ${suezOne.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-text-primary">
         <IosActiveFix />
-        {children}
+        <MotionProvider>{children}</MotionProvider>
       </body>
     </html>
   );

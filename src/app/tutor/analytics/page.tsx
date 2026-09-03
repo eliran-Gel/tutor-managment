@@ -5,6 +5,8 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
 import { PAYMENT_METHOD_LABELS } from "@/lib/lessons";
 import { ExportButton } from "./export-button";
+import { Reveal } from "@/components/reveal";
+import { AnimatedCounter } from "@/components/animated-counter";
 
 type Period = "month" | "quarter" | "year" | "all";
 
@@ -128,27 +130,43 @@ export default async function TutorAnalyticsPage({
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card>
-          <p className="text-sm text-text-secondary">שיעורים</p>
-          <p className="mt-2 text-2xl font-bold font-display text-text-primary">{totalLessons}</p>
-        </Card>
-        <Card>
-          <p className="text-sm text-text-secondary">שעות הוראה</p>
-          <p className="mt-2 text-2xl font-bold font-display text-text-primary">{totalHours.toLocaleString("he-IL", { maximumFractionDigits: 1 })}</p>
-        </Card>
-        <Card>
-          <p className="text-sm text-text-secondary">הכנסה צפויה</p>
-          <p className="mt-2 text-2xl font-bold font-display text-text-primary">{money(expectedIncome)}</p>
-        </Card>
-        <Card>
-          <p className="text-sm text-text-secondary">הכנסה שהתקבלה</p>
-          <p className="mt-2 text-2xl font-bold font-display text-status-confirmed">{money(receivedIncome)}</p>
-          {expectedIncome > 0 && (
-            <p className="mt-0.5 text-xs text-text-muted">
-              {Math.round((receivedIncome / expectedIncome) * 100)}% מהצפוי
+        <Reveal delay={0}>
+          <Card>
+            <p className="text-sm text-text-secondary">שיעורים</p>
+            <p className="mt-2 text-2xl font-bold font-display text-text-primary">
+              <AnimatedCounter value={totalLessons} />
             </p>
-          )}
-        </Card>
+          </Card>
+        </Reveal>
+        <Reveal delay={0.05}>
+          <Card>
+            <p className="text-sm text-text-secondary">שעות הוראה</p>
+            <p className="mt-2 text-2xl font-bold font-display text-text-primary">
+              <AnimatedCounter value={totalHours} variant="decimal1" />
+            </p>
+          </Card>
+        </Reveal>
+        <Reveal delay={0.1}>
+          <Card>
+            <p className="text-sm text-text-secondary">הכנסה צפויה</p>
+            <p className="mt-2 text-2xl font-bold font-display text-text-primary">
+              <AnimatedCounter value={expectedIncome} variant="currency" />
+            </p>
+          </Card>
+        </Reveal>
+        <Reveal delay={0.15}>
+          <Card>
+            <p className="text-sm text-text-secondary">הכנסה שהתקבלה</p>
+            <p className="mt-2 text-2xl font-bold font-display text-status-confirmed">
+              <AnimatedCounter value={receivedIncome} variant="currency" />
+            </p>
+            {expectedIncome > 0 && (
+              <p className="mt-0.5 text-xs text-text-muted">
+                {Math.round((receivedIncome / expectedIncome) * 100)}% מהצפוי
+              </p>
+            )}
+          </Card>
+        </Reveal>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
