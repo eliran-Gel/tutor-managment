@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition, type ChangeEvent, type DragEvent } from "react";
+import { useEffect, useRef, useState, useTransition, type ChangeEvent, type DragEvent } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
 import { Badge } from "@/components/ui/badge";
@@ -98,6 +98,49 @@ export function LessonFilesSection({ lessonId, files }: { lessonId: string; file
     if (!file) return;
     startTransition(() => uploadFile(file));
   }
+
+  // A ref, not a plain closure captured once in the effect below - that
+  // would freeze uploadFile at whatever it was on first mount instead of
+  // seeing later renders, the classic stale-closure trap with a
+  // window-level listener that's only attached once.
+  const uploadFileRef = useRef(uploadFile);
+  useEffect(() => {
+    uploadFileRef.current = uploadFile;
+  });
+
+  // Paste an image straight in (Ctrl+V / Cmd+V) after copying it elsewhere
+  // - a screenshot tool, "Copy image" from a webpage, another app - the
+  // same shortcut that works in a WhatsApp Web chat. Listens on the whole
+  // page rather than requiring a specific element to be focused first
+  // (there's nothing to click into before pasting), but only acts when the
+  // clipboard actually contains image data - a paste into the homework
+  // text field on this same page is untouched, since that clipboard
+  // content is text, not a file.
+  useEffect(() => {
+    function handlePaste(e: ClipboardEvent) {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.kind === "file" && item.type.startsWith("image/")) {
+          const file = item.getAsFile();
+          if (!file) continue;
+          e.preventDefault();
+          // Clipboard images almost always come in as a generic
+          // "image.png" with no useful name - give pasted screenshots a
+          // real, distinguishable filename instead.
+          const named =
+            file.name && file.name !== "image.png"
+              ? file
+              : new File([file], `הדבקה-${Date.now()}.png`, { type: file.type });
+          startTransition(() => uploadFileRef.current(named));
+          return;
+        }
+      }
+    }
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, []);
 
   // A file dragged from Finder/Explorer or Photos lands directly in
   // dataTransfer.files. A photo dragged from a *webpage* in another tab
@@ -277,7 +320,7 @@ export function LessonFilesSection({ lessonId, files }: { lessonId: string; file
           <Button type="button" disabled={isBusy} onClick={() => fileInputRef.current?.click()}>
             {isBusy ? "מעלה..." : "העלאת תוכן"}
           </Button>
-          <p className="text-xs text-text-muted">או גררו קובץ/תמונה לכאן</p>
+          <p className="text-xs text-text-muted">או גררו קובץ/תמונה לכאן, או הדביקו עם Ctrl+V אחרי העתקה</p>
 
           <div className="w-full" aria-live="polite">
             {upload.phase === "uploading" && (
