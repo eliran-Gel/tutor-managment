@@ -142,6 +142,38 @@ export function LessonFilesSection({ lessonId, files }: { lessonId: string; file
     return () => window.removeEventListener("paste", handlePaste);
   }, []);
 
+  // Ctrl+V has nothing to press on a phone - there's no keyboard shortcut,
+  // and a plain (non-editable) area doesn't offer a "Paste" option on
+  // long-press the way a text field does. A button that reads the
+  // clipboard directly, on tap, is the mobile-reachable equivalent: copy a
+  // photo somewhere else (share sheet, gallery, another app) first, then
+  // tap this instead of dragging or typing anything.
+  const canReadClipboard = typeof navigator !== "undefined" && !!navigator.clipboard?.read;
+
+  async function handlePasteButton() {
+    try {
+      const clipboardItems = await navigator.clipboard.read();
+      for (const item of clipboardItems) {
+        const imageType = item.types.find((t) => t.startsWith("image/"));
+        if (!imageType) continue;
+        const blob = await item.getType(imageType);
+        const ext = imageType.split("/")[1] || "png";
+        const file = new File([blob], `הדבקה-${Date.now()}.${ext}`, { type: imageType });
+        startTransition(() => uploadFile(file));
+        return;
+      }
+      setUpload({ phase: "error", message: "לא נמצאה תמונה בהעתקה האחרונה. העתיקו תמונה (בגלריה/באפליקציה אחרת) ונסו שוב." });
+    } catch {
+      // Most likely the browser blocked/never asked for clipboard-read
+      // permission, or there was nothing on the clipboard at all - both
+      // land here the same way, so the message covers both.
+      setUpload({
+        phase: "error",
+        message: "לא הצלחתי לגשת להעתקה - ודאו שאישרתם לדפדפן גישה ללוח ההעתקה, ושהעתקתם תמונה קודם.",
+      });
+    }
+  }
+
   // A file dragged from Finder/Explorer or Photos lands directly in
   // dataTransfer.files. A photo dragged from a *webpage* in another tab
   // (Google Images, WhatsApp Web itself, etc.) usually doesn't - the
@@ -320,7 +352,14 @@ export function LessonFilesSection({ lessonId, files }: { lessonId: string; file
           <Button type="button" disabled={isBusy} onClick={() => fileInputRef.current?.click()}>
             {isBusy ? "מעלה..." : "העלאת תוכן"}
           </Button>
-          <p className="text-xs text-text-muted">או גררו קובץ/תמונה לכאן, או הדביקו עם Ctrl+V אחרי העתקה</p>
+          {canReadClipboard && (
+            <Button type="button" variant="secondary" disabled={isBusy} onClick={() => startTransition(handlePasteButton)}>
+              הדבקת תמונה מהעתקה
+            </Button>
+          )}
+          <p className="w-full text-xs text-text-muted sm:w-auto">
+            או גררו קובץ/תמונה לכאן, או הדביקו עם Ctrl+V אחרי העתקה
+          </p>
 
           <div className="w-full" aria-live="polite">
             {upload.phase === "uploading" && (
