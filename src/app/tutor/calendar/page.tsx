@@ -27,6 +27,26 @@ function toIsoDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+// Student name(s) at a glance, not the subject - that's what the tutor
+// actually scans the month grid for ("who's on which day"), with the
+// subject as secondary detail available in the day view. A still-pending
+// request has no lesson_participants row yet (only created on approval),
+// so it falls back to requested_student_id; a lesson from before that
+// column existed (or one somehow left with neither) falls back to the
+// subject name as a last resort rather than showing nothing.
+function lessonLabel(lesson: {
+  subjects: { name: string } | null;
+  lesson_participants: { students: { display_name: string } | null }[];
+  requested_student: { display_name: string } | null;
+}) {
+  const participantNames = lesson.lesson_participants
+    .map((lp) => lp.students?.display_name)
+    .filter((name): name is string => Boolean(name));
+  if (participantNames.length > 0) return participantNames.join(", ");
+  if (lesson.requested_student?.display_name) return lesson.requested_student.display_name;
+  return lesson.subjects?.name ?? "שיעור";
+}
+
 export default async function CalendarPage({
   searchParams,
 }: {
@@ -46,7 +66,9 @@ export default async function CalendarPage({
     supabase.from("availability_blocks").select("*"),
     supabase
       .from("lessons")
-      .select("id, date, start_time, end_time, status, subjects(name)")
+      .select(
+        "id, date, start_time, end_time, status, subjects(name), lesson_participants(students(display_name)), requested_student:students!lessons_requested_student_id_fkey(display_name)",
+      )
       .in("status", ["confirmed", "completed", "requested"])
       .gte("date", toIsoDate(gridStart))
       .lte("date", toIsoDate(gridEnd)),
@@ -168,14 +190,14 @@ export default async function CalendarPage({
                     {confirmedLessons.map((lesson) => (
                       <div key={lesson.id} className="mt-1 truncate rounded bg-status-confirmed-bg px-1 py-0.5">
                         <p className="truncate text-xs font-medium text-status-confirmed">
-                          {lesson.start_time.slice(0, 5)} {lesson.subjects?.name ?? "שיעור"}
+                          {lesson.start_time.slice(0, 5)} {lessonLabel(lesson)}
                         </p>
                       </div>
                     ))}
                     {requestedLessons.map((lesson) => (
                       <div key={lesson.id} className="mt-1 truncate rounded bg-status-pending-bg px-1 py-0.5">
                         <p className="truncate text-xs font-medium text-status-pending">
-                          {lesson.start_time.slice(0, 5)} {lesson.subjects?.name ?? "שיעור"} (ממתין)
+                          {lesson.start_time.slice(0, 5)} {lessonLabel(lesson)} (ממתין)
                         </p>
                       </div>
                     ))}

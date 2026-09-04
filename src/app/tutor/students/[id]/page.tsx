@@ -52,7 +52,7 @@ export default async function StudentDetailPage({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <ArchiveButton studentId={student.id} archived={Boolean(student.archived_at)} />
-          <DeleteStudentButton studentId={student.id} studentName={student.display_name} />
+          <DeleteStudentButton studentId={student.id} studentName={student.display_name} hasAccount={Boolean(student.profile_id)} />
         </div>
       </div>
 

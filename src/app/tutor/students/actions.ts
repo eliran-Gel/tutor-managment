@@ -47,11 +47,40 @@ export async function updateStudent(studentId: string, formData: FormData) {
   revalidatePath("/tutor/students");
 }
 
-export async function deleteStudent(studentId: string) {
+/**
+ * `delete_student` (the RPC) deliberately never touches profiles/auth -
+ * removing a roster entry must never destroy a real person's login by
+ * accident, since deleting an auth account is unrecoverable (they'd need
+ * to sign up fresh with a new account, losing whatever else that account
+ * ever touched). `alsoDeleteAccount` is the explicit, separately-
+ * confirmed opt-in for when that login genuinely shouldn't exist anymore
+ * (a throwaway test account being the obvious case) - it's an extra step
+ * on top of the normal delete, not a replacement for it.
+ */
+export async function deleteStudent(studentId: string, alsoDeleteAccount = false) {
   const { supabase } = await requireTutor();
+
+  let profileId: string | null = null;
+  if (alsoDeleteAccount) {
+    const { data: studentRow } = await supabase.from("students").select("profile_id").eq("id", studentId).single();
+    profileId = studentRow?.profile_id ?? null;
+  }
 
   const { error } = await supabase.rpc("delete_student", { p_student_id: studentId });
   if (error) return { error: error.message };
+
+  if (profileId) {
+    // The student row is already gone at this point - only the login
+    // itself (and, via its own on-delete-cascade, the profiles row) is
+    // left to remove. Needs the service-role client: deleting an auth
+    // user is an Admin API operation, not something the regular
+    // session-scoped client (or a plain SQL DELETE) can do correctly -
+    // it's also what cleans up sessions/refresh tokens/identities, which
+    // a raw `delete from auth.users` would leave dangling.
+    const admin = createAdminClient();
+    const { error: authError } = await admin.auth.admin.deleteUser(profileId);
+    if (authError) return { error: `התלמיד/ה נמחק/ה, אך מחיקת ההתחברות נכשלה: ${authError.message}` };
+  }
 
   revalidatePath("/tutor/students");
   revalidatePath("/tutor/calendar");
