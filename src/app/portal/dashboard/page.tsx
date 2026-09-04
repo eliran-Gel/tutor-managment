@@ -86,10 +86,10 @@ export default async function PortalDashboardPage({
   const latestSummaryUrl = latestSummaryRow ? await getSignedFileUrl(latestSummaryRow.storage_path) : null;
 
   const quickLinks = [
-    { label: "אתר", href: links?.website_url },
-    { label: "קהילה", href: links?.community_url },
-    { label: "Bit", href: links?.bit_link },
-    { label: "PayBox", href: links?.paybox_link },
+    { label: "🌐 האתר שלנו", href: links?.website_url },
+    { label: "💬 קהילה", href: links?.community_url },
+    { label: "💸 Bit", href: links?.bit_link },
+    { label: "📦 PayBox", href: links?.paybox_link },
   ].filter((l): l is { label: string; href: string } => Boolean(l.href));
 
   return (
@@ -195,7 +195,7 @@ export default async function PortalDashboardPage({
       {(links?.contact_info || quickLinks.length > 0) && (
         <Reveal delay={0.2}>
           <Card>
-            <p className="mb-3 text-sm font-semibold text-text-primary">יצירת קשר וקישורים</p>
+            <p className="mb-3 text-sm font-semibold text-text-primary">📎 יצירת קשר וקישורים שימושיים</p>
             {links?.contact_info && (
               <p className="mb-3 text-sm text-text-secondary">{links.contact_info}</p>
             )}
