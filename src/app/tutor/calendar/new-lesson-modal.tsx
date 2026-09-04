@@ -8,10 +8,13 @@ import { TimeSlotSelect } from "@/components/ui/time-slot-select";
 import { StudentCombobox, NEW_STUDENT } from "@/components/ui/student-combobox";
 import { LESSON_DURATIONS } from "@/lib/lessons";
 import { calculateLessonPrice } from "@/lib/pricing";
+import { formatIsoDate } from "@/lib/dates/format";
 import {
   createManualLesson,
+  createLessonSeries,
   createGuestStudentQuick,
   type ManualLessonInput,
+  type LessonSeriesInput,
 } from "@/app/tutor/lessons/actions";
 import type { Tables } from "@/types/database";
 
@@ -39,8 +42,11 @@ export function NewLessonModal({
   const [deliveryMode, setDeliveryMode] = useState<"in_person" | "online">("in_person");
   const [onlineUrl, setOnlineUrl] = useState("");
   const [topic, setTopic] = useState("");
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [endDate, setEndDate] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [conflict, setConflict] = useState<string | null>(null);
+  const [seriesResult, setSeriesResult] = useState<{ created: number; skipped: string[] } | null>(null);
   const [submitAction, setSubmitAction] = useState<"create" | "force" | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -56,8 +62,11 @@ export function NewLessonModal({
     setDeliveryMode("in_person");
     setOnlineUrl("");
     setTopic("");
+    setIsRecurring(false);
+    setEndDate("");
     setError(null);
     setConflict(null);
+    setSeriesResult(null);
     setSubmitAction(null);
   }
 
@@ -125,6 +134,32 @@ export function NewLessonModal({
         }
       }
       setParticipants(nextParticipants);
+
+      // Recurring lessons skip the interactive conflict/force prompt
+      // entirely - there's no one occurrence to ask "create anyway?"
+      // about, so a colliding week is silently skipped and reported back
+      // afterward instead (see createLessonSeries).
+      if (isRecurring) {
+        const seriesInput: LessonSeriesInput = {
+          date,
+          start_time: startTime,
+          duration_minutes: duration,
+          lesson_type: lessonType,
+          delivery_mode: deliveryMode,
+          subject_id: subjectId,
+          topic: topic || null,
+          online_url: deliveryMode === "online" ? onlineUrl || null : null,
+          student_ids: resolvedIds,
+          end_date: endDate || null,
+        };
+        const result = await createLessonSeries(seriesInput);
+        if (result?.success) {
+          setSeriesResult({ created: result.created, skipped: result.skipped });
+        } else if (result?.error) {
+          setError(result.error);
+        }
+        return;
+      }
 
       const input: ManualLessonInput = {
         date,
@@ -240,6 +275,22 @@ export function NewLessonModal({
             <TextInput id="ml-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
           </Field>
 
+          <label className="flex items-center gap-2 text-sm text-text-secondary">
+            <input type="checkbox" checked={isRecurring} onChange={(e) => setIsRecurring(e.target.checked)} />
+            שיעור חוזר כל שבוע (אותו יום, אותה שעה)
+          </label>
+          {isRecurring && (
+            <Field label="עד תאריך (אופציונלי - אחרת נוצרים 10 שבועות קדימה)" htmlFor="ml-end-date">
+              <TextInput
+                id="ml-end-date"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                min={date || undefined}
+              />
+            </Field>
+          )}
+
           <div className="grid grid-cols-2 gap-3">
             <Field label="שעת התחלה" htmlFor="ml-start">
               <TimeSlotSelect id="ml-start" value={startTime} onChange={setStartTime} required />
@@ -317,7 +368,30 @@ export function NewLessonModal({
 
           {error && <p className="text-sm text-status-destructive">{error}</p>}
 
-          {conflict ? (
+          {seriesResult ? (
+            // Replaces the button row the same way the conflict banner
+            // does - there's nothing left to submit, only to acknowledge
+            // and close, so it can't coexist with "יצירת שיעור" either.
+            <div className="rounded-control border-2 border-status-confirmed bg-status-confirmed-bg px-4 py-3 text-sm">
+              <p className="font-semibold text-status-confirmed">נוצרו {seriesResult.created} שיעורים ✓</p>
+              {seriesResult.skipped.length > 0 && (
+                <p className="mt-1 text-text-secondary">
+                  דולגו {seriesResult.skipped.length} תאריכים עקב התנגשות: {seriesResult.skipped.map(formatIsoDate).join(", ")}
+                </p>
+              )}
+              <div className="mt-3 flex justify-end">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    reset();
+                  }}
+                >
+                  סגירה
+                </Button>
+              </div>
+            </div>
+          ) : conflict ? (
             // Replaces the normal button row entirely while a conflict is
             // pending - it must never coexist with "יצירת שיעור", since a
             // layout shift plus a confused re-click there is exactly what
@@ -356,7 +430,11 @@ export function NewLessonModal({
                 ביטול
               </Button>
               <Button type="button" disabled={isPending} onClick={() => submit(false)}>
-                {isPending && submitAction === "create" ? "יוצר..." : "יצירת שיעור"}
+                {isPending && submitAction === "create"
+                  ? "יוצר..."
+                  : isRecurring
+                    ? "יצירת סדרה"
+                    : "יצירת שיעור"}
               </Button>
             </div>
           )}

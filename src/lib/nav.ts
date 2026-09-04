@@ -6,6 +6,7 @@ export type NavItem = {
 export const tutorNav: NavItem[] = [
   { label: "ראשי", href: "/tutor/dashboard" },
   { label: "יומן", href: "/tutor/calendar" },
+  { label: "שיעורים חוזרים", href: "/tutor/series" },
   { label: "בקשות ופניות", href: "/tutor/requests" },
   { label: "תלמידים", href: "/tutor/students" },
   { label: "סיכומי שיעורים", href: "/tutor/summaries" },
