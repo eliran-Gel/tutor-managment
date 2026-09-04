@@ -23,7 +23,8 @@ export type StudentSummaries = {
 
 export function SummariesBrowser({ students }: { students: StudentSummaries[] }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [viewingFile, setViewingFile] = useState<ViewableFile | null>(null);
+  const [viewingFiles, setViewingFiles] = useState<SummaryFile[]>([]);
+  const [viewingIndex, setViewingIndex] = useState<number | null>(null);
 
   const selected = students.find((s) => s.id === selectedId) ?? null;
 
@@ -100,9 +101,15 @@ export function SummariesBrowser({ students }: { students: StudentSummaries[] })
                   key={lesson.id}
                   role="button"
                   tabIndex={0}
-                  onClick={() => setViewingFile(lesson.summaryFiles[0])}
+                  onClick={() => {
+                    setViewingFiles(lesson.summaryFiles);
+                    setViewingIndex(0);
+                  }}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") setViewingFile(lesson.summaryFiles[0]);
+                    if (e.key === "Enter" || e.key === " ") {
+                      setViewingFiles(lesson.summaryFiles);
+                      setViewingIndex(0);
+                    }
                   }}
                   className="cursor-pointer transition-colors duration-200 hover:bg-surface-muted"
                 >
@@ -120,7 +127,7 @@ export function SummariesBrowser({ students }: { students: StudentSummaries[] })
         </div>
       )}
 
-      <FileViewerModal file={viewingFile} onClose={() => setViewingFile(null)} />
+      <FileViewerModal files={viewingFiles} currentIndex={viewingIndex} onClose={() => setViewingIndex(null)} onNavigate={setViewingIndex} />
     </div>
   );
 }

@@ -39,7 +39,7 @@ export function LessonFilesSection({ lessonId, files }: { lessonId: string; file
   const [rowError, setRowError] = useState<string | null>(null);
   const [upload, setUpload] = useState<UploadStatus>({ phase: "idle" });
   const [isPending, startTransition] = useTransition();
-  const [viewingFile, setViewingFile] = useState<FileRow | null>(null);
+  const [viewingIndex, setViewingIndex] = useState<number | null>(null);
   // Drag counter, not a boolean: the card and everything inside it fires
   // dragenter/dragleave as the pointer crosses child element boundaries,
   // so a plain boolean flickers off mid-drag every time it passes over a
@@ -267,13 +267,13 @@ export function LessonFilesSection({ lessonId, files }: { lessonId: string; file
         <p className="text-sm text-text-muted">עדיין לא הועלה תוכן לשיעור הזה.</p>
       ) : (
         <div className="flex flex-col gap-2">
-          {files.map((f) => {
+          {files.map((f, i) => {
             const isImage = f.mime_type.startsWith("image/");
             return (
               <div key={f.id} className="flex flex-wrap items-center justify-between gap-2 rounded-control border border-border px-3 py-2">
                 <div className="flex min-w-0 items-center gap-3">
                   {isImage && f.signedUrl ? (
-                    <button type="button" onClick={() => setViewingFile(f)} className="shrink-0">
+                    <button type="button" onClick={() => setViewingIndex(i)} className="shrink-0">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={f.signedUrl}
@@ -290,7 +290,7 @@ export function LessonFilesSection({ lessonId, files }: { lessonId: string; file
                     {f.signedUrl ? (
                       <button
                         type="button"
-                        onClick={() => setViewingFile(f)}
+                        onClick={() => setViewingIndex(i)}
                         className="truncate text-sm font-medium text-brand-accent hover:underline"
                       >
                         {f.file_name}
@@ -380,7 +380,7 @@ export function LessonFilesSection({ lessonId, files }: { lessonId: string; file
           </div>
         </div>
 
-        <FileViewerModal file={viewingFile} onClose={() => setViewingFile(null)} />
+        <FileViewerModal files={files} currentIndex={viewingIndex} onClose={() => setViewingIndex(null)} onNavigate={setViewingIndex} />
       </Card>
     </div>
   );

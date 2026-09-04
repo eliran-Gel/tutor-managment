@@ -11,17 +11,17 @@ type MaterialItem = ViewableFile & {
 };
 
 export function MaterialsList({ materials }: { materials: MaterialItem[] }) {
-  const [viewingFile, setViewingFile] = useState<ViewableFile | null>(null);
+  const [viewingIndex, setViewingIndex] = useState<number | null>(null);
 
   return (
     <div className="flex flex-col gap-2">
-      {materials.map((m) => (
+      {materials.map((m, i) => (
         <Card key={m.id} className="flex flex-wrap items-center justify-between gap-2">
           <div className="min-w-0">
             {m.signedUrl ? (
               <button
                 type="button"
-                onClick={() => setViewingFile(m)}
+                onClick={() => setViewingIndex(i)}
                 className="truncate text-sm font-medium text-brand-accent hover:underline"
               >
                 {m.file_name}
@@ -38,7 +38,7 @@ export function MaterialsList({ materials }: { materials: MaterialItem[] }) {
         </Card>
       ))}
 
-      <FileViewerModal file={viewingFile} onClose={() => setViewingFile(null)} />
+      <FileViewerModal files={materials} currentIndex={viewingIndex} onClose={() => setViewingIndex(null)} onNavigate={setViewingIndex} />
     </div>
   );
 }

@@ -10,14 +10,14 @@ type SummaryItem = ViewableFile & {
 };
 
 export function SummariesGallery({ summaries }: { summaries: SummaryItem[] }) {
-  const [viewingFile, setViewingFile] = useState<ViewableFile | null>(null);
+  const [viewingIndex, setViewingIndex] = useState<number | null>(null);
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {summaries.map((s) => (
+      {summaries.map((s, i) => (
         <div key={s.id} className="flex flex-col gap-1.5">
           {s.signedUrl ? (
-            <button type="button" onClick={() => setViewingFile(s)}>
+            <button type="button" onClick={() => setViewingIndex(i)}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={s.signedUrl}
@@ -38,7 +38,7 @@ export function SummariesGallery({ summaries }: { summaries: SummaryItem[] }) {
         </div>
       ))}
 
-      <FileViewerModal file={viewingFile} onClose={() => setViewingFile(null)} />
+      <FileViewerModal files={summaries} currentIndex={viewingIndex} onClose={() => setViewingIndex(null)} onNavigate={setViewingIndex} />
     </div>
   );
 }
