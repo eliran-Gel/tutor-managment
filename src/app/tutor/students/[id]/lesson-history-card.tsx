@@ -53,10 +53,6 @@ export async function LessonHistoryCard({ studentId }: { studentId: string }) {
           לכל ההיסטוריה ←
         </Link>
       )}
-
-      <p className="mt-4 text-xs text-text-muted">
-        שיעורי בית וסיכומי שיעורים יופיעו כאן בהמשך, לאחר שהתכונות האלה ייבנו.
-      </p>
     </Card>
   );
 }

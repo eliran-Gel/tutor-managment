@@ -9,6 +9,7 @@ import { InternalNotesCard } from "./internal-notes-card";
 import { ParentLinksCard } from "./parent-links-card";
 import { ClaimGuestCard } from "./claim-guest-card";
 import { LessonHistoryCard } from "./lesson-history-card";
+import { GradesCard } from "./grades-card";
 
 export default async function StudentDetailPage({
   params,
@@ -31,6 +32,15 @@ export default async function StudentDetailPage({
     .from("parent_students")
     .select("id, parent_profile_id, profiles:parent_profile_id (full_name, email)")
     .eq("student_id", id);
+
+  const [{ data: subjects }, { data: grades }] = await Promise.all([
+    supabase.from("subjects").select("id, name").eq("active", true).order("name"),
+    supabase
+      .from("grades")
+      .select("id, title, score, max_score, exam_date, note, subjects(name)")
+      .eq("student_id", id)
+      .order("exam_date", { ascending: false }),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -61,6 +71,8 @@ export default async function StudentDetailPage({
       </div>
 
       <LessonHistoryCard studentId={student.id} />
+
+      <GradesCard studentId={student.id} subjects={subjects ?? []} grades={grades ?? []} />
 
       <InternalNotesCard studentId={student.id} notes={notes ?? null} />
     </div>

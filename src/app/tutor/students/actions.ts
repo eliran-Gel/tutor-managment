@@ -156,6 +156,52 @@ export async function unlinkParent(parentStudentId: string, studentId: string) {
   revalidatePath(`/tutor/students/${studentId}`);
 }
 
+const gradeSchema = z.object({
+  student_id: z.string().uuid(),
+  subject_id: z.string().uuid().nullable(),
+  title: z.string().trim().min(1, "יש לכתוב כותרת (למשל: מבחן אמצע)"),
+  score: z.coerce.number().min(0, "הציון לא יכול להיות שלילי"),
+  max_score: z.coerce.number().positive("הציון המקסימלי חייב להיות חיובי").default(100),
+  exam_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "תאריך לא תקין"),
+  note: z.string().trim().nullable(),
+});
+
+export async function addGrade(input: {
+  student_id: string;
+  subject_id: string | null;
+  title: string;
+  score: number;
+  max_score: number;
+  exam_date: string;
+  note: string | null;
+}) {
+  const { supabase } = await requireTutor();
+  const parsed = gradeSchema.safeParse(input);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "פרטים לא תקינים" };
+  const data = parsed.data;
+
+  if (data.score > data.max_score) return { error: "הציון לא יכול להיות גבוה מהציון המקסימלי" };
+
+  const { error } = await supabase.from("grades").insert(data);
+  if (error) return { error: error.message };
+
+  revalidatePath(`/tutor/students/${data.student_id}`);
+  revalidatePath("/tutor/grades");
+  revalidatePath("/portal/grades");
+  return { success: true as const };
+}
+
+export async function deleteGrade(gradeId: string, studentId: string) {
+  const { supabase } = await requireTutor();
+  const { error } = await supabase.from("grades").delete().eq("id", gradeId);
+  if (error) return { error: error.message };
+
+  revalidatePath(`/tutor/students/${studentId}`);
+  revalidatePath("/tutor/grades");
+  revalidatePath("/portal/grades");
+  return { success: true as const };
+}
+
 export async function claimGuestByEmail(studentId: string, formData: FormData) {
   const { supabase } = await requireTutor();
   const email = emailSchema.parse(formData.get("email"));
