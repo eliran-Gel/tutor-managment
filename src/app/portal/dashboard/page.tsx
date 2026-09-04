@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { getSelectedChild } from "@/lib/portal/get-selected-child";
 import { getSignedFileUrl } from "@/lib/lesson-files";
 import { DELIVERY_MODE_LABELS } from "@/lib/lessons";
 import { formatIsoDate, formatIsoDateWithWeekday } from "@/lib/dates/format";
@@ -9,59 +10,80 @@ import { getHebrewGreeting } from "@/lib/greeting";
 import { RequestLessonModal } from "../lessons/request-lesson-modal";
 import { Reveal } from "@/components/reveal";
 
-export default async function PortalDashboardPage() {
+export default async function PortalDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ child?: string }>;
+}) {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
+  const { child: requestedChild } = await searchParams;
+  const { current } = await getSelectedChild(supabase, profile, requestedChild);
 
   const today = new Date().toISOString().slice(0, 10);
+  const childId = current?.id ?? null;
 
   const [
     { data: links },
-    { data: nextLesson },
-    { data: nextPendingLesson },
+    { data: nextLessonRow },
+    { data: nextPendingLessonRow },
     { data: subjects },
-    { data: ownStudent },
-    { data: latestSummary },
+    { data: latestSummaryRow },
     { count: openHomeworkCount },
   ] = await Promise.all([
-      supabase.from("business_links").select("*").eq("id", true).single(),
-      supabase
-        .from("lessons")
-        .select("*, subjects(name)")
-        .eq("status", "confirmed")
-        .gte("date", today)
-        .order("date")
-        .order("start_time")
-        .limit(1)
-        .maybeSingle(),
-      // Only shown when there's no confirmed lesson yet - a request still
-      // awaiting the tutor's decision, so the student isn't just staring
-      // at "no lesson scheduled" while something is actually in progress.
-      supabase
-        .from("lessons")
-        .select("*, subjects(name)")
-        .eq("status", "requested")
-        .gte("date", today)
-        .order("date")
-        .order("start_time")
-        .limit(1)
-        .maybeSingle(),
-      supabase.from("subjects").select("*").eq("active", true).order("name"),
-      profile?.role === "student"
-        ? supabase.from("students").select("grade, school_name").eq("profile_id", profile.id).maybeSingle()
-        : Promise.resolve({ data: null }),
-      supabase
-        .from("lesson_files")
-        .select("id, storage_path, lessons(date, subjects(name))")
-        .ilike("mime_type", "image/%")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle(),
-      supabase.from("homework").select("id", { count: "exact", head: true }).eq("is_done", false),
-    ]);
+    supabase.from("business_links").select("*").eq("id", true).single(),
+    childId
+      ? supabase
+          .from("lesson_participants")
+          .select("lessons!inner(*, subjects(name))")
+          .eq("student_id", childId)
+          .eq("lessons.status", "confirmed")
+          .gte("lessons.date", today)
+          .order("date", { referencedTable: "lessons" })
+          .order("start_time", { referencedTable: "lessons" })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    // Only shown when there's no confirmed lesson yet - a request still
+    // awaiting the tutor's decision, so the student isn't just staring
+    // at "no lesson scheduled" while something is actually in progress.
+    childId
+      ? supabase
+          .from("lesson_participants")
+          .select("lessons!inner(*, subjects(name))")
+          .eq("student_id", childId)
+          .eq("lessons.status", "requested")
+          .gte("lessons.date", today)
+          .order("date", { referencedTable: "lessons" })
+          .order("start_time", { referencedTable: "lessons" })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    supabase.from("subjects").select("*").eq("active", true).order("name"),
+    // lesson_files has no student_id of its own (it belongs to the lesson,
+    // shared across every participant of a group lesson) - the double
+    // embed is what lets this still ask "is my selected child one of this
+    // lesson's participants".
+    childId
+      ? supabase
+          .from("lesson_files")
+          .select("id, storage_path, lessons!inner(date, subjects(name), lesson_participants!inner(student_id))")
+          .ilike("mime_type", "image/%")
+          .eq("lessons.lesson_participants.student_id", childId)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    childId
+      ? supabase.from("homework").select("id", { count: "exact", head: true }).eq("is_done", false).eq("student_id", childId)
+      : Promise.resolve({ count: null }),
+  ]);
 
-  const needsGradeSchool = ownStudent && (ownStudent.grade == null || !ownStudent.school_name);
-  const latestSummaryUrl = latestSummary ? await getSignedFileUrl(latestSummary.storage_path) : null;
+  const nextLesson = nextLessonRow?.lessons ?? null;
+  const nextPendingLesson = nextPendingLessonRow?.lessons ?? null;
+  const needsGradeSchool =
+    profile?.role === "student" && current && (current.grade == null || !current.school_name);
+  const latestSummaryUrl = latestSummaryRow ? await getSignedFileUrl(latestSummaryRow.storage_path) : null;
 
   const quickLinks = [
     { label: "אתר", href: links?.website_url },
@@ -78,6 +100,14 @@ export default async function PortalDashboardPage() {
         </h1>
         <p className="text-sm text-text-secondary">כיף לראות אותך שוב</p>
       </div>
+
+      {profile?.role === "parent" && !current && (
+        <Card className="border-status-pending bg-status-pending-bg">
+          <p className="text-sm font-medium text-status-pending">
+            עדיין אין תלמיד/ה מקושר/ת לחשבון שלך. פנה/י למורה כדי לקשר את הילד/ה שלך.
+          </p>
+        </Card>
+      )}
 
       {needsGradeSchool && (
         <Reveal>
@@ -97,7 +127,7 @@ export default async function PortalDashboardPage() {
 
       <Reveal delay={0.05}>
         <Card className="bg-brand-primary text-white">
-          <p className="text-sm opacity-80">השיעור הבא שלך</p>
+          <p className="text-sm opacity-80">השיעור הבא {profile?.role === "parent" ? `של ${current?.display_name ?? ""}` : "שלך"}</p>
           {nextLesson ? (
             <>
               <p className="mt-2 text-lg font-semibold">{nextLesson.subjects?.name ?? "שיעור"}</p>
@@ -139,9 +169,9 @@ export default async function PortalDashboardPage() {
               ) : null}
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-text-primary">סיכום השיעור האחרון</p>
-                {latestSummary?.lessons ? (
+                {latestSummaryRow?.lessons ? (
                   <p className="mt-1 text-sm text-text-muted">
-                    {latestSummary.lessons.subjects?.name ?? "שיעור"} · {formatIsoDateWithWeekday(latestSummary.lessons.date)}
+                    {latestSummaryRow.lessons.subjects?.name ?? "שיעור"} · {formatIsoDateWithWeekday(latestSummaryRow.lessons.date)}
                   </p>
                 ) : (
                   <p className="mt-1 text-sm text-text-muted">אין עדיין סיכומים שפורסמו.</p>

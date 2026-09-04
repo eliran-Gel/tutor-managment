@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { getSelectedChild } from "@/lib/portal/get-selected-child";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatIsoDate } from "@/lib/dates/format";
@@ -10,18 +12,33 @@ function toneFor(score: number, maxScore: number): "confirmed" | "pending" | "de
   return "destructive";
 }
 
-export default async function PortalGradesPage() {
+export default async function PortalGradesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ child?: string }>;
+}) {
   const supabase = await createClient();
-  const { data: grades } = await supabase
-    .from("grades")
-    .select("id, title, score, max_score, exam_date, note, subjects(name)")
-    .order("exam_date", { ascending: false });
+  const profile = await getCurrentProfile();
+  const { child: requestedChild } = await searchParams;
+  const { current } = await getSelectedChild(supabase, profile, requestedChild);
+
+  const { data: grades } = current
+    ? await supabase
+        .from("grades")
+        .select("id, title, score, max_score, exam_date, note, subjects(name)")
+        .eq("student_id", current.id)
+        .order("exam_date", { ascending: false })
+    : { data: [] };
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-xl font-bold font-display text-text-primary">ציונים</h1>
-        <p className="text-sm text-text-secondary">כל הציונים שנרשמו לך, מהחדש לישן.</p>
+        <p className="text-sm text-text-secondary">
+          {profile?.role === "parent" && current
+            ? `כל הציונים שנרשמו ל${current.display_name}, מהחדש לישן.`
+            : "כל הציונים שנרשמו לך, מהחדש לישן."}
+        </p>
       </div>
 
       {grades && grades.length === 0 && (

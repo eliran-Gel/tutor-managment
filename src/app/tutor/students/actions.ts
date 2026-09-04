@@ -135,6 +135,28 @@ export async function linkParentByEmail(studentId: string, formData: FormData) {
       .update({ role: "parent" })
       .eq("id", profile.id);
     if (roleErr) throw new Error(roleErr.message);
+
+    // A parent's account was created exactly like a student's - the
+    // signup trigger has no way to know in advance who's going to become
+    // a parent, so it always creates a self-students row. That row is now
+    // a phantom nobody will ever use, but only clean it up if it truly
+    // has no real data (never had a single lesson booked under it) -
+    // better to leave a rare false-positive orphan than to ever silently
+    // delete something real.
+    const { data: ownStudentRow } = await supabase
+      .from("students")
+      .select("id")
+      .eq("profile_id", profile.id)
+      .maybeSingle();
+    if (ownStudentRow) {
+      const { count } = await supabase
+        .from("lesson_participants")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", ownStudentRow.id);
+      if (!count) {
+        await supabase.from("students").delete().eq("id", ownStudentRow.id);
+      }
+    }
   }
 
   const { error: linkErr } = await supabase

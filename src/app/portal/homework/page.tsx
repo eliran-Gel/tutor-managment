@@ -1,21 +1,38 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { getSelectedChild } from "@/lib/portal/get-selected-child";
 import { Card } from "@/components/ui/card";
 import { formatIsoDate, formatIsoDateWithWeekday } from "@/lib/dates/format";
 import { HomeworkList } from "./homework-list";
 
-export default async function PortalHomeworkPage() {
+export default async function PortalHomeworkPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ child?: string }>;
+}) {
   const supabase = await createClient();
-  const { data: homework } = await supabase
-    .from("homework")
-    .select("id, description, due_date, is_done, lessons(date, subjects(name))")
-    .order("due_date", { ascending: true, nullsFirst: false })
-    .order("created_at", { ascending: false });
+  const profile = await getCurrentProfile();
+  const { child: requestedChild } = await searchParams;
+  const { current } = await getSelectedChild(supabase, profile, requestedChild);
+
+  const { data: homework } = current
+    ? await supabase
+        .from("homework")
+        .select("id, description, due_date, is_done, lessons(date, subjects(name))")
+        .eq("student_id", current.id)
+        .order("due_date", { ascending: true, nullsFirst: false })
+        .order("created_at", { ascending: false })
+    : { data: [] };
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-xl font-bold font-display text-text-primary">שיעורי בית</h1>
-        <p className="text-sm text-text-secondary">כל שיעורי הבית שהוקצו לך.</p>
+        <p className="text-sm text-text-secondary">
+          {profile?.role === "parent" && current
+            ? `שיעורי הבית של ${current.display_name}.`
+            : "כל שיעורי הבית שהוקצו לך."}
+        </p>
       </div>
 
       {homework && homework.length === 0 && (

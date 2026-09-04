@@ -1,28 +1,45 @@
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/auth/get-profile";
+import { getSelectedChild } from "@/lib/portal/get-selected-child";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PAYMENT_METHOD_LABELS } from "@/lib/lessons";
 import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 
-export default async function PortalPaymentsPage() {
+export default async function PortalPaymentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ child?: string }>;
+}) {
   const supabase = await createClient();
-  // No explicit student filter - RLS (lesson_participants_select_own /
-  // _select_parent) already scopes this to the caller's own lessons (or,
-  // for a parent, all of their children's). No running-balance/aggregate
-  // is ever computed here, per the "no debt dashboard" product decision -
-  // only per-lesson status.
-  const { data: rows } = await supabase
-    .from("lesson_participants")
-    .select(
-      "id, price_charged, payment_status, payment_method, cancellation_note, students(display_name), lessons(date, start_time, subjects(name))",
-    )
-    .order("date", { referencedTable: "lessons", ascending: false });
+  const profile = await getCurrentProfile();
+  const { child: requestedChild } = await searchParams;
+  const { current } = await getSelectedChild(supabase, profile, requestedChild);
+
+  // Explicit student_id filter now, instead of relying on RLS alone to
+  // scope this - RLS still allows a parent to read every one of their
+  // children's rows, so without this a parent with more than one child
+  // would keep seeing everyone's payments blended together regardless of
+  // which child is selected elsewhere in the portal.
+  const { data: rows } = current
+    ? await supabase
+        .from("lesson_participants")
+        .select(
+          "id, price_charged, payment_status, payment_method, cancellation_note, students(display_name), lessons(date, start_time, subjects(name))",
+        )
+        .eq("student_id", current.id)
+        .order("date", { referencedTable: "lessons", ascending: false })
+    : { data: [] };
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-xl font-bold font-display text-text-primary">תשלומים</h1>
-        <p className="text-sm text-text-secondary">סטטוס התשלום של השיעורים שלך.</p>
+        <p className="text-sm text-text-secondary">
+          {profile?.role === "parent" && current
+            ? `סטטוס התשלום של השיעורים של ${current.display_name}.`
+            : "סטטוס התשלום של השיעורים שלך."}
+        </p>
       </div>
 
       {!rows || rows.length === 0 ? (

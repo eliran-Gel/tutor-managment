@@ -1,24 +1,16 @@
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentProfile, ROLE_LABELS } from "@/lib/auth/get-profile";
 import { createClient } from "@/lib/supabase/server";
+import { getSelectedChild } from "@/lib/portal/get-selected-child";
 import { ChangePasswordForm } from "@/components/change-password-form";
 import { EditNameForm } from "@/components/edit-name-form";
 import { EditGradeSchoolForm } from "@/components/edit-grade-school-form";
 import { NotificationSettingsCard } from "@/components/notification-settings-card";
 
-export async function ProfilePageContent() {
+export async function ProfilePageContent({ requestedChildId }: { requestedChildId?: string } = {}) {
   const profile = await getCurrentProfile();
-
-  let ownStudent: { id: string; grade: number | null; grade_year: number | null; school_name: string | null } | null = null;
-  if (profile?.role === "student") {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("students")
-      .select("id, grade, grade_year, school_name")
-      .eq("profile_id", profile.id)
-      .maybeSingle();
-    ownStudent = data;
-  }
+  const supabase = await createClient();
+  const { current: ownStudent } = await getSelectedChild(supabase, profile, requestedChildId);
 
   return (
     <div className="flex flex-col gap-6">
@@ -46,7 +38,9 @@ export async function ProfilePageContent() {
       {ownStudent && (
         <Card className="max-w-md">
           <CardHeader>
-            <CardTitle>כיתה ובית ספר</CardTitle>
+            <CardTitle>
+              {profile?.role === "parent" ? `כיתה ובית ספר של ${ownStudent.display_name}` : "כיתה ובית ספר"}
+            </CardTitle>
           </CardHeader>
           <EditGradeSchoolForm
             studentId={ownStudent.id}
