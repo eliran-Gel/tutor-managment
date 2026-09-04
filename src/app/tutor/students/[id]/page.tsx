@@ -66,7 +66,7 @@ export default async function StudentDetailPage({
 
         <div className="flex flex-col gap-4">
           {student.is_guest && <ClaimGuestCard studentId={student.id} />}
-          <ParentLinksCard studentId={student.id} links={parentLinks ?? []} />
+          <ParentLinksCard studentId={student.id} studentName={student.display_name} links={parentLinks ?? []} />
         </div>
       </div>
 

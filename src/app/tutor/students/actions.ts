@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireTutor } from "@/lib/auth/require-tutor";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { currentSchoolYear } from "@/lib/grades";
 
 const studentInputSchema = z.object({
@@ -118,6 +119,85 @@ async function findProfileByEmail(
   return data;
 }
 
+// Shared by linkParentByEmail (an existing account) and inviteParent (a
+// brand new one) - either way, the account was created exactly like a
+// student's (the signup trigger has no way to know in advance who's going
+// to become a parent), so it always comes with role='student' and a
+// self-students row. This promotes the role and cleans up that row, but
+// only if it truly has no real data (never had a single lesson booked
+// under it) - better to leave a rare false-positive orphan than to ever
+// silently delete something real.
+async function promoteToParentAndCleanupPhantom(
+  supabase: Awaited<ReturnType<typeof requireTutor>>["supabase"],
+  profileId: string,
+) {
+  const { error: roleErr } = await supabase.from("profiles").update({ role: "parent" }).eq("id", profileId);
+  if (roleErr) throw new Error(roleErr.message);
+
+  const { data: ownStudentRow } = await supabase
+    .from("students")
+    .select("id")
+    .eq("profile_id", profileId)
+    .maybeSingle();
+  if (ownStudentRow) {
+    const { count } = await supabase
+      .from("lesson_participants")
+      .select("id", { count: "exact", head: true })
+      .eq("student_id", ownStudentRow.id);
+    if (!count) {
+      await supabase.from("students").delete().eq("id", ownStudentRow.id);
+    }
+  }
+}
+
+// Skips the "parent has to sign up on their own first" step entirely - the
+// account (already role='parent', already linked to this student) exists
+// the moment this returns, and generates a one-time login link the tutor
+// can hand the parent however is actually convenient for them (WhatsApp,
+// SMS, in person) - deliberately NOT sent by Supabase's own built-in email
+// relay (inviteUserByEmail), which this project has no real SMTP provider
+// behind (see supabase/config.toml's commented-out [auth.email.smtp]) and
+// failed outright in testing ("Error sending invite email", a generic
+// 500 - a known rough edge of Supabase's default/shared mail sending, not
+// something to build a feature's only delivery path on). Requires the
+// service-role client (admin.auth.admin.*), unlike every other action in
+// this file - creating a user isn't something RLS or the regular
+// session-scoped client can do.
+export async function inviteParent(studentId: string, formData: FormData) {
+  const { supabase } = await requireTutor();
+  const email = emailSchema.parse(formData.get("email"));
+
+  const existing = await findProfileByEmail(supabase, email);
+  if (existing) {
+    return {
+      error: "כבר קיים משתמש רשום עם האימייל הזה - יש לקשר אותו במקום להזמין (למטה).",
+    };
+  }
+
+  const admin = createAdminClient();
+  const { data: generated, error: genErr } = await admin.auth.admin.generateLink({
+    type: "invite",
+    email,
+    options: { redirectTo: "https://app.elirangelberg.com/auth/callback" },
+  });
+  if (genErr) return { error: genErr.message };
+
+  // The signup trigger already ran synchronously (same DB transaction as
+  // the auth.users insert above) - role='parent' and the link below both
+  // land before the parent has even opened the link, so whenever they do,
+  // the portal already shows the right child immediately with no extra
+  // setup step waiting for them.
+  await promoteToParentAndCleanupPhantom(admin, generated.user.id);
+
+  const { error: linkErr } = await admin
+    .from("parent_students")
+    .insert({ parent_profile_id: generated.user.id, student_id: studentId });
+  if (linkErr) throw new Error(linkErr.message);
+
+  revalidatePath(`/tutor/students/${studentId}`);
+  return { success: true as const, inviteLink: generated.properties.action_link };
+}
+
 export async function linkParentByEmail(studentId: string, formData: FormData) {
   const { supabase } = await requireTutor();
   const email = emailSchema.parse(formData.get("email"));
@@ -125,38 +205,12 @@ export async function linkParentByEmail(studentId: string, formData: FormData) {
   const profile = await findProfileByEmail(supabase, email);
   if (!profile) {
     return {
-      error: `לא נמצא משתמש רשום עם האימייל ${email}. יש לבקש מההורה להתחבר פעם אחת למערכת ולנסות שוב.`,
+      error: `לא נמצא משתמש רשום עם האימייל ${email}. אפשר להזמין אותו/ה כהורה חדש/ה במקום (למעלה).`,
     };
   }
 
   if (profile.role === "student") {
-    const { error: roleErr } = await supabase
-      .from("profiles")
-      .update({ role: "parent" })
-      .eq("id", profile.id);
-    if (roleErr) throw new Error(roleErr.message);
-
-    // A parent's account was created exactly like a student's - the
-    // signup trigger has no way to know in advance who's going to become
-    // a parent, so it always creates a self-students row. That row is now
-    // a phantom nobody will ever use, but only clean it up if it truly
-    // has no real data (never had a single lesson booked under it) -
-    // better to leave a rare false-positive orphan than to ever silently
-    // delete something real.
-    const { data: ownStudentRow } = await supabase
-      .from("students")
-      .select("id")
-      .eq("profile_id", profile.id)
-      .maybeSingle();
-    if (ownStudentRow) {
-      const { count } = await supabase
-        .from("lesson_participants")
-        .select("id", { count: "exact", head: true })
-        .eq("student_id", ownStudentRow.id);
-      if (!count) {
-        await supabase.from("students").delete().eq("id", ownStudentRow.id);
-      }
-    }
+    await promoteToParentAndCleanupPhantom(supabase, profile.id);
   }
 
   const { error: linkErr } = await supabase

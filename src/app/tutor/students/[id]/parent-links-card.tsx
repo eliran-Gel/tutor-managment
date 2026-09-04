@@ -4,7 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, TextInput } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
-import { linkParentByEmail, unlinkParent } from "../actions";
+import { inviteParent, linkParentByEmail, unlinkParent } from "../actions";
 
 type ParentLink = {
   id: string;
@@ -14,14 +14,30 @@ type ParentLink = {
 
 export function ParentLinksCard({
   studentId,
+  studentName,
   links,
 }: {
   studentId: string;
+  studentName: string;
   links: ParentLink[];
 }) {
-  const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
-  const formRef = useRef<HTMLFormElement>(null);
+  const [unlinkPending, startUnlink] = useTransition();
+
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [invitePending, startInvite] = useTransition();
+  const inviteFormRef = useRef<HTMLFormElement>(null);
+
+  const [linkError, setLinkError] = useState<string | null>(null);
+  const [linkPending, startLink] = useTransition();
+  const linkFormRef = useRef<HTMLFormElement>(null);
+
+  const whatsappHref = inviteLink
+    ? `https://wa.me/?text=${encodeURIComponent(
+        `היי! הנה קישור להצטרפות למערכת הניהול של אלירן גלברג, כהורה של ${studentName}:\n${inviteLink}`,
+      )}`
+    : "#";
 
   return (
     <Card>
@@ -46,11 +62,11 @@ export function ParentLinksCard({
               </div>
               <button
                 type="button"
-                disabled={isPending}
+                disabled={unlinkPending}
                 className="shrink-0 text-xs font-medium text-status-destructive transition-transform duration-200 hover:opacity-80 active:scale-85 disabled:opacity-50"
-                onClick={() => startTransition(() => unlinkParent(link.id, studentId))}
+                onClick={() => startUnlink(() => unlinkParent(link.id, studentId))}
               >
-                {isPending ? "מבטל..." : "ביטול קישור"}
+                {unlinkPending ? "מבטל..." : "ביטול קישור"}
               </button>
             </li>
           ))}
@@ -58,21 +74,90 @@ export function ParentLinksCard({
       )}
 
       <form
-        ref={formRef}
-        className="flex flex-col gap-3"
+        ref={inviteFormRef}
+        className="flex flex-col gap-3 border-t border-border pt-4"
         action={(formData) => {
-          setError(null);
-          startTransition(async () => {
-            const result = await linkParentByEmail(studentId, formData);
+          setInviteError(null);
+          setInviteLink(null);
+          setCopied(false);
+          startInvite(async () => {
+            const result = await inviteParent(studentId, formData);
             if (result?.error) {
-              setError(result.error);
+              setInviteError(result.error);
             } else {
-              formRef.current?.reset();
+              inviteFormRef.current?.reset();
+              setInviteLink(result?.inviteLink ?? null);
             }
           });
         }}
       >
-        <Field label="קישור הורה לפי אימייל" htmlFor="parent-email">
+        <Field label="הזמנת הורה חדש/ה למערכת" htmlFor="parent-invite-email">
+          <div className="flex gap-2">
+            <TextInput
+              id="parent-invite-email"
+              name="email"
+              type="email"
+              placeholder="parent@example.com"
+              required
+              className="flex-1"
+            />
+            <Button type="submit" disabled={invitePending}>
+              {invitePending ? "יוצר..." : "יצירת קישור הזמנה"}
+            </Button>
+          </div>
+        </Field>
+        {inviteError && <p className="text-sm text-status-destructive">{inviteError}</p>}
+
+        {inviteLink && (
+          <div className="flex flex-col gap-2 rounded-control border border-border bg-surface-muted p-3">
+            <p className="text-sm text-text-secondary">
+              החשבון כבר נוצר ומקושר - צריך רק לשלוח את הקישור הזה להורה, בכל דרך שנוחה (וואטסאפ, מייל, אישית):
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                className="text-xs"
+                onClick={async () => {
+                  await navigator.clipboard.writeText(inviteLink);
+                  setCopied(true);
+                }}
+              >
+                {copied ? "הועתק! ✓" : "העתקת קישור"}
+              </Button>
+              <a
+                href={whatsappHref}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center rounded-control border border-border px-3 py-2 text-xs font-medium text-text-secondary transition-transform duration-200 hover:bg-surface active:scale-95"
+              >
+                שליחה בוואטסאפ 📲
+              </a>
+            </div>
+          </div>
+        )}
+
+        <p className="text-xs text-text-muted">
+          מתאים כשההורה עוד לא רשום במערכת בכלל - הדרך הפשוטה ביותר, בלי שההורה צריך להירשם בעצמו.
+        </p>
+      </form>
+
+      <form
+        ref={linkFormRef}
+        className="flex flex-col gap-3 border-t border-border pt-4"
+        action={(formData) => {
+          setLinkError(null);
+          startLink(async () => {
+            const result = await linkParentByEmail(studentId, formData);
+            if (result?.error) {
+              setLinkError(result.error);
+            } else {
+              linkFormRef.current?.reset();
+            }
+          });
+        }}
+      >
+        <Field label="או קישור הורה שכבר רשום, לפי אימייל" htmlFor="parent-email">
           <div className="flex gap-2">
             <TextInput
               id="parent-email"
@@ -82,14 +167,14 @@ export function ParentLinksCard({
               required
               className="flex-1"
             />
-            <Button type="submit" variant="secondary" disabled={isPending}>
-              {isPending ? "מקשר..." : "קישור"}
+            <Button type="submit" variant="secondary" disabled={linkPending}>
+              {linkPending ? "מקשר..." : "קישור"}
             </Button>
           </div>
         </Field>
-        {error && <p className="text-sm text-status-destructive">{error}</p>}
+        {linkError && <p className="text-sm text-status-destructive">{linkError}</p>}
         <p className="text-xs text-text-muted">
-          ניתן לקשר רק משתמש שכבר התחבר פעם אחת למערכת עם האימייל הזה.
+          מתאים כשההורה כבר יש לו/ה חשבון במערכת (למשל בגלל ילד/ה אחר/ת) - אין צורך בהזמנה נוספת.
         </p>
       </form>
     </Card>
