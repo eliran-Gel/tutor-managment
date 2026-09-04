@@ -38,6 +38,33 @@ function revalidateLessonFilePaths(lessonId: string) {
   revalidatePath("/portal/materials");
 }
 
+/**
+ * The topic was previously only settable at creation time (or while still
+ * 'requested', via editLessonRequest) - once confirmed, there was no way
+ * to change it at all. Notes go to lesson_tutor_notes, a private-to-the-
+ * tutor table that's existed since the original lessons migration but
+ * never had any UI or action wired up to it until now (a student/parent
+ * has no RLS policy for it at all, by design - it's for the tutor's own
+ * reference, not lesson content shared with them).
+ */
+export async function updateLessonDetails(lessonId: string, topic: string | null, notes: string | null) {
+  const { supabase } = await requireTutor();
+
+  const { error: topicError } = await supabase
+    .from("lessons")
+    .update({ topic: topic?.trim() || null })
+    .eq("id", lessonId);
+  if (topicError) return { error: topicError.message };
+
+  const { error: notesError } = await supabase
+    .from("lesson_tutor_notes")
+    .upsert({ lesson_id: lessonId, notes: notes?.trim() || null }, { onConflict: "lesson_id" });
+  if (notesError) return { error: notesError.message };
+
+  revalidateLessonFilePaths(lessonId);
+  return { success: true as const };
+}
+
 const assignHomeworkSchema = z.object({
   lesson_id: z.string().uuid(),
   student_ids: z.array(z.string().uuid()).min(1, "יש לבחור לפחות תלמיד/ה אחד/ת"),

@@ -9,12 +9,13 @@ import { MarkPaymentControl } from "@/components/mark-payment-control";
 import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 import { HomeworkSection } from "./homework-section";
 import { LessonFilesSection } from "./lesson-files-section";
+import { LessonDetailsCard } from "./lesson-details-card";
 
 export default async function TutorLessonDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: lesson }, { data: homework }, { data: files }] = await Promise.all([
+  const [{ data: lesson }, { data: homework }, { data: files }, { data: tutorNotes }] = await Promise.all([
     supabase
       .from("lessons")
       .select(
@@ -28,6 +29,7 @@ export default async function TutorLessonDetailPage({ params }: { params: Promis
       .select("id, file_name, storage_path, mime_type, visible_to_students")
       .eq("lesson_id", id)
       .order("created_at", { ascending: false }),
+    supabase.from("lesson_tutor_notes").select("notes").eq("lesson_id", id).maybeSingle(),
   ]);
 
   if (!lesson) notFound();
@@ -62,6 +64,8 @@ export default async function TutorLessonDetailPage({ params }: { params: Promis
           {lesson.topic && ` · ${lesson.topic}`}
         </p>
       </div>
+
+      <LessonDetailsCard lessonId={id} initialTopic={lesson.topic} initialNotes={tutorNotes?.notes ?? null} />
 
       <Card>
         <CardHeader>
