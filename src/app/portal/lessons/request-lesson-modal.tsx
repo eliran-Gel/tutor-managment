@@ -23,12 +23,18 @@ export type EditableLesson = {
 
 export function RequestLessonModal({
   subjects,
+  studentId,
   triggerClassName,
   triggerLabel = "קביעת שיעור",
   triggerVariant = "primary",
   editingLesson,
 }: {
   subjects: Tables<"subjects">[];
+  /** Whose behalf the request is for - the caller's own student row for a
+   * student, or the portal's currently-selected child for a parent. Not
+   * needed when editing (the target student was already fixed when the
+   * original request was created and can't change). */
+  studentId?: string;
   triggerClassName?: string;
   triggerLabel?: string;
   triggerVariant?: "primary" | "secondary";
@@ -103,6 +109,7 @@ export function RequestLessonModal({
             action={(formData) => {
               setError(null);
               if (isEditing) formData.set("lesson_id", editingLesson!.id);
+              else if (studentId) formData.set("student_id", studentId);
               startTransition(async () => {
                 const result = isEditing ? await editLessonRequest(formData) : await requestLesson(formData);
                 if (result?.error) {

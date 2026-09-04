@@ -105,6 +105,7 @@ const requestSchema = z.object({
   subject_id: z.string().uuid("יש לבחור מקצוע"),
   delivery_mode: z.enum(["online", "in_person"]),
   topic: z.string().trim().nullable(),
+  student_id: z.string().uuid("לא ידוע עבור איזה תלמיד/ה לבקש שיעור"),
 });
 
 export async function requestLesson(formData: FormData) {
@@ -121,6 +122,7 @@ export async function requestLesson(formData: FormData) {
     subject_id: formData.get("subject_id"),
     delivery_mode: formData.get("delivery_mode"),
     topic: (formData.get("topic") as string) || null,
+    student_id: formData.get("student_id"),
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "פרטים לא תקינים" };
@@ -156,6 +158,7 @@ export async function requestLesson(formData: FormData) {
     p_delivery_mode: input.delivery_mode,
     p_subject_id: input.subject_id,
     p_topic: input.topic ?? "",
+    p_student_id: input.student_id,
   });
   if (error) return { error: error.message };
 

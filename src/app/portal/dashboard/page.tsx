@@ -148,10 +148,11 @@ export default async function PortalDashboardPage({
           ) : (
             <p className="mt-2 text-lg font-semibold">עדיין אין שיעור מתוזמן</p>
           )}
-          {profile?.role === "student" && (
+          {(profile?.role === "student" || profile?.role === "parent") && current && (
             <div className="mt-4">
               <RequestLessonModal
                 subjects={subjects ?? []}
+                studentId={current.id}
                 triggerClassName="bg-white/10 text-white hover:bg-white/20"
               />
             </div>

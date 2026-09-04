@@ -525,6 +525,7 @@ export type Database = {
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
           rejection_reason: string | null
+          requested_student_id: string | null
           series_id: string | null
           source: Database["public"]["Enums"]["lesson_source"]
           start_time: string
@@ -545,6 +546,7 @@ export type Database = {
           lesson_type?: Database["public"]["Enums"]["lesson_type"]
           online_url?: string | null
           rejection_reason?: string | null
+          requested_student_id?: string | null
           series_id?: string | null
           source: Database["public"]["Enums"]["lesson_source"]
           start_time: string
@@ -565,6 +567,7 @@ export type Database = {
           lesson_type?: Database["public"]["Enums"]["lesson_type"]
           online_url?: string | null
           rejection_reason?: string | null
+          requested_student_id?: string | null
           series_id?: string | null
           source?: Database["public"]["Enums"]["lesson_source"]
           start_time?: string
@@ -580,6 +583,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_requested_student_id_fkey"
+            columns: ["requested_student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_requested_student_id_fkey"
+            columns: ["requested_student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_activity"
+            referencedColumns: ["student_id"]
           },
           {
             foreignKeyName: "lessons_series_id_fkey"
@@ -1095,6 +1112,7 @@ export type Database = {
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
           rejection_reason: string | null
+          requested_student_id: string | null
           series_id: string | null
           source: Database["public"]["Enums"]["lesson_source"]
           start_time: string
@@ -1140,6 +1158,7 @@ export type Database = {
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
           rejection_reason: string | null
+          requested_student_id: string | null
           series_id: string | null
           source: Database["public"]["Enums"]["lesson_source"]
           start_time: string
@@ -1169,6 +1188,7 @@ export type Database = {
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
           rejection_reason: string | null
+          requested_student_id: string | null
           series_id: string | null
           source: Database["public"]["Enums"]["lesson_source"]
           start_time: string
@@ -1238,6 +1258,7 @@ export type Database = {
               lesson_type: Database["public"]["Enums"]["lesson_type"]
               online_url: string | null
               rejection_reason: string | null
+              requested_student_id: string | null
               series_id: string | null
               source: Database["public"]["Enums"]["lesson_source"]
               start_time: string
@@ -1280,6 +1301,7 @@ export type Database = {
               lesson_type: Database["public"]["Enums"]["lesson_type"]
               online_url: string | null
               rejection_reason: string | null
+              requested_student_id: string | null
               series_id: string | null
               source: Database["public"]["Enums"]["lesson_source"]
               start_time: string
@@ -1333,6 +1355,7 @@ export type Database = {
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
           rejection_reason: string | null
+          requested_student_id: string | null
           series_id: string | null
           source: Database["public"]["Enums"]["lesson_source"]
           start_time: string
@@ -1416,6 +1439,7 @@ export type Database = {
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
           rejection_reason: string | null
+          requested_student_id: string | null
           series_id: string | null
           source: Database["public"]["Enums"]["lesson_source"]
           start_time: string
@@ -1438,6 +1462,7 @@ export type Database = {
           p_duration_minutes: number
           p_end_time: string
           p_start_time: string
+          p_student_id: string
           p_subject_id: string
           p_topic: string
         }
@@ -1453,6 +1478,7 @@ export type Database = {
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
           rejection_reason: string | null
+          requested_student_id: string | null
           series_id: string | null
           source: Database["public"]["Enums"]["lesson_source"]
           start_time: string

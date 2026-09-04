@@ -48,7 +48,9 @@ export default async function PortalLessonsPage({
           <h1 className="text-xl font-bold font-display text-text-primary">השיעורים שלי</h1>
           <p className="text-sm text-text-secondary">כל הבקשות והשיעורים המתוזמנים</p>
         </div>
-        {profile?.role === "student" && <RequestLessonModal subjects={subjects ?? []} />}
+        {(profile?.role === "student" || profile?.role === "parent") && current && (
+          <RequestLessonModal subjects={subjects ?? []} studentId={current.id} />
+        )}
       </div>
 
       {profile?.role !== "tutor" && <MyWaitlistSection entries={waitlistEntries ?? []} />}
