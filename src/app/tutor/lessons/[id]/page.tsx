@@ -15,11 +15,11 @@ export default async function TutorLessonDetailPage({ params }: { params: Promis
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: lesson }, { data: homework }, { data: files }, { data: tutorNotes }] = await Promise.all([
+  const [{ data: lesson }, { data: homework }, { data: files }, { data: tutorNotes }, { data: subjects }] = await Promise.all([
     supabase
       .from("lessons")
       .select(
-        "id, date, start_time, end_time, status, delivery_mode, topic, subjects(name), lesson_participants(id, student_id, price_charged, payment_status, payment_method, cancellation_note, students(display_name))",
+        "id, date, start_time, end_time, status, delivery_mode, topic, subject_id, subjects(name), lesson_participants(id, student_id, price_charged, payment_status, payment_method, cancellation_note, students(display_name))",
       )
       .eq("id", id)
       .maybeSingle(),
@@ -30,6 +30,7 @@ export default async function TutorLessonDetailPage({ params }: { params: Promis
       .eq("lesson_id", id)
       .order("created_at", { ascending: false }),
     supabase.from("lesson_tutor_notes").select("notes").eq("lesson_id", id).maybeSingle(),
+    supabase.from("subjects").select("*").eq("active", true).order("name"),
   ]);
 
   if (!lesson) notFound();
@@ -65,7 +66,13 @@ export default async function TutorLessonDetailPage({ params }: { params: Promis
         </p>
       </div>
 
-      <LessonDetailsCard lessonId={id} initialTopic={lesson.topic} initialNotes={tutorNotes?.notes ?? null} />
+      <LessonDetailsCard
+        lessonId={id}
+        subjects={subjects ?? []}
+        initialSubjectId={lesson.subject_id}
+        initialTopic={lesson.topic}
+        initialNotes={tutorNotes?.notes ?? null}
+      />
 
       <Card>
         <CardHeader>

@@ -39,22 +39,27 @@ function revalidateLessonFilePaths(lessonId: string) {
 }
 
 /**
- * The topic was previously only settable at creation time (or while still
- * 'requested', via editLessonRequest) - once confirmed, there was no way
- * to change it at all. Notes go to lesson_tutor_notes, a private-to-the-
- * tutor table that's existed since the original lessons migration but
- * never had any UI or action wired up to it until now (a student/parent
- * has no RLS policy for it at all, by design - it's for the tutor's own
- * reference, not lesson content shared with them).
+ * subject_id and topic were previously only settable at creation time (or
+ * while still 'requested', via editLessonRequest) - once confirmed, there
+ * was no way to change either. Notes go to lesson_tutor_notes, a private-
+ * to-the-tutor table that's existed since the original lessons migration
+ * but never had any UI or action wired up to it until now (a student/
+ * parent has no RLS policy for it at all, by design - it's for the
+ * tutor's own reference, not lesson content shared with them).
  */
-export async function updateLessonDetails(lessonId: string, topic: string | null, notes: string | null) {
+export async function updateLessonDetails(
+  lessonId: string,
+  subjectId: string,
+  topic: string | null,
+  notes: string | null,
+) {
   const { supabase } = await requireTutor();
 
-  const { error: topicError } = await supabase
+  const { error: lessonError } = await supabase
     .from("lessons")
-    .update({ topic: topic?.trim() || null })
+    .update({ subject_id: subjectId, topic: topic?.trim() || null })
     .eq("id", lessonId);
-  if (topicError) return { error: topicError.message };
+  if (lessonError) return { error: lessonError.message };
 
   const { error: notesError } = await supabase
     .from("lesson_tutor_notes")
