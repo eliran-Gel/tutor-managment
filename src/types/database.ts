@@ -1262,47 +1262,6 @@ export type Database = {
               p_forced: boolean
               p_lesson_type: Database["public"]["Enums"]["lesson_type"]
               p_online_url: string
-              p_start_time: string
-              p_student_ids: string[]
-              p_subject_id: string
-              p_topic: string
-            }
-            Returns: {
-              created_at: string
-              created_by: string
-              date: string
-              delivery_mode: Database["public"]["Enums"]["delivery_mode"]
-              duration_minutes: number
-              end_time: string
-              forced: boolean
-              id: string
-              lesson_type: Database["public"]["Enums"]["lesson_type"]
-              online_url: string | null
-              rejection_reason: string | null
-              series_id: string | null
-              source: Database["public"]["Enums"]["lesson_source"]
-              start_time: string
-              status: Database["public"]["Enums"]["lesson_status"]
-              subject_id: string | null
-              topic: string | null
-              updated_at: string
-            }
-            SetofOptions: {
-              from: "*"
-              to: "lessons"
-              isOneToOne: true
-              isSetofReturn: false
-            }
-          }
-        | {
-            Args: {
-              p_date: string
-              p_delivery_mode: Database["public"]["Enums"]["delivery_mode"]
-              p_duration_minutes: number
-              p_end_time: string
-              p_forced: boolean
-              p_lesson_type: Database["public"]["Enums"]["lesson_type"]
-              p_online_url: string
               p_series_id?: string
               p_start_time: string
               p_student_ids: string[]
@@ -1413,6 +1372,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      notify_waitlist_of_opening: {
+        Args: { p_lesson_date: string; p_subject_id: string }
+        Returns: undefined
       }
       owns_student: { Args: { target_student_id: string }; Returns: boolean }
       reject_change_request: {
