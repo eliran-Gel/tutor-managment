@@ -1,11 +1,35 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
-import { Button, buttonClasses } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import { NewLessonModal } from "@/app/tutor/calendar/new-lesson-modal";
 import { resolveWaitlistEntry } from "./actions";
+import type { Tables } from "@/types/database";
 
-export function WaitlistRowActions({ id, date }: { id: string; date: string }) {
+type Student = Pick<Tables<"students">, "id" | "display_name">;
+type Subject = Tables<"subjects">;
+
+export function WaitlistRowActions({
+  id,
+  date,
+  subjectId,
+  studentId,
+  students,
+  subjects,
+}: {
+  id: string;
+  date: string;
+  /** The entry's own requested subject, if any - prefilled but still
+   * editable, since the tutor might book a different subject entirely. */
+  subjectId?: string;
+  /** Resolved server-side: the requester's own student row when it's
+   * unambiguous (a student themself, or a parent with exactly one linked
+   * child). Left undefined when a parent has more than one child - the
+   * tutor picks from the modal's own student list instead of guessing. */
+  studentId?: string;
+  students: Student[];
+  subjects: Subject[];
+}) {
   const [confirmingRemove, setConfirmingRemove] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -44,17 +68,20 @@ export function WaitlistRowActions({ id, date }: { id: string; date: string }) {
         <Button type="button" variant="secondary" className="text-xs" onClick={() => setConfirmingRemove(true)}>
           הסרה
         </Button>
-        <Link
-          href={`/tutor/calendar/day/${date}`}
-          className={buttonClasses("primary", "text-xs")}
-          onClick={() =>
+        <NewLessonModal
+          students={students}
+          subjects={subjects}
+          triggerLabel="יצירת שיעור"
+          triggerClassName="text-xs"
+          initialDate={date}
+          initialStudentId={studentId}
+          initialSubjectId={subjectId}
+          onCreated={() =>
             startTransition(async () => {
               await resolveWaitlistEntry(id, "fulfilled");
             })
           }
-        >
-          יצירת שיעור
-        </Link>
+        />
       </div>
       {error && <p className="max-w-56 text-xs text-status-destructive">{error}</p>}
     </div>

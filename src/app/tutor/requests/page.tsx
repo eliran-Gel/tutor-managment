@@ -9,30 +9,63 @@ import { LeadRowActions } from "./lead-row-actions";
 
 export default async function RequestsPage() {
   const supabase = await createClient();
-  const [{ data: leads }, { data: requests }, { data: changeRequests }, { data: waitlist }] = await Promise.all([
-    // Oldest first - a lead from someone who's been waiting longest for a
-    // callback should surface at the top, same reasoning as the waitlist.
-    supabase.from("marketing_leads").select("*").eq("status", "new").order("created_at"),
-    supabase
-      .from("lessons")
-      .select("*, subjects(name), requester:profiles!lessons_created_by_fkey(full_name, email)")
-      .eq("status", "requested")
-      .order("created_at"),
-    supabase
-      .from("change_requests")
-      .select(
-        "*, requester:profiles!change_requests_requested_by_fkey(full_name, email), lessons(date, start_time, end_time, subjects(name)), requested_subject:subjects!change_requests_requested_subject_id_fkey(name)",
-      )
-      .eq("status", "pending")
-      .order("created_at"),
-    // Oldest first = first-come-first-served, so the tutor can see at a
-    // glance who to offer an opening to first.
-    supabase
-      .from("waitlist_entries")
-      .select("*, subjects(name), requester:profiles!waitlist_entries_created_by_fkey(full_name, email)")
-      .eq("status", "waiting")
-      .order("created_at"),
+  const [{ data: leads }, { data: requests }, { data: changeRequests }, { data: waitlist }, { data: students }, { data: subjects }] =
+    await Promise.all([
+      // Oldest first - a lead from someone who's been waiting longest for a
+      // callback should surface at the top, same reasoning as the waitlist.
+      supabase.from("marketing_leads").select("*").eq("status", "new").order("created_at"),
+      supabase
+        .from("lessons")
+        .select("*, subjects(name), requester:profiles!lessons_created_by_fkey(full_name, email)")
+        .eq("status", "requested")
+        .order("created_at"),
+      supabase
+        .from("change_requests")
+        .select(
+          "*, requester:profiles!change_requests_requested_by_fkey(full_name, email), lessons(date, start_time, end_time, subjects(name)), requested_subject:subjects!change_requests_requested_subject_id_fkey(name)",
+        )
+        .eq("status", "pending")
+        .order("created_at"),
+      // Oldest first = first-come-first-served, so the tutor can see at a
+      // glance who to offer an opening to first.
+      supabase
+        .from("waitlist_entries")
+        .select("*, subjects(name), requester:profiles!waitlist_entries_created_by_fkey(full_name, email)")
+        .eq("status", "waiting")
+        .order("created_at"),
+      // Needed for the "יצירת שיעור" quick-create modal on each waitlist row.
+      supabase.from("students").select("id, display_name").is("archived_at", null).order("display_name"),
+      supabase.from("subjects").select("*").eq("active", true).order("name"),
+    ]);
+
+  // Resolves each waitlist entry to a concrete student when it's
+  // unambiguous - the entry itself only ever records who *asked*
+  // (created_by), not which child, since a parent's entry doesn't
+  // distinguish between their kids. A student's own entry always
+  // resolves; a parent's only does when they have exactly one child -
+  // otherwise the tutor picks from the modal's own student list.
+  const waiterIds = Array.from(new Set((waitlist ?? []).map((w) => w.created_by)));
+  const [{ data: ownStudentRows }, { data: parentLinkRows }] = await Promise.all([
+    waiterIds.length
+      ? supabase.from("students").select("id, profile_id").in("profile_id", waiterIds)
+      : Promise.resolve({ data: [] }),
+    waiterIds.length
+      ? supabase.from("parent_students").select("parent_profile_id, student_id").in("parent_profile_id", waiterIds)
+      : Promise.resolve({ data: [] }),
   ]);
+  const ownStudentByProfile = new Map((ownStudentRows ?? []).map((s) => [s.profile_id, s.id]));
+  const childrenByParent = new Map<string, string[]>();
+  for (const row of parentLinkRows ?? []) {
+    const list = childrenByParent.get(row.parent_profile_id) ?? [];
+    list.push(row.student_id);
+    childrenByParent.set(row.parent_profile_id, list);
+  }
+  function resolveWaiterStudentId(createdBy: string): string | undefined {
+    const own = ownStudentByProfile.get(createdBy);
+    if (own) return own;
+    const children = childrenByParent.get(createdBy);
+    return children?.length === 1 ? children[0] : undefined;
+  }
 
   return (
     <div className="flex flex-col gap-8">
@@ -174,7 +207,14 @@ export default async function RequestsPage() {
               {entry.note && <p className="mt-1 break-words text-sm text-text-muted">{entry.note}</p>}
             </div>
             <div className="shrink-0">
-              <WaitlistRowActions id={entry.id} date={entry.date} />
+              <WaitlistRowActions
+                id={entry.id}
+                date={entry.date}
+                subjectId={entry.subject_id ?? undefined}
+                studentId={resolveWaiterStudentId(entry.created_by)}
+                students={students ?? []}
+                subjects={subjects ?? []}
+              />
             </div>
           </Card>
         ))}

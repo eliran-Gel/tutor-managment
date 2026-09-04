@@ -27,18 +27,36 @@ export function NewLessonModal({
   students,
   subjects,
   triggerClassName,
+  triggerLabel = "שיעור חדש",
+  initialDate,
+  initialStudentId,
+  initialSubjectId,
+  onCreated,
 }: {
   students: Student[];
   subjects: Subject[];
   triggerClassName?: string;
+  triggerLabel?: string;
+  /** Pre-fills the form - used when opening this from a waitlist entry
+   * (a specific date, and the requester's own student row when it's
+   * unambiguous) instead of always starting blank. */
+  initialDate?: string;
+  initialStudentId?: string;
+  initialSubjectId?: string;
+  /** Fires after a real (non-conflict, non-series) lesson is created -
+   * the waitlist entry that opened this modal still needs to be marked
+   * fulfilled, which this component has no reason to know about itself. */
+  onCreated?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [lessonType, setLessonType] = useState<"individual" | "group">("individual");
-  const [participants, setParticipants] = useState([{ ...emptyParticipant }]);
-  const [date, setDate] = useState("");
+  const [participants, setParticipants] = useState(() =>
+    initialStudentId ? [{ student_id: initialStudentId, newName: "" }] : [{ ...emptyParticipant }],
+  );
+  const [date, setDate] = useState(initialDate ?? "");
   const [startTime, setStartTime] = useState("");
   const [duration, setDuration] = useState<number>(60);
-  const [subjectId, setSubjectId] = useState("");
+  const [subjectId, setSubjectId] = useState(initialSubjectId ?? "");
   const [deliveryMode, setDeliveryMode] = useState<"in_person" | "online">("in_person");
   const [onlineUrl, setOnlineUrl] = useState("");
   const [topic, setTopic] = useState("");
@@ -54,11 +72,11 @@ export function NewLessonModal({
 
   function reset() {
     setLessonType("individual");
-    setParticipants([{ ...emptyParticipant }]);
-    setDate("");
+    setParticipants(initialStudentId ? [{ student_id: initialStudentId, newName: "" }] : [{ ...emptyParticipant }]);
+    setDate(initialDate ?? "");
     setStartTime("");
     setDuration(60);
-    setSubjectId("");
+    setSubjectId(initialSubjectId ?? "");
     setDeliveryMode("in_person");
     setOnlineUrl("");
     setTopic("");
@@ -154,6 +172,7 @@ export function NewLessonModal({
         };
         const result = await createLessonSeries(seriesInput);
         if (result?.success) {
+          onCreated?.();
           setSeriesResult({ created: result.created, skipped: result.skipped });
         } else if (result?.error) {
           setError(result.error);
@@ -180,6 +199,7 @@ export function NewLessonModal({
       } else if (result?.error) {
         setError(result.error);
       } else {
+        onCreated?.();
         setOpen(false);
         reset();
       }
@@ -189,7 +209,7 @@ export function NewLessonModal({
   return (
     <>
       <Button type="button" onClick={() => setOpen(true)} className={triggerClassName}>
-        שיעור חדש
+        {triggerLabel}
       </Button>
 
       <Modal
