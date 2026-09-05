@@ -10,6 +10,7 @@ import { getHebrewGreeting } from "@/lib/greeting";
 import { fetchOverduePayments } from "@/lib/payments";
 import { Reveal } from "@/components/reveal";
 import { AnimatedCounter } from "@/components/animated-counter";
+import { HeroBanner, HeroStat } from "@/components/ui/hero-banner";
 
 function toIsoDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -66,67 +67,62 @@ export default async function TutorDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-bold font-display text-text-primary">
-          {getHebrewGreeting()}{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
-        </h1>
-        <p className="text-sm text-text-secondary">לחצו על כל קוביה כדי לראות את השיעורים המלאים.</p>
-      </div>
+      <Reveal>
+        <HeroBanner>
+          <p className="text-xs font-semibold uppercase tracking-widest text-white/60">לוח בקרה</p>
+          <h1 className="mt-1 text-2xl font-bold font-display md:text-3xl">
+            {getHebrewGreeting()}{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
+          </h1>
+          <p className="mt-1 text-sm text-white/70">לחצו על כל קוביה כדי לראות את השיעורים המלאים.</p>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Reveal delay={0}>
-          <Link href="/tutor/students" className="block transition-transform duration-200 active:scale-95">
-            <Card className="h-full transition-shadow hover:shadow-none">
-              <p className="text-sm text-text-secondary">תלמידים פעילים</p>
-              <p className="mt-2 text-2xl font-bold font-display text-text-primary">
+          <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <Link href="/tutor/students" className="block transition-transform duration-200 hover:-translate-y-0.5 active:scale-95">
+              <HeroStat label="תלמידים פעילים">
                 <AnimatedCounter value={activeStudents ?? 0} />
-              </p>
-            </Card>
-          </Link>
-        </Reveal>
+              </HeroStat>
+            </Link>
 
-        <Reveal delay={0.05}>
-          <Link href={`/tutor/calendar/day/${today}`} className="block transition-transform duration-200 active:scale-95">
-            <Card className="h-full transition-shadow hover:shadow-none">
-              <p className="text-sm text-text-secondary">היום</p>
-              <p className="mt-2 text-2xl font-bold font-display text-text-primary">
+            <Link href={`/tutor/calendar/day/${today}`} className="block transition-transform duration-200 hover:-translate-y-0.5 active:scale-95">
+              <HeroStat label="היום">
                 <AnimatedCounter value={todayStats.count} />
-              </p>
-              {todayStats.price > 0 && <p className="mt-0.5 text-sm text-text-secondary">₪{todayStats.price.toLocaleString("he-IL")}</p>}
-            </Card>
-          </Link>
-        </Reveal>
+                {todayStats.price > 0 && (
+                  <span className="ms-1.5 align-middle text-sm font-medium text-white/70">
+                    ₪{todayStats.price.toLocaleString("he-IL")}
+                  </span>
+                )}
+              </HeroStat>
+            </Link>
 
-        <Reveal delay={0.1}>
-          <Link
-            href={`/tutor/calendar/range?start=${weekStart}&end=${weekEnd}&label=${encodeURIComponent("השבוע")}`}
-            className="block transition-transform duration-200 active:scale-95"
-          >
-            <Card className="h-full transition-shadow hover:shadow-none">
-              <p className="text-sm text-text-secondary">השבוע</p>
-              <p className="mt-2 text-2xl font-bold font-display text-text-primary">
+            <Link
+              href={`/tutor/calendar/range?start=${weekStart}&end=${weekEnd}&label=${encodeURIComponent("השבוע")}`}
+              className="block transition-transform duration-200 hover:-translate-y-0.5 active:scale-95"
+            >
+              <HeroStat label="השבוע">
                 <AnimatedCounter value={weekStats.count} />
-              </p>
-              {weekStats.price > 0 && <p className="mt-0.5 text-sm text-text-secondary">₪{weekStats.price.toLocaleString("he-IL")}</p>}
-            </Card>
-          </Link>
-        </Reveal>
+                {weekStats.price > 0 && (
+                  <span className="ms-1.5 align-middle text-sm font-medium text-white/70">
+                    ₪{weekStats.price.toLocaleString("he-IL")}
+                  </span>
+                )}
+              </HeroStat>
+            </Link>
 
-        <Reveal delay={0.15}>
-          <Link
-            href={`/tutor/calendar/range?start=${monthStart}&end=${monthEnd}&label=${encodeURIComponent("החודש")}`}
-            className="block transition-transform duration-200 active:scale-95"
-          >
-            <Card className="h-full transition-shadow hover:shadow-none">
-              <p className="text-sm text-text-secondary">החודש</p>
-              <p className="mt-2 text-2xl font-bold font-display text-text-primary">
+            <Link
+              href={`/tutor/calendar/range?start=${monthStart}&end=${monthEnd}&label=${encodeURIComponent("החודש")}`}
+              className="block transition-transform duration-200 hover:-translate-y-0.5 active:scale-95"
+            >
+              <HeroStat label="החודש">
                 <AnimatedCounter value={monthStats.count} />
-              </p>
-              {monthStats.price > 0 && <p className="mt-0.5 text-sm text-text-secondary">₪{monthStats.price.toLocaleString("he-IL")}</p>}
-            </Card>
-          </Link>
-        </Reveal>
-      </div>
+                {monthStats.price > 0 && (
+                  <span className="ms-1.5 align-middle text-sm font-medium text-white/70">
+                    ₪{monthStats.price.toLocaleString("he-IL")}
+                  </span>
+                )}
+              </HeroStat>
+            </Link>
+          </div>
+        </HeroBanner>
+      </Reveal>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Reveal delay={0.1}>

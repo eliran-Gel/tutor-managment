@@ -10,7 +10,7 @@ const variantClasses: Record<Variant, string> = {
   // primary since it's the one call-to-action per screen worth the extra
   // flourish.
   primary:
-    "bg-brand-primary text-white shadow-[0_4px_0_var(--color-brand-primary-shadow)] hover:brightness-95 focus-visible:ring-brand-accent active:translate-y-[3px] active:shadow-[0_1px_0_var(--color-brand-primary-shadow)]",
+    "bg-[image:var(--gradient-hero)] text-white shadow-[0_4px_0_var(--color-brand-primary-shadow)] hover:brightness-110 hover:shadow-[0_4px_0_var(--color-brand-primary-shadow),0_0_20px_-4px_var(--glow-accent)] focus-visible:ring-brand-accent active:translate-y-[3px] active:shadow-[0_1px_0_var(--color-brand-primary-shadow)]",
   secondary:
     "bg-surface-muted text-text-primary border border-border hover:bg-border/60 focus-visible:ring-brand-accent",
   ghost:

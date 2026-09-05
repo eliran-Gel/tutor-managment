@@ -9,6 +9,7 @@ import { formatIsoDate, formatIsoDateWithWeekday } from "@/lib/dates/format";
 import { getHebrewGreeting } from "@/lib/greeting";
 import { RequestLessonModal } from "../lessons/request-lesson-modal";
 import { Reveal } from "@/components/reveal";
+import { HeroBanner } from "@/components/ui/hero-banner";
 
 export default async function PortalDashboardPage({
   searchParams,
@@ -94,12 +95,48 @@ export default async function PortalDashboardPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-bold font-display text-text-primary">
-          {getHebrewGreeting()}{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}! 👋
-        </h1>
-        <p className="text-sm text-text-secondary">כיף לראות אותך שוב</p>
-      </div>
+      <Reveal>
+        <HeroBanner>
+          <p className="text-xs font-semibold uppercase tracking-widest text-white/60">האזור האישי</p>
+          <h1 className="mt-1 text-2xl font-bold font-display md:text-3xl">
+            {getHebrewGreeting()}{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}! 👋
+          </h1>
+          <p className="mt-1 text-sm text-white/70">כיף לראות אותך שוב</p>
+
+          <div className="mt-6 rounded-control border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
+            <p className="text-sm text-white/70">השיעור הבא {profile?.role === "parent" ? `של ${current?.display_name ?? ""}` : "שלך"}</p>
+            {nextLesson ? (
+              <>
+                <p className="mt-2 text-lg font-semibold font-display">{nextLesson.subjects?.name ?? "שיעור"}</p>
+                <p className="mt-1 text-sm text-white/80">
+                  {formatIsoDate(nextLesson.date)} · {nextLesson.start_time.slice(0, 5)}–
+                  {nextLesson.end_time.slice(0, 5)} · {DELIVERY_MODE_LABELS[nextLesson.delivery_mode]}
+                </p>
+              </>
+            ) : nextPendingLesson ? (
+              <>
+                <p className="mt-2 text-lg font-semibold font-display">{nextPendingLesson.subjects?.name ?? "שיעור"}</p>
+                <p className="mt-1 text-sm text-white/80">
+                  {formatIsoDate(nextPendingLesson.date)} · {nextPendingLesson.start_time.slice(0, 5)}–
+                  {nextPendingLesson.end_time.slice(0, 5)}
+                </p>
+                <p className="mt-1 text-sm font-medium text-white/80">טרם אושר על ידי המורה</p>
+              </>
+            ) : (
+              <p className="mt-2 text-lg font-semibold font-display">עדיין אין שיעור מתוזמן</p>
+            )}
+            {(profile?.role === "student" || profile?.role === "parent") && current && (
+              <div className="mt-4">
+                <RequestLessonModal
+                  subjects={subjects ?? []}
+                  studentId={current.id}
+                  triggerClassName="bg-white/10 text-white hover:bg-white/20"
+                />
+              </div>
+            )}
+          </div>
+        </HeroBanner>
+      </Reveal>
 
       {profile?.role === "parent" && !current && (
         <Card className="border-status-pending bg-status-pending-bg">
@@ -124,41 +161,6 @@ export default async function PortalDashboardPage({
           </Card>
         </Reveal>
       )}
-
-      <Reveal delay={0.05}>
-        <Card className="bg-brand-primary text-white">
-          <p className="text-sm opacity-80">השיעור הבא {profile?.role === "parent" ? `של ${current?.display_name ?? ""}` : "שלך"}</p>
-          {nextLesson ? (
-            <>
-              <p className="mt-2 text-lg font-semibold">{nextLesson.subjects?.name ?? "שיעור"}</p>
-              <p className="mt-1 text-sm opacity-90">
-                {formatIsoDate(nextLesson.date)} · {nextLesson.start_time.slice(0, 5)}–
-                {nextLesson.end_time.slice(0, 5)} · {DELIVERY_MODE_LABELS[nextLesson.delivery_mode]}
-              </p>
-            </>
-          ) : nextPendingLesson ? (
-            <>
-              <p className="mt-2 text-lg font-semibold">{nextPendingLesson.subjects?.name ?? "שיעור"}</p>
-              <p className="mt-1 text-sm opacity-90">
-                {formatIsoDate(nextPendingLesson.date)} · {nextPendingLesson.start_time.slice(0, 5)}–
-                {nextPendingLesson.end_time.slice(0, 5)}
-              </p>
-              <p className="mt-1 text-sm font-medium opacity-90">טרם אושר על ידי המורה</p>
-            </>
-          ) : (
-            <p className="mt-2 text-lg font-semibold">עדיין אין שיעור מתוזמן</p>
-          )}
-          {(profile?.role === "student" || profile?.role === "parent") && current && (
-            <div className="mt-4">
-              <RequestLessonModal
-                subjects={subjects ?? []}
-                studentId={current.id}
-                triggerClassName="bg-white/10 text-white hover:bg-white/20"
-              />
-            </div>
-          )}
-        </Card>
-      </Reveal>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Reveal delay={0.1}>

@@ -80,6 +80,16 @@
   --shadow-elevated: 0 12px 32px rgba(14, 23, 48, 0.16), 0 4px 10px rgba(14, 23, 48, 0.08);
   --radius-card: 1rem;
   --radius-control: 0.6rem;
+
+  /* A deliberately bold, dark "hero" surface (navy -> deep teal diagonal) -
+     used sparingly for the one or two moments per screen that should read
+     as a genuine focal point (dashboard greeting/stats), never as a
+     default card background. This is what actually reads as "considered
+     brand" rather than "flat corporate blue everywhere" - contrast in one
+     spot, not everywhere. */
+  --gradient-hero: linear-gradient(135deg, var(--color-navy-950) 0%, var(--color-navy-800) 55%, var(--color-teal-600) 100%);
+  --glow-accent: var(--color-teal-400);
+  --glow-highlight: var(--color-yellow-500);
 }
 
 :root[data-theme="dark"] {
