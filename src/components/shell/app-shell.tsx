@@ -102,7 +102,10 @@ export function AppShell({
           notifications={notifications}
           quickAction={quickAction}
         />
-        <main className="min-w-0 flex-1 bg-background px-4 py-6 md:px-8">
+        {/* No bg-background here - transparent lets the body's texture
+            (tokens.css --background-grid) show through on every screen,
+            not just the ones outside this shell. */}
+        <main className="min-w-0 flex-1 px-4 py-6 md:px-8">
           {userId && <PushPermissionCard />}
           {children}
         </main>
