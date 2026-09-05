@@ -104,7 +104,13 @@
   --brand-primary: var(--color-teal-400);
   --brand-accent: var(--color-teal-400);
   --brand-primary-shadow: var(--color-teal-600);
-  --background-grid: none;
+  /* Same faint diagonal texture as the dashboard's HeroBanner - now the
+     backdrop behind every page, not just that one component, per the
+     "combined bold direction" the tutor picked. background-size:auto is
+     set on body in dark mode (globals.css) so this repeating pattern
+     tiles on its own natural period instead of being squeezed into the
+     light mode grid's 28px box. */
+  --background-grid: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 28px);
 
   --status-confirmed-bg: rgba(47, 165, 99, 0.18);
   --status-pending-bg: rgba(226, 146, 47, 0.18);
@@ -129,7 +135,7 @@
     --brand-primary: var(--color-teal-400);
     --brand-accent: var(--color-teal-400);
     --brand-primary-shadow: var(--color-teal-600);
-    --background-grid: none;
+    --background-grid: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 28px);
 
     --status-confirmed-bg: rgba(47, 165, 99, 0.18);
     --status-pending-bg: rgba(226, 146, 47, 0.18);

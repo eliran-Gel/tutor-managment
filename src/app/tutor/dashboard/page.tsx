@@ -84,12 +84,14 @@ export default async function TutorDashboardPage() {
 
             <Link href={`/tutor/calendar/day/${today}`} className="block transition-transform duration-200 hover:-translate-y-0.5 active:scale-95">
               <HeroStat label="היום" tone="gold">
-                <AnimatedCounter value={todayStats.count} />
-                {todayStats.price > 0 && (
-                  <span className="ms-1.5 align-middle text-sm font-medium opacity-75">
-                    ₪{todayStats.price.toLocaleString("he-IL")}
-                  </span>
-                )}
+                <span className="flex items-baseline gap-2">
+                  <AnimatedCounter value={todayStats.count} />
+                  {todayStats.price > 0 && (
+                    <span className="text-sm font-medium opacity-75">
+                      ₪{todayStats.price.toLocaleString("he-IL")}
+                    </span>
+                  )}
+                </span>
               </HeroStat>
             </Link>
 
@@ -98,12 +100,14 @@ export default async function TutorDashboardPage() {
               className="block transition-transform duration-200 hover:-translate-y-0.5 active:scale-95"
             >
               <HeroStat label="השבוע" tone="purple">
-                <AnimatedCounter value={weekStats.count} />
-                {weekStats.price > 0 && (
-                  <span className="ms-1.5 align-middle text-sm font-medium opacity-75">
-                    ₪{weekStats.price.toLocaleString("he-IL")}
-                  </span>
-                )}
+                <span className="flex items-baseline gap-2">
+                  <AnimatedCounter value={weekStats.count} />
+                  {weekStats.price > 0 && (
+                    <span className="text-sm font-medium opacity-75">
+                      ₪{weekStats.price.toLocaleString("he-IL")}
+                    </span>
+                  )}
+                </span>
               </HeroStat>
             </Link>
 
@@ -112,12 +116,14 @@ export default async function TutorDashboardPage() {
               className="block transition-transform duration-200 hover:-translate-y-0.5 active:scale-95"
             >
               <HeroStat label="החודש" tone="green">
-                <AnimatedCounter value={monthStats.count} />
-                {monthStats.price > 0 && (
-                  <span className="ms-1.5 align-middle text-sm font-medium opacity-75">
-                    ₪{monthStats.price.toLocaleString("he-IL")}
-                  </span>
-                )}
+                <span className="flex items-baseline gap-2">
+                  <AnimatedCounter value={monthStats.count} />
+                  {monthStats.price > 0 && (
+                    <span className="text-sm font-medium opacity-75">
+                      ₪{monthStats.price.toLocaleString("he-IL")}
+                    </span>
+                  )}
+                </span>
               </HeroStat>
             </Link>
           </div>

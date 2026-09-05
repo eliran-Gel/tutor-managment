@@ -61,9 +61,11 @@ html {
 
 body {
   background-color: var(--background);
-  /* Faint graph-paper texture borrowed from the marketing site's
-     background - --background-grid resolves to `none` in dark mode
-     (see tokens.css), so this is a light-mode-only touch. */
+  /* Light mode: a faint graph-paper grid, tiled to a fixed 28px box.
+     Dark mode: a diagonal stripe texture (same pattern as the dashboard's
+     HeroBanner, now behind every page) - background-size:auto below lets
+     it tile on its own natural period instead of being squeezed into the
+     light-mode grid's box size. */
   background-image: var(--background-grid);
   background-size: 28px 28px;
   color: var(--text-primary);
@@ -77,6 +79,15 @@ body {
      Only kicks in when a normal space-based line break isn't enough to
      prevent overflow, so ordinary text is unaffected. */
   overflow-wrap: anywhere;
+}
+
+:root[data-theme="dark"] body {
+  background-size: auto;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) body {
+    background-size: auto;
+  }
 }
 
 * {
