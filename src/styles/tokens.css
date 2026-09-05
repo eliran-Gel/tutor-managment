@@ -56,11 +56,11 @@
   --brand-highlight-strong: var(--color-yellow-600);
   --brand-primary-shadow: var(--color-navy-950);
 
-  /* Very faint graph-paper texture echoing the marketing site's background -
-     light mode only, off in dark mode (see below) where it would just look
-     muddy against the dark surfaces. */
-  --background-grid: linear-gradient(rgba(26, 42, 77, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(26, 42, 77, 0.05) 1px, transparent 1px);
+  /* Same diagonal-stripe motif as the dashboard's HeroBanner (and dark
+     mode's page background below) - one consistent texture identity across
+     the whole app instead of two different patterns per theme, just tinted
+     dark-on-light here instead of light-on-dark. */
+  --background-grid: repeating-linear-gradient(135deg, rgba(14, 23, 48, 0.05) 0 1px, transparent 1px 28px);
 
   --status-confirmed: var(--color-green-500);
   --status-confirmed-bg: var(--color-green-100);

@@ -61,13 +61,12 @@ html {
 
 body {
   background-color: var(--background);
-  /* Light mode: a faint graph-paper grid, tiled to a fixed 28px box.
-     Dark mode: a diagonal stripe texture (same pattern as the dashboard's
-     HeroBanner, now behind every page) - background-size:auto below lets
-     it tile on its own natural period instead of being squeezed into the
-     light-mode grid's box size. */
+  /* Same diagonal-stripe texture in both themes (see --background-grid in
+     tokens.css) - dark-on-light in light mode, light-on-dark in dark mode.
+     background-size:auto lets the repeating pattern tile on its own
+     natural period instead of being resized into an arbitrary box. */
   background-image: var(--background-grid);
-  background-size: 28px 28px;
+  background-size: auto;
   color: var(--text-primary);
   font-family: var(--font-rubik), Arial, Helvetica, sans-serif;
   overflow-x: auto;
@@ -79,15 +78,6 @@ body {
      Only kicks in when a normal space-based line break isn't enough to
      prevent overflow, so ordinary text is unaffected. */
   overflow-wrap: anywhere;
-}
-
-:root[data-theme="dark"] body {
-  background-size: auto;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) body {
-    background-size: auto;
-  }
 }
 
 * {
