@@ -70,7 +70,7 @@ export default async function TutorDashboardPage() {
       <Reveal>
         <HeroBanner>
           <p className="text-xs font-semibold uppercase tracking-widest text-white/60">לוח בקרה</p>
-          <h1 className="mt-1 text-2xl font-bold font-display md:text-3xl">
+          <h1 className="mt-1 text-2xl font-black font-display md:text-3xl">
             {getHebrewGreeting()}{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}!
           </h1>
           <p className="mt-1 text-sm text-white/70">לחצו על כל קוביה כדי לראות את השיעורים המלאים.</p>

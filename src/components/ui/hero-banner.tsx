@@ -37,7 +37,7 @@ export function HeroStat({ label, children }: { label: string; children: ReactNo
   return (
     <div className="rounded-control border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-sm">
       <p className="text-xs font-medium text-white/70">{label}</p>
-      <p className="mt-1 text-2xl font-bold font-display text-white">{children}</p>
+      <p className="mt-1 text-2xl font-black font-display text-white">{children}</p>
     </div>
   );
 }

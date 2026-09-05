@@ -3,15 +3,12 @@
 
 @theme inline {
   --font-sans: var(--font-rubik);
-  /* Design-refresh: Suez One (a single-weight display face) replaced with
-     Frank Ruhl Libre - a genuine Hebrew serif with real editorial
-     character, still real Hebrew glyph support (unlike Outfit, the
-     original pick, which was invisible on every Hebrew heading and only
-     ever rendered on stray digits). Pairing a serif display face with the
-     clean Rubik sans body text is what actually reads as "considered
-     design" rather than "one sans-serif font everywhere" - this matters
-     more for the "looks AI-generated" complaint than color choice does. */
-  --font-display: var(--font-frank-ruhl), var(--font-rubik);
+  /* Design-refresh: tried a serif (Frank Ruhl Libre) here first, but it
+     read as heavy/dated rather than editorial. Noto Sans Hebrew - the same
+     headline face used on lazyinvestor.co.il - replaces it: clean, modern,
+     with a genuine Black (900) weight for real headline punch that plain
+     Rubik doesn't have. */
+  --font-display: var(--font-noto-hebrew), var(--font-rubik);
 
   --color-background: var(--background);
   --color-surface: var(--surface);

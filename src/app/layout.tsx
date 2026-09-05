@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Rubik, Frank_Ruhl_Libre } from "next/font/google";
+import { Rubik, Noto_Sans_Hebrew } from "next/font/google";
 import { cookies } from "next/headers";
 import { IosActiveFix } from "@/components/ios-active-fix";
 import { MotionProvider } from "@/components/motion-provider";
@@ -11,15 +11,16 @@ const rubik = Rubik({
 });
 
 // A real Hebrew-supporting display face for headings/stat numbers (see
-// --font-display in globals.css). Design-refresh: Suez One (single-weight,
-// fairly generic-feeling) swapped for Frank Ruhl Libre - a genuine Hebrew
-// editorial serif with real character across a weight range, still with
-// real Hebrew glyph support (unlike Outfit, the original pick, which was
-// invisible on every Hebrew heading and only ever rendered on digits).
-const frankRuhl = Frank_Ruhl_Libre({
-  variable: "--font-frank-ruhl",
+// --font-display in globals.css). The serif (Frank Ruhl Libre) read as
+// heavy/dated in practice - swapped for Noto Sans Hebrew, the same clean
+// modern sans used for headlines on lazyinvestor.co.il (the reference the
+// tutor pointed to): weight/size does the work of "considered design" here
+// instead of a font-pairing gimmick, with Black (900) available for real
+// headline punch that plain Rubik doesn't have.
+const notoSansHebrew = Noto_Sans_Hebrew({
+  variable: "--font-noto-hebrew",
   subsets: ["hebrew", "latin"],
-  weight: ["500", "700"],
+  weight: ["500", "700", "900"],
 });
 
 export const metadata: Metadata = {
@@ -72,7 +73,7 @@ export default async function RootLayout({
       lang="he"
       dir="rtl"
       data-theme={theme}
-      className={`${rubik.variable} ${frankRuhl.variable} h-full antialiased`}
+      className={`${rubik.variable} ${notoSansHebrew.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-text-primary">
         <IosActiveFix />
