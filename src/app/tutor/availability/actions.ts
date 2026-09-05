@@ -57,3 +57,53 @@ export async function deleteAvailabilityBlock(blockId: string) {
   revalidatePath("/tutor/availability");
   revalidatePath("/tutor/calendar");
 }
+
+const additionSchema = z
+  .object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "תאריך לא תקין"),
+    start_time: z.string().regex(/^\d{2}:\d{2}$/, "שעת התחלה לא תקינה"),
+    end_time: z.string().regex(/^\d{2}:\d{2}$/, "שעת סיום לא תקינה"),
+    note: z.string().trim().nullable(),
+  })
+  .refine((v) => v.end_time > v.start_time, {
+    message: "שעת הסיום חייבת להיות אחרי שעת ההתחלה",
+    path: ["end_time"],
+  });
+
+/** One row per date - upserting on conflict means setting a new addition
+ * for a date that already has one simply replaces it, rather than erroring
+ * on the table's unique(date) constraint. */
+export async function createAvailabilityAddition(formData: FormData) {
+  const { supabase } = await requireTutor();
+
+  const input = additionSchema.parse({
+    date: formData.get("date"),
+    start_time: formData.get("start_time"),
+    end_time: formData.get("end_time"),
+    note: (formData.get("note") as string) || null,
+  });
+
+  const { error } = await supabase.from("availability_additions").upsert(
+    {
+      date: input.date,
+      start_time: input.start_time,
+      end_time: input.end_time,
+      note: input.note,
+    },
+    { onConflict: "date" },
+  );
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/tutor/availability");
+  revalidatePath("/tutor/calendar");
+}
+
+export async function deleteAvailabilityAddition(additionId: string) {
+  const { supabase } = await requireTutor();
+
+  const { error } = await supabase.from("availability_additions").delete().eq("id", additionId);
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/tutor/availability");
+  revalidatePath("/tutor/calendar");
+}

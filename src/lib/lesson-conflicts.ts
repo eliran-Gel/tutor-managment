@@ -11,12 +11,18 @@ export function timeStrToMinutes(t: string) {
 
 type ExistingLesson = { start_time: string; end_time: string };
 type WorkingHoursRow = { is_open: boolean; start_time: string | null; end_time: string | null };
+type AdditionRow = { start_time: string; end_time: string };
 
 async function fetchDayConflictData(
   supabase: SupabaseClient<Database>,
   date: string,
   excludeLessonId?: string,
-): Promise<{ dayBlocks: AvailabilityBlock[]; existing: ExistingLesson[]; workingHours: WorkingHoursRow | null }> {
+): Promise<{
+  dayBlocks: AvailabilityBlock[];
+  existing: ExistingLesson[];
+  workingHours: WorkingHoursRow | null;
+  addition: AdditionRow | null;
+}> {
   const dayLocal = new Date(`${date}T00:00:00`);
   const { data: blocks } = await supabase.from("availability_blocks").select("*");
   const dayBlocks = blocksForDate(blocks ?? [], dayLocal);
@@ -35,7 +41,16 @@ async function fetchDayConflictData(
     .eq("day_of_week", dayLocal.getDay())
     .maybeSingle();
 
-  return { dayBlocks, existing: existing ?? [], workingHours };
+  // A one-time addition for this exact date overrides the recurring
+  // weekly window entirely (not merged with it) - "this Sunday 16:00-21:00
+  // instead of the usual 17:00-21:00", not "17:00-21:00 plus 16:00-21:00".
+  const { data: addition } = await supabase
+    .from("availability_additions")
+    .select("start_time, end_time")
+    .eq("date", date)
+    .maybeSingle();
+
+  return { dayBlocks, existing: existing ?? [], workingHours, addition };
 }
 
 function conflictAt(
@@ -44,15 +59,22 @@ function conflictAt(
   dayBlocks: AvailabilityBlock[],
   existing: ExistingLesson[],
   workingHours: WorkingHoursRow | null,
+  addition: AdditionRow | null = null,
 ) {
-  // No configured row defaults to "open" (matches pre-working-hours
-  // behavior) rather than silently blocking every day if the row is ever
-  // missing.
-  const outsideWorkingHours = workingHours
-    ? !workingHours.is_open ||
-      reqStartMin < timeStrToMinutes(workingHours.start_time!.slice(0, 5)) ||
-      reqEndMin > timeStrToMinutes(workingHours.end_time!.slice(0, 5))
-    : false;
+  // A one-time addition fully replaces the recurring window for this date
+  // (always "open", using its own hours) - checked before falling back to
+  // the normal working-hours/no-row-configured logic.
+  const outsideWorkingHours = addition
+    ? reqStartMin < timeStrToMinutes(addition.start_time.slice(0, 5)) ||
+      reqEndMin > timeStrToMinutes(addition.end_time.slice(0, 5))
+    : // No configured row defaults to "open" (matches pre-working-hours
+      // behavior) rather than silently blocking every day if the row is
+      // ever missing.
+      workingHours
+      ? !workingHours.is_open ||
+        reqStartMin < timeStrToMinutes(workingHours.start_time!.slice(0, 5)) ||
+        reqEndMin > timeStrToMinutes(workingHours.end_time!.slice(0, 5))
+      : false;
 
   const blockedByException = dayBlocks.some((block) => {
     const blockStart = toAppTime(block.start_at);
@@ -84,13 +106,18 @@ export async function checkLessonConflicts(
   endTime: string,
   excludeLessonId?: string,
 ) {
-  const { dayBlocks, existing, workingHours } = await fetchDayConflictData(supabase, date, excludeLessonId);
+  const { dayBlocks, existing, workingHours, addition } = await fetchDayConflictData(
+    supabase,
+    date,
+    excludeLessonId,
+  );
   const { blocked, doubleBooked } = conflictAt(
     timeStrToMinutes(startTime),
     timeStrToMinutes(endTime),
     dayBlocks,
     existing,
     workingHours,
+    addition,
   );
   return { blocked, doubleBooked, hasConflict: blocked || doubleBooked };
 }
@@ -112,7 +139,11 @@ export async function getAvailableStartTimes(
   durationMinutes: number,
   excludeLessonId?: string,
 ): Promise<string[]> {
-  const { dayBlocks, existing, workingHours } = await fetchDayConflictData(supabase, date, excludeLessonId);
+  const { dayBlocks, existing, workingHours, addition } = await fetchDayConflictData(
+    supabase,
+    date,
+    excludeLessonId,
+  );
 
   return generateTimeSlots(0, 24, 60).filter((slot) => {
     const { endTime, crossesMidnight } = addMinutesToTime(slot, durationMinutes);
@@ -123,6 +154,7 @@ export async function getAvailableStartTimes(
       dayBlocks,
       existing,
       workingHours,
+      addition,
     );
     return !blocked && !doubleBooked;
   });

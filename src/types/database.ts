@@ -39,6 +39,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      availability_additions: {
+        Row: {
+          created_at: string
+          date: string
+          end_time: string
+          id: string
+          note: string | null
+          start_time: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          end_time: string
+          id?: string
+          note?: string | null
+          start_time: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          end_time?: string
+          id?: string
+          note?: string | null
+          start_time?: string
+        }
+        Relationships: []
+      }
       availability_blocks: {
         Row: {
           created_at: string
