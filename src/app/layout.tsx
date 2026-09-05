@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Rubik, Suez_One } from "next/font/google";
+import { Rubik, Frank_Ruhl_Libre } from "next/font/google";
 import { cookies } from "next/headers";
 import { IosActiveFix } from "@/components/ios-active-fix";
 import { MotionProvider } from "@/components/motion-provider";
@@ -11,15 +11,15 @@ const rubik = Rubik({
 });
 
 // A real Hebrew-supporting display face for headings/stat numbers (see
-// --font-display in globals.css) - Outfit used to sit here, but it has no
-// Hebrew glyphs at all, so on an all-Hebrew app it was invisible on every
-// heading and only ever showed up on digits. Suez One actually renders on
-// Hebrew text, so headings finally look distinct from the Rubik body copy
-// instead of silently matching it everywhere.
-const suezOne = Suez_One({
-  variable: "--font-suez-one",
+// --font-display in globals.css). Design-refresh: Suez One (single-weight,
+// fairly generic-feeling) swapped for Frank Ruhl Libre - a genuine Hebrew
+// editorial serif with real character across a weight range, still with
+// real Hebrew glyph support (unlike Outfit, the original pick, which was
+// invisible on every Hebrew heading and only ever rendered on digits).
+const frankRuhl = Frank_Ruhl_Libre({
+  variable: "--font-frank-ruhl",
   subsets: ["hebrew", "latin"],
-  weight: "400",
+  weight: ["500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -72,7 +72,7 @@ export default async function RootLayout({
       lang="he"
       dir="rtl"
       data-theme={theme}
-      className={`${rubik.variable} ${suezOne.variable} h-full antialiased`}
+      className={`${rubik.variable} ${frankRuhl.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-text-primary">
         <IosActiveFix />

@@ -3,12 +3,15 @@
 
 @theme inline {
   --font-sans: var(--font-rubik);
-  /* Suez One actually has Hebrew glyphs (unlike the Outfit face this
-     replaced, which was invisible on every Hebrew heading and only ever
-     rendered on stray digits) - so headings and stat numbers now visibly
-     read as a different, more characterful face from the Rubik body copy,
-     not a silent no-op. */
-  --font-display: var(--font-suez-one), var(--font-rubik);
+  /* Design-refresh: Suez One (a single-weight display face) replaced with
+     Frank Ruhl Libre - a genuine Hebrew serif with real editorial
+     character, still real Hebrew glyph support (unlike Outfit, the
+     original pick, which was invisible on every Hebrew heading and only
+     ever rendered on stray digits). Pairing a serif display face with the
+     clean Rubik sans body text is what actually reads as "considered
+     design" rather than "one sans-serif font everywhere" - this matters
+     more for the "looks AI-generated" complaint than color choice does. */
+  --font-display: var(--font-frank-ruhl), var(--font-rubik);
 
   --color-background: var(--background);
   --color-surface: var(--surface);
@@ -35,7 +38,9 @@
 
   --radius-card: var(--radius-card);
   --radius-control: var(--radius-control);
+  --shadow-sm: var(--shadow-sm);
   --shadow-card: var(--shadow-card);
+  --shadow-elevated: var(--shadow-elevated);
 }
 
 html {

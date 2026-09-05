@@ -1,20 +1,30 @@
 /*
- * Design tokens for the Tutor Management System.
- * Palette per DESIGN_GUIDELINES.md: deep navy primary, turquoise/cyan accent,
- * restrained secondary accents (green/purple/orange), red only for destructive/error.
- * Dark mode preserves the same hierarchy rather than naively inverting every color.
+ * Design tokens for the Tutor Management System - "Ink & Teal" refresh.
+ * Same anchor hue family as before (deep navy primary, cool aqua accent) so
+ * the app stays visually consistent with the marketing site and with
+ * itself pre-refresh - just richer and more deliberate: a warmer, deeper
+ * "ink" navy instead of a flat corporate blue, and a muted, deepened teal
+ * instead of a bright cyan-turquoise (which reads as generic SaaS-
+ * dashboard rather than a considered brand color). The accent hue stays
+ * in the cool/aqua family on purpose - green/orange/purple/red are all
+ * already spoken for by status colors (confirmed/pending/selected/
+ * destructive), so introducing a brand-new accent hue risks visually
+ * colliding with one of those; deepening the existing one avoids that
+ * entirely while still looking meaningfully different.
+ * Dark mode preserves the same hierarchy rather than naively inverting
+ * every color.
  */
 
 :root {
-  --color-navy-950: #0b1b34;
-  --color-navy-900: #102a4c;
-  --color-navy-800: #163a63;
-  --color-navy-700: #1f4d7e;
+  --color-navy-950: #0e1730;
+  --color-navy-900: #1a2a4d;
+  --color-navy-800: #253a63;
+  --color-navy-700: #354d7e;
 
-  --color-turquoise-600: #0891a1;
-  --color-turquoise-500: #0eaebd;
-  --color-turquoise-400: #22c3d1;
-  --color-turquoise-100: #d7f5f7;
+  --color-teal-600: #0c6e72;
+  --color-teal-500: #16888d;
+  --color-teal-400: #2ea6ab;
+  --color-teal-100: #daf0ee;
 
   --color-green-500: #2fa563;
   --color-green-100: #dff5e7;
@@ -32,16 +42,16 @@
   --color-yellow-500: #facc15;
   --color-yellow-600: #e8b800;
 
-  --background: #f6f8fb;
+  --background: #f5f7fb;
   --surface: #ffffff;
-  --surface-muted: #eef2f7;
-  --border: #e1e7ef;
+  --surface-muted: #edf1f7;
+  --border: #dfe5ef;
   --text-primary: var(--color-navy-950);
-  --text-secondary: #4b5c72;
-  --text-muted: #7c8ba0;
+  --text-secondary: #4c5b73;
+  --text-muted: #7d8ba1;
 
   --brand-primary: var(--color-navy-900);
-  --brand-accent: var(--color-turquoise-500);
+  --brand-accent: var(--color-teal-500);
   --brand-highlight: var(--color-yellow-500);
   --brand-highlight-strong: var(--color-yellow-600);
   --brand-primary-shadow: var(--color-navy-950);
@@ -49,8 +59,8 @@
   /* Very faint graph-paper texture echoing the marketing site's background -
      light mode only, off in dark mode (see below) where it would just look
      muddy against the dark surfaces. */
-  --background-grid: linear-gradient(rgba(31, 77, 126, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(31, 77, 126, 0.05) 1px, transparent 1px);
+  --background-grid: linear-gradient(rgba(26, 42, 77, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26, 42, 77, 0.05) 1px, transparent 1px);
 
   --status-confirmed: var(--color-green-500);
   --status-confirmed-bg: var(--color-green-100);
@@ -61,7 +71,13 @@
   --status-destructive: var(--color-red-500);
   --status-destructive-bg: var(--color-red-100);
 
-  --shadow-card: 0 1px 2px rgba(16, 42, 76, 0.06), 0 4px 12px rgba(16, 42, 76, 0.06);
+  /* A small elevation scale instead of one flat shadow - sm for subtle
+     lift (hover states, inline controls), card for the everyday Card
+     component (unchanged in spirit from before), elevated for things that
+     sit clearly above the page (Modal, popovers). */
+  --shadow-sm: 0 1px 2px rgba(16, 30, 54, 0.05);
+  --shadow-card: 0 1px 2px rgba(16, 30, 54, 0.05), 0 6px 16px rgba(16, 30, 54, 0.07);
+  --shadow-elevated: 0 12px 32px rgba(14, 23, 48, 0.16), 0 4px 10px rgba(14, 23, 48, 0.08);
   --radius-card: 1rem;
   --radius-control: 0.6rem;
 }
@@ -75,9 +91,9 @@
   --text-secondary: #aebbcd;
   --text-muted: #7c8ba0;
 
-  --brand-primary: var(--color-turquoise-400);
-  --brand-accent: var(--color-turquoise-400);
-  --brand-primary-shadow: var(--color-turquoise-600);
+  --brand-primary: var(--color-teal-400);
+  --brand-accent: var(--color-teal-400);
+  --brand-primary-shadow: var(--color-teal-600);
   --background-grid: none;
 
   --status-confirmed-bg: rgba(47, 165, 99, 0.18);
@@ -85,7 +101,9 @@
   --status-selected-bg: rgba(139, 92, 246, 0.2);
   --status-destructive-bg: rgba(220, 68, 68, 0.18);
 
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 20px rgba(0, 0, 0, 0.35);
+  --shadow-elevated: 0 20px 45px rgba(0, 0, 0, 0.5), 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -98,9 +116,9 @@
     --text-secondary: #aebbcd;
     --text-muted: #7c8ba0;
 
-    --brand-primary: var(--color-turquoise-400);
-    --brand-accent: var(--color-turquoise-400);
-    --brand-primary-shadow: var(--color-turquoise-600);
+    --brand-primary: var(--color-teal-400);
+    --brand-accent: var(--color-teal-400);
+    --brand-primary-shadow: var(--color-teal-600);
     --background-grid: none;
 
     --status-confirmed-bg: rgba(47, 165, 99, 0.18);
@@ -108,6 +126,8 @@
     --status-selected-bg: rgba(139, 92, 246, 0.2);
     --status-destructive-bg: rgba(220, 68, 68, 0.18);
 
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 20px rgba(0, 0, 0, 0.35);
+    --shadow-elevated: 0 20px 45px rgba(0, 0, 0, 0.5), 0 6px 16px rgba(0, 0, 0, 0.4);
   }
 }
