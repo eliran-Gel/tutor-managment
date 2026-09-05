@@ -77,16 +77,16 @@ export default async function TutorDashboardPage() {
 
           <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Link href="/tutor/students" className="block transition-transform duration-200 hover:-translate-y-0.5 active:scale-95">
-              <HeroStat label="תלמידים פעילים">
+              <HeroStat label="תלמידים פעילים" tone="teal">
                 <AnimatedCounter value={activeStudents ?? 0} />
               </HeroStat>
             </Link>
 
             <Link href={`/tutor/calendar/day/${today}`} className="block transition-transform duration-200 hover:-translate-y-0.5 active:scale-95">
-              <HeroStat label="היום">
+              <HeroStat label="היום" tone="gold">
                 <AnimatedCounter value={todayStats.count} />
                 {todayStats.price > 0 && (
-                  <span className="ms-1.5 align-middle text-sm font-medium text-white/70">
+                  <span className="ms-1.5 align-middle text-sm font-medium opacity-75">
                     ₪{todayStats.price.toLocaleString("he-IL")}
                   </span>
                 )}
@@ -97,10 +97,10 @@ export default async function TutorDashboardPage() {
               href={`/tutor/calendar/range?start=${weekStart}&end=${weekEnd}&label=${encodeURIComponent("השבוע")}`}
               className="block transition-transform duration-200 hover:-translate-y-0.5 active:scale-95"
             >
-              <HeroStat label="השבוע">
+              <HeroStat label="השבוע" tone="purple">
                 <AnimatedCounter value={weekStats.count} />
                 {weekStats.price > 0 && (
-                  <span className="ms-1.5 align-middle text-sm font-medium text-white/70">
+                  <span className="ms-1.5 align-middle text-sm font-medium opacity-75">
                     ₪{weekStats.price.toLocaleString("he-IL")}
                   </span>
                 )}
@@ -111,10 +111,10 @@ export default async function TutorDashboardPage() {
               href={`/tutor/calendar/range?start=${monthStart}&end=${monthEnd}&label=${encodeURIComponent("החודש")}`}
               className="block transition-transform duration-200 hover:-translate-y-0.5 active:scale-95"
             >
-              <HeroStat label="החודש">
+              <HeroStat label="החודש" tone="green">
                 <AnimatedCounter value={monthStats.count} />
                 {monthStats.price > 0 && (
-                  <span className="ms-1.5 align-middle text-sm font-medium text-white/70">
+                  <span className="ms-1.5 align-middle text-sm font-medium opacity-75">
                     ₪{monthStats.price.toLocaleString("he-IL")}
                   </span>
                 )}
