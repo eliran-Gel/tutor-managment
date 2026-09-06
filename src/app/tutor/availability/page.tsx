@@ -17,10 +17,12 @@ export default async function AvailabilityPage() {
 
   return (
     <div className="flex flex-col gap-8">
+      <h1 className="text-xl font-bold font-display text-text-primary">חסימה/הוספת שעות</h1>
+
       <div className="flex flex-col gap-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-xl font-bold font-display text-text-primary">חסימת שעות</h1>
+            <h2 className="text-lg font-bold font-display text-text-primary">חסימת שעות</h2>
             <p className="text-sm text-text-secondary">
               זמנים חסומים לא יופיעו כזמינים לבקשת שיעור מתלמידים.
             </p>
@@ -65,7 +67,7 @@ export default async function AvailabilityPage() {
       <div className="flex flex-col gap-6 border-t border-border pt-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl font-bold font-display text-text-primary">הוספת שעות חד-פעמית</h2>
+            <h2 className="text-lg font-bold font-display text-text-primary">הוספת שעות חד-פעמית</h2>
             <p className="text-sm text-text-secondary">
               שעות מיוחדות לתאריך אחד בלבד, במקום ברירת המחדל הרגילה - בשבוע שאחריו חוזר לרגיל
               אוטומטית.
