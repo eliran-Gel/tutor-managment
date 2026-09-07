@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Field, TextInput } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
@@ -66,7 +66,23 @@ export function NewLessonModal({
   const [conflict, setConflict] = useState<string | null>(null);
   const [seriesResult, setSeriesResult] = useState<{ created: number; skipped: string[] } | null>(null);
   const [submitAction, setSubmitAction] = useState<"create" | "force" | null>(null);
+  const [focusNewNameIndex, setFocusNewNameIndex] = useState<number | null>(null);
+  const newNameInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
   const [isPending, startTransition] = useTransition();
+
+  // Runs right after picking "new student" reveals that row's name input -
+  // refs attach during the same commit this effect fires after, so the
+  // input is already there to focus by the time this runs. A genuine
+  // imperative DOM action (focus()), not state derivation - same category
+  // as Modal's exit-animation timer, not what the lint rule is meant to
+  // catch; the setState afterward just clears the one-shot trigger.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (focusNewNameIndex === null) return;
+    newNameInputRefs.current[focusNewNameIndex]?.focus();
+    setFocusNewNameIndex(null);
+  }, [focusNewNameIndex]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const pricePerStudent = calculateLessonPrice(lessonType, duration);
 
@@ -95,6 +111,19 @@ export function NewLessonModal({
       if (field === "student_id" && value !== NEW_STUDENT) next[index].newName = "";
       return next;
     });
+  }
+
+  /** Carries over whatever the tutor already typed into the combobox's
+   * search box as the starting value of the "new student" name field
+   * instead of leaving it blank - and moves focus straight there, since
+   * there's nothing left to look up once "new student" is picked. */
+  function selectNewStudent(index: number, typedName: string) {
+    setParticipants((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], student_id: NEW_STUDENT, newName: typedName };
+      return next;
+    });
+    setFocusNewNameIndex(index);
   }
 
   function addParticipantRow() {
@@ -257,10 +286,16 @@ export function NewLessonModal({
                   )}
                   value={p.student_id === NEW_STUDENT ? "" : p.student_id}
                   displayName={students.find((s) => s.id === p.student_id)?.display_name ?? ""}
-                  onSelect={(id) => updateParticipant(i, "student_id", id)}
+                  onSelect={(id, name) => {
+                    if (id === NEW_STUDENT) selectNewStudent(i, name);
+                    else updateParticipant(i, "student_id", id);
+                  }}
                 />
                 {p.student_id === NEW_STUDENT && (
                   <TextInput
+                    ref={(el) => {
+                      newNameInputRefs.current[i] = el;
+                    }}
                     placeholder="שם התלמיד/ה החדש/ה"
                     value={p.newName}
                     onChange={(e) => updateParticipant(i, "newName", e.target.value)}

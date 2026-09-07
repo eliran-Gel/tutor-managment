@@ -1,4 +1,4 @@
-import { type InputHTMLAttributes, type ReactNode } from "react";
+import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 export function Field({
@@ -20,9 +20,10 @@ export function Field({
   );
 }
 
-export function TextInput({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
-  return (
+export const TextInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
+  ({ className, ...props }, ref) => (
     <input
+      ref={ref}
       className={cn(
         "rounded-control border border-border bg-background px-3 py-2 text-sm text-text-primary",
         "placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-accent",
@@ -30,5 +31,6 @@ export function TextInput({ className, ...props }: InputHTMLAttributes<HTMLInput
       )}
       {...props}
     />
-  );
-}
+  ),
+);
+TextInput.displayName = "TextInput";

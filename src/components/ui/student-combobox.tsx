@@ -64,7 +64,7 @@ export function StudentCombobox({
             type="button"
             onMouseDown={(e) => {
               e.preventDefault();
-              onSelect(NEW_STUDENT, "");
+              onSelect(NEW_STUDENT, query.trim());
               setOpen(false);
               setEditing(false);
             }}
