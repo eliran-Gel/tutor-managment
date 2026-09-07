@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Field, TextInput } from "@/components/ui/field";
+import { DateField } from "@/components/ui/date-field";
 import { Button } from "@/components/ui/button";
 import { TimeSlotSelect } from "@/components/ui/time-slot-select";
 import { generateTimeSlots } from "@/lib/time-slots";
@@ -48,7 +49,7 @@ export function AddBlockModal() {
           }}
         >
           <Field label="תאריך" htmlFor="date">
-            <TextInput id="date" name="date" type="date" required />
+            <DateField id="date" name="date" required />
           </Field>
 
           <label className="flex items-center gap-2 text-sm text-text-secondary">

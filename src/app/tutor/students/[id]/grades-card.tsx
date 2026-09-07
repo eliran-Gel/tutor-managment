@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Field, TextInput } from "@/components/ui/field";
+import { DateField } from "@/components/ui/date-field";
 import { Button } from "@/components/ui/button";
 import { formatIsoDate } from "@/lib/dates/format";
 import { addGrade, deleteGrade } from "../actions";
@@ -151,7 +152,7 @@ export function GradesCard({
           </div>
 
           <Field label="תאריך" htmlFor="grade-date">
-            <TextInput id="grade-date" type="date" value={examDate} onChange={(e) => setExamDate(e.target.value)} />
+            <DateField id="grade-date" value={examDate} onChange={(e) => setExamDate(e.target.value)} />
           </Field>
 
           <Field label="הערה (אופציונלי)" htmlFor="grade-note">

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Field, TextInput } from "@/components/ui/field";
+import { DateField } from "@/components/ui/date-field";
 import { Button } from "@/components/ui/button";
 import { TimeSlotSelect } from "@/components/ui/time-slot-select";
 import { StudentCombobox, NEW_STUDENT } from "@/components/ui/student-combobox";
@@ -327,7 +328,7 @@ export function NewLessonModal({
           </div>
 
           <Field label="תאריך" htmlFor="ml-date">
-            <TextInput id="ml-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+            <DateField id="ml-date" value={date} onChange={(e) => setDate(e.target.value)} required />
           </Field>
 
           <label className="flex items-center gap-2 text-sm text-text-secondary">
@@ -336,9 +337,8 @@ export function NewLessonModal({
           </label>
           {isRecurring && (
             <Field label="עד תאריך (אופציונלי - אחרת נוצרים 10 שבועות קדימה)" htmlFor="ml-end-date">
-              <TextInput
+              <DateField
                 id="ml-end-date"
-                type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 min={date || undefined}

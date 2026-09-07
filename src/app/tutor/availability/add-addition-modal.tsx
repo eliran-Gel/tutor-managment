@@ -3,6 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Field, TextInput } from "@/components/ui/field";
+import { DateField } from "@/components/ui/date-field";
 import { Button } from "@/components/ui/button";
 import { TimeSlotSelect } from "@/components/ui/time-slot-select";
 import { generateTimeSlots } from "@/lib/time-slots";
@@ -49,7 +50,7 @@ export function AddAdditionModal() {
           </p>
 
           <Field label="תאריך" htmlFor="addition_date">
-            <TextInput id="addition_date" name="date" type="date" required />
+            <DateField id="addition_date" name="date" required />
           </Field>
 
           <div className="grid grid-cols-2 gap-3">

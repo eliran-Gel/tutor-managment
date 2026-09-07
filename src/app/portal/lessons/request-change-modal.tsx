@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Field, TextInput } from "@/components/ui/field";
+import { DateField } from "@/components/ui/date-field";
 import { Button } from "@/components/ui/button";
 import { TimeSlotSelect } from "@/components/ui/time-slot-select";
 import { formatIsoDate } from "@/lib/dates/format";
@@ -142,9 +143,8 @@ export function RequestChangeModal({
           {requestType === "reschedule" && (
             <>
               <Field label="תאריך חדש" htmlFor="rc-date">
-                <TextInput
+                <DateField
                   id="rc-date"
-                  type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   min={toDateInput(today)}

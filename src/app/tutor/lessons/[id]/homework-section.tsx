@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, TextInput } from "@/components/ui/field";
+import { DateField } from "@/components/ui/date-field";
 import { Button } from "@/components/ui/button";
 import { formatIsoDate } from "@/lib/dates/format";
 import { assignHomework, deleteHomework } from "./actions";
@@ -105,7 +106,7 @@ export function HomeworkSection({
             />
           </Field>
           <Field label="תאריך יעד (אופציונלי)" htmlFor="hw-due-date">
-            <TextInput id="hw-due-date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+            <DateField id="hw-due-date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
           </Field>
 
           {participants.length > 1 && (
