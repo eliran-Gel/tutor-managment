@@ -122,11 +122,7 @@ export default async function CalendarDayPage({ params }: { params: Promise<{ da
                 <Badge tone={LESSON_STATUS_TONE[lesson.status]}>{LESSON_STATUS_LABELS[lesson.status]}</Badge>
                 {lesson.status === "confirmed" && (
                   <>
-                    <Link
-                      href={`/tutor/lessons/${lesson.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className={buttonClasses("secondary")}
-                    >
+                    <Link href={`/tutor/lessons/${lesson.id}`} className={buttonClasses("secondary")}>
                       עריכה
                     </Link>
                     <CancelLessonButton lessonId={lesson.id} />
