@@ -9,6 +9,7 @@ import { blocksForDate } from "@/lib/availability";
 import { formatAppTime } from "@/lib/dates/timezone";
 import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 import { CancelLessonButton } from "@/components/cancel-lesson-button";
+import { buttonClasses } from "@/components/ui/button";
 import { RequestRowActions } from "@/app/tutor/requests/request-row-actions";
 import { ClickableLessonCard } from "@/components/clickable-lesson-card";
 
@@ -119,7 +120,18 @@ export default async function CalendarDayPage({ params }: { params: Promise<{ da
               </div>
               <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
                 <Badge tone={LESSON_STATUS_TONE[lesson.status]}>{LESSON_STATUS_LABELS[lesson.status]}</Badge>
-                {lesson.status === "confirmed" && <CancelLessonButton lessonId={lesson.id} />}
+                {lesson.status === "confirmed" && (
+                  <>
+                    <Link
+                      href={`/tutor/lessons/${lesson.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className={buttonClasses("secondary")}
+                    >
+                      עריכה
+                    </Link>
+                    <CancelLessonButton lessonId={lesson.id} />
+                  </>
+                )}
                 {lesson.status === "requested" && <RequestRowActions lessonId={lesson.id} />}
               </div>
             </ClickableLessonCard>

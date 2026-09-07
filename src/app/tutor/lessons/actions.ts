@@ -106,6 +106,69 @@ export async function createManualLesson(input: ManualLessonInput) {
   return { success: true as const };
 }
 
+const rescheduleLessonSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "תאריך לא תקין"),
+  start_time: z
+    .string()
+    .regex(/^\d{2}:\d{2}$/, "שעה לא תקינה")
+    .refine(isValidTimeSlot, "השעה חייבת להיות בכפולות של רבע שעה"),
+  duration_minutes: z.coerce
+    .number()
+    .int()
+    .refine((v) => (LESSON_DURATIONS as readonly number[]).includes(v), "משך שיעור לא תקין"),
+  forced: z.boolean().optional(),
+});
+
+export type RescheduleLessonInput = z.infer<typeof rescheduleLessonSchema>;
+
+/**
+ * Moves an already-confirmed lesson to a new date/time (and optionally a
+ * new duration) - the tutor-side equivalent of the student-facing "request
+ * a change" flow, but applied directly since the tutor doesn't need their
+ * own approval. Reuses the same conflict-check + forced-override pattern
+ * as createManualLesson, excluding the lesson's own current slot from the
+ * conflict check (moving a lesson an hour later shouldn't collide with
+ * itself).
+ */
+export async function rescheduleLesson(lessonId: string, input: RescheduleLessonInput) {
+  const { supabase } = await requireTutor();
+
+  const parsed = rescheduleLessonSchema.safeParse(input);
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "פרטים לא תקינים" };
+  const data = parsed.data;
+
+  const { endTime, crossesMidnight } = addMinutesToTime(data.start_time, data.duration_minutes);
+  if (crossesMidnight) return { error: "שיעור לא יכול לחצות חצות" };
+
+  if (!data.forced) {
+    const { blocked, doubleBooked } = await checkLessonConflicts(
+      supabase,
+      data.date,
+      data.start_time,
+      endTime,
+      lessonId,
+    );
+    if (blocked || doubleBooked) {
+      return {
+        conflict: true as const,
+        message: blocked
+          ? "הזמן הזה חופף לחסימת זמן קיימת. לשנות את מועד השיעור בכל זאת?"
+          : "הזמן הזה חופף לשיעור מאושר אחר. לשנות את מועד השיעור בכל זאת?",
+      };
+    }
+  }
+
+  const { error } = await supabase
+    .from("lessons")
+    .update({ date: data.date, start_time: `${data.start_time}:00`, end_time: `${endTime}:00` })
+    .eq("id", lessonId);
+  if (error) return { error: error.message };
+
+  revalidateLessonPaths();
+  revalidatePath(`/tutor/lessons/${lessonId}`);
+  return { success: true as const };
+}
+
 function addWeeksIso(dateStr: string, weeks: number) {
   return format(addWeeks(new Date(`${dateStr}T00:00:00`), weeks), "yyyy-MM-dd");
 }

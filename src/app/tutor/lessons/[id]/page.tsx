@@ -10,6 +10,7 @@ import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 import { HomeworkSection } from "./homework-section";
 import { LessonFilesSection } from "./lesson-files-section";
 import { LessonDetailsCard } from "./lesson-details-card";
+import { RescheduleLessonCard } from "./reschedule-lesson-card";
 
 export default async function TutorLessonDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -65,6 +66,15 @@ export default async function TutorLessonDetailPage({ params }: { params: Promis
           {lesson.topic && ` · ${lesson.topic}`}
         </p>
       </div>
+
+      {lesson.status === "confirmed" && (
+        <RescheduleLessonCard
+          lessonId={id}
+          initialDate={lesson.date}
+          initialStartTime={lesson.start_time}
+          initialEndTime={lesson.end_time}
+        />
+      )}
 
       <LessonDetailsCard
         lessonId={id}
