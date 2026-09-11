@@ -552,6 +552,8 @@ export type Database = {
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
           rejection_reason: string | null
+          reminder_1d_sent_at: string | null
+          reminder_2h_sent_at: string | null
           requested_student_id: string | null
           series_id: string | null
           source: Database["public"]["Enums"]["lesson_source"]
@@ -573,6 +575,8 @@ export type Database = {
           lesson_type?: Database["public"]["Enums"]["lesson_type"]
           online_url?: string | null
           rejection_reason?: string | null
+          reminder_1d_sent_at?: string | null
+          reminder_2h_sent_at?: string | null
           requested_student_id?: string | null
           series_id?: string | null
           source: Database["public"]["Enums"]["lesson_source"]
@@ -594,6 +598,8 @@ export type Database = {
           lesson_type?: Database["public"]["Enums"]["lesson_type"]
           online_url?: string | null
           rejection_reason?: string | null
+          reminder_1d_sent_at?: string | null
+          reminder_2h_sent_at?: string | null
           requested_student_id?: string | null
           series_id?: string | null
           source?: Database["public"]["Enums"]["lesson_source"]
@@ -1139,6 +1145,8 @@ export type Database = {
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
           rejection_reason: string | null
+          reminder_1d_sent_at: string | null
+          reminder_2h_sent_at: string | null
           requested_student_id: string | null
           series_id: string | null
           source: Database["public"]["Enums"]["lesson_source"]
@@ -1185,6 +1193,8 @@ export type Database = {
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
           rejection_reason: string | null
+          reminder_1d_sent_at: string | null
+          reminder_2h_sent_at: string | null
           requested_student_id: string | null
           series_id: string | null
           source: Database["public"]["Enums"]["lesson_source"]
@@ -1215,6 +1225,8 @@ export type Database = {
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
           rejection_reason: string | null
+          reminder_1d_sent_at: string | null
+          reminder_2h_sent_at: string | null
           requested_student_id: string | null
           series_id: string | null
           source: Database["public"]["Enums"]["lesson_source"]
@@ -1285,6 +1297,8 @@ export type Database = {
               lesson_type: Database["public"]["Enums"]["lesson_type"]
               online_url: string | null
               rejection_reason: string | null
+              reminder_1d_sent_at: string | null
+              reminder_2h_sent_at: string | null
               requested_student_id: string | null
               series_id: string | null
               source: Database["public"]["Enums"]["lesson_source"]
@@ -1328,6 +1342,8 @@ export type Database = {
               lesson_type: Database["public"]["Enums"]["lesson_type"]
               online_url: string | null
               rejection_reason: string | null
+              reminder_1d_sent_at: string | null
+              reminder_2h_sent_at: string | null
               requested_student_id: string | null
               series_id: string | null
               source: Database["public"]["Enums"]["lesson_source"]
@@ -1382,6 +1398,8 @@ export type Database = {
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
           rejection_reason: string | null
+          reminder_1d_sent_at: string | null
+          reminder_2h_sent_at: string | null
           requested_student_id: string | null
           series_id: string | null
           source: Database["public"]["Enums"]["lesson_source"]
@@ -1466,6 +1484,8 @@ export type Database = {
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
           rejection_reason: string | null
+          reminder_1d_sent_at: string | null
+          reminder_2h_sent_at: string | null
           requested_student_id: string | null
           series_id: string | null
           source: Database["public"]["Enums"]["lesson_source"]
@@ -1505,6 +1525,8 @@ export type Database = {
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           online_url: string | null
           rejection_reason: string | null
+          reminder_1d_sent_at: string | null
+          reminder_2h_sent_at: string | null
           requested_student_id: string | null
           series_id: string | null
           source: Database["public"]["Enums"]["lesson_source"]
@@ -1553,6 +1575,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      send_lesson_reminders: { Args: never; Returns: undefined }
       set_push_trigger_secret: { Args: { p_value: string }; Returns: undefined }
     }
     Enums: {
