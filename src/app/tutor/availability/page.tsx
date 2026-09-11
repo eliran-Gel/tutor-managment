@@ -10,9 +10,20 @@ import { DeleteAdditionButton } from "./delete-addition-button";
 
 export default async function AvailabilityPage() {
   const supabase = await createClient();
+  const now = new Date().toISOString();
+  const today = now.slice(0, 10);
+
   const [{ data: blocks }, { data: additions }] = await Promise.all([
-    supabase.from("availability_blocks").select("*").order("start_at"),
-    supabase.from("availability_additions").select("*").order("date"),
+    // A one-off block that already ended is never going to apply again -
+    // no reason to keep showing it. A weekly-recurring one keeps applying
+    // every week regardless of how long ago it started, so those always
+    // stay visible.
+    supabase
+      .from("availability_blocks")
+      .select("*")
+      .or(`recurrence_rule.eq.weekly,end_at.gte.${now}`)
+      .order("start_at"),
+    supabase.from("availability_additions").select("*").gte("date", today).order("date"),
   ]);
 
   return (
