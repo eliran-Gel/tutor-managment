@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Field, TextInput } from "@/components/ui/field";
-import { DateField } from "@/components/ui/date-field";
+import { AvailabilityDateField } from "@/components/ui/availability-date-field";
 import { Button } from "@/components/ui/button";
 import { TimeSlotSelect } from "@/components/ui/time-slot-select";
 import { LESSON_DURATIONS } from "@/lib/lessons";
@@ -143,10 +143,9 @@ export function RequestLessonModal({
             </Field>
 
             <Field label="תאריך" htmlFor="date">
-              <DateField
+              <AvailabilityDateField
                 id="date"
                 name="date"
-                required
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 min={toDateInput(today)}

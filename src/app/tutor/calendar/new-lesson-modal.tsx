@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { Modal } from "@/components/ui/modal";
 import { Field, TextInput } from "@/components/ui/field";
 import { DateField } from "@/components/ui/date-field";
+import { AvailabilityDateField } from "@/components/ui/availability-date-field";
 import { Button } from "@/components/ui/button";
 import { TimeSlotSelect } from "@/components/ui/time-slot-select";
 import { StudentCombobox, NEW_STUDENT } from "@/components/ui/student-combobox";
@@ -328,7 +329,7 @@ export function NewLessonModal({
           </div>
 
           <Field label="תאריך" htmlFor="ml-date">
-            <DateField id="ml-date" value={date} onChange={(e) => setDate(e.target.value)} required />
+            <AvailabilityDateField id="ml-date" value={date} onChange={(e) => setDate(e.target.value)} />
           </Field>
 
           <label className="flex items-center gap-2 text-sm text-text-secondary">

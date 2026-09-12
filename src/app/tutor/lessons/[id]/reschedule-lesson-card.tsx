@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
-import { DateField } from "@/components/ui/date-field";
+import { AvailabilityDateField } from "@/components/ui/availability-date-field";
 import { Button } from "@/components/ui/button";
 import { TimeSlotSelect } from "@/components/ui/time-slot-select";
 import { LESSON_DURATIONS } from "@/lib/lessons";
@@ -77,7 +77,7 @@ export function RescheduleLessonCard({
 
       <div className="flex flex-col gap-4">
         <Field label="תאריך" htmlFor="reschedule-date">
-          <DateField
+          <AvailabilityDateField
             id="reschedule-date"
             value={date}
             onChange={(e) => {
