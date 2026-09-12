@@ -3,8 +3,9 @@ import { createClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buildMonthGrid, HEBREW_WEEKDAY_LABELS } from "@/lib/calendar-grid";
-import { blocksForDate } from "@/lib/availability";
+import { blocksForDate, type AvailabilityBlock } from "@/lib/availability";
 import { formatAppTime } from "@/lib/dates/timezone";
+import { timeStrToMinutes } from "@/lib/lesson-conflicts";
 import { cn } from "@/lib/cn";
 import { NewLessonModal } from "./new-lesson-modal";
 
@@ -25,6 +26,63 @@ const HEBREW_MONTHS = [
 
 function toIsoDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+type WorkingHoursRow = { day_of_week: number; is_open: boolean; start_time: string | null; end_time: string | null };
+type AdditionRow = { date: string; start_time: string; end_time: string };
+type OccupiedRange = { start_time: string; end_time: string };
+
+/**
+ * At-a-glance availability for one day, independent of the lesson-status
+ * dots below (those show what's *booked*; this shows whether there's any
+ * *room left* to book). A one-time addition for the date fully overrides
+ * the recurring weekly window, matching the same rule lesson-conflicts.ts
+ * uses when actually checking a booking request - closed here means
+ * closed there too, not an approximation.
+ *
+ * "Free" is checked in 60-minute slots across the effective window rather
+ * than querying per day (which would mean one query per grid cell, up to
+ * ~40 for a month) - all the source data (blocks, lessons, working hours,
+ * additions) is already fetched once for the whole month, so this is a
+ * pure in-memory scan.
+ */
+function computeDayAvailability(
+  day: Date,
+  workingHoursByDow: Map<number, WorkingHoursRow>,
+  additionsByDate: Map<string, AdditionRow>,
+  dayBlocks: AvailabilityBlock[],
+  occupied: OccupiedRange[],
+): "open" | "full" | "closed" {
+  const addition = additionsByDate.get(toIsoDate(day));
+  const workingHours = workingHoursByDow.get(day.getDay());
+
+  const effective = addition
+    ? { is_open: true, start_time: addition.start_time, end_time: addition.end_time }
+    : workingHours;
+
+  if (!effective || !effective.is_open || !effective.start_time || !effective.end_time) return "closed";
+
+  const windowStart = timeStrToMinutes(effective.start_time.slice(0, 5));
+  const windowEnd = timeStrToMinutes(effective.end_time.slice(0, 5));
+
+  const blockRanges = dayBlocks.map((b) => ({
+    start: timeStrToMinutes(formatAppTime(b.start_at, "HH:mm")),
+    end: timeStrToMinutes(formatAppTime(b.end_at, "HH:mm")),
+  }));
+  const occupiedRanges = occupied.map((o) => ({
+    start: timeStrToMinutes(o.start_time.slice(0, 5)),
+    end: timeStrToMinutes(o.end_time.slice(0, 5)),
+  }));
+
+  const SLOT_MINUTES = 60;
+  for (let slotStart = windowStart; slotStart + SLOT_MINUTES <= windowEnd; slotStart += SLOT_MINUTES) {
+    const slotEnd = slotStart + SLOT_MINUTES;
+    const overlaps = (r: { start: number; end: number }) => slotStart < r.end && slotEnd > r.start;
+    if (!blockRanges.some(overlaps) && !occupiedRanges.some(overlaps)) {
+      return "open";
+    }
+  }
+  return "full";
 }
 
 // Student name(s) at a glance, not the subject - that's what the tutor
@@ -62,23 +120,30 @@ export default async function CalendarPage({
   const gridEnd = weeks[weeks.length - 1][6];
 
   const supabase = await createClient();
-  const [{ data: blocks }, { data: lessons }, { data: students }, { data: subjects }] = await Promise.all([
-    supabase.from("availability_blocks").select("*"),
-    supabase
-      .from("lessons")
-      .select(
-        "id, date, start_time, end_time, status, subjects(name), lesson_participants(students(display_name)), requested_student:students!lessons_requested_student_id_fkey(display_name)",
-      )
-      .in("status", ["confirmed", "completed", "requested"])
-      .gte("date", toIsoDate(gridStart))
-      .lte("date", toIsoDate(gridEnd)),
-    supabase
-      .from("students")
-      .select("id, display_name")
-      .is("archived_at", null)
-      .order("display_name"),
-    supabase.from("subjects").select("*").eq("active", true).order("name"),
-  ]);
+  const [{ data: blocks }, { data: lessons }, { data: students }, { data: subjects }, { data: workingHours }, { data: additions }] =
+    await Promise.all([
+      supabase.from("availability_blocks").select("*"),
+      supabase
+        .from("lessons")
+        .select(
+          "id, date, start_time, end_time, status, subjects(name), lesson_participants(students(display_name)), requested_student:students!lessons_requested_student_id_fkey(display_name)",
+        )
+        .in("status", ["confirmed", "completed", "requested"])
+        .gte("date", toIsoDate(gridStart))
+        .lte("date", toIsoDate(gridEnd)),
+      supabase
+        .from("students")
+        .select("id, display_name")
+        .is("archived_at", null)
+        .order("display_name"),
+      supabase.from("subjects").select("*").eq("active", true).order("name"),
+      supabase.from("tutor_working_hours").select("day_of_week, is_open, start_time, end_time"),
+      supabase
+        .from("availability_additions")
+        .select("date, start_time, end_time")
+        .gte("date", toIsoDate(gridStart))
+        .lte("date", toIsoDate(gridEnd)),
+    ]);
 
   const lessonsByDate = new Map<string, NonNullable<typeof lessons>>();
   for (const lesson of lessons ?? []) {
@@ -86,6 +151,9 @@ export default async function CalendarPage({
     list.push(lesson);
     lessonsByDate.set(lesson.date, list);
   }
+
+  const workingHoursByDow = new Map((workingHours ?? []).map((w) => [w.day_of_week, w]));
+  const additionsByDate = new Map((additions ?? []).map((a) => [a.date, a]));
 
   const prevMonth = month === 1 ? { year: year - 1, month: 12 } : { year, month: month - 1 };
   const nextMonth = month === 12 ? { year: year + 1, month: 1 } : { year, month: month + 1 };
@@ -150,6 +218,13 @@ export default async function CalendarPage({
               const requestedLessons = dayLessons.filter((l) => l.status === "requested");
               const inMonth = isCurrentMonth(day);
               const isToday = day.toDateString() === now.toDateString();
+              const availability = computeDayAvailability(
+                day,
+                workingHoursByDow,
+                additionsByDate,
+                dayBlocks,
+                confirmedLessons,
+              );
 
               return (
                 <Link
@@ -161,15 +236,39 @@ export default async function CalendarPage({
                     dayBlocks.length > 0 && "bg-status-destructive-bg",
                   )}
                 >
-                  <p
-                    className={cn(
-                      "text-[11px] font-medium text-text-secondary sm:text-xs",
-                      isToday &&
-                        "flex h-5 w-5 items-center justify-center rounded-full bg-brand-accent text-white",
-                    )}
-                  >
-                    {day.getDate()}
-                  </p>
+                  <div className="flex w-full items-center justify-center gap-1 sm:justify-between">
+                    <span
+                      aria-label={
+                        availability === "open"
+                          ? "יש שעות פנויות"
+                          : availability === "full"
+                            ? "אין שעות פנויות"
+                            : "לא מלמד ביום זה"
+                      }
+                      title={
+                        availability === "open"
+                          ? "יש שעות פנויות"
+                          : availability === "full"
+                            ? "אין שעות פנויות"
+                            : "לא מלמד ביום זה"
+                      }
+                      className={cn(
+                        "h-1.5 w-1.5 shrink-0 rounded-full sm:order-2",
+                        availability === "open" && "bg-status-confirmed",
+                        availability === "full" && "border border-border bg-white",
+                        availability === "closed" && "bg-status-destructive",
+                      )}
+                    />
+                    <p
+                      className={cn(
+                        "text-[11px] font-medium text-text-secondary sm:text-xs",
+                        isToday &&
+                          "flex h-5 w-5 items-center justify-center rounded-full bg-brand-accent text-white",
+                      )}
+                    >
+                      {day.getDate()}
+                    </p>
+                  </div>
 
                   {/* Mobile: dot indicators only, so the whole month still fits the screen at once. */}
                   {(dayBlocks.length > 0 || confirmedLessons.length > 0 || requestedLessons.length > 0) && (
@@ -209,16 +308,30 @@ export default async function CalendarPage({
         </div>
       </Card>
 
-      <div className="flex flex-wrap items-center gap-4 text-xs text-text-muted">
-        <span className="flex items-center gap-1.5">
-          <Badge tone="confirmed" className="h-3 w-3 rounded-full p-0" /> שיעור מאושר
-        </span>
-        <span className="flex items-center gap-1.5">
-          <Badge tone="pending" className="h-3 w-3 rounded-full p-0" /> בקשה ממתינה
-        </span>
-        <span className="flex items-center gap-1.5">
-          <Badge tone="destructive" className="h-3 w-3 rounded-full p-0" /> זמן חסום
-        </span>
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-4 text-xs text-text-muted">
+          <span className="flex items-center gap-1.5">
+            <Badge tone="confirmed" className="h-3 w-3 rounded-full p-0" /> שיעור מאושר
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Badge tone="pending" className="h-3 w-3 rounded-full p-0" /> בקשה ממתינה
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Badge tone="destructive" className="h-3 w-3 rounded-full p-0" /> זמן חסום
+          </span>
+        </div>
+        <div className="flex flex-wrap items-center gap-4 text-xs text-text-muted">
+          <span className="text-[11px] font-medium text-text-secondary">זמינות ביום:</span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-status-confirmed" /> יש שעות פנויות
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full border border-border bg-white" /> אין שעות פנויות
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-status-destructive" /> לא מלמד ביום זה
+          </span>
+        </div>
       </div>
     </div>
   );
