@@ -58,12 +58,26 @@ export function LoginForm() {
     if (error) setStatus({ type: "error", message: error.message });
   }
 
-  async function sendMagicLink(e: React.FormEvent) {
+  // Reads straight from the submitted <form>'s own field instead of trusting
+  // the `email` state value - some browsers' autofill sets the input's DOM
+  // value without firing a real `input`/`change` event, which would leave
+  // React's state stale/empty on the *first* submit (the field looks
+  // filled, the request goes out with nothing) while a *second* submit,
+  // after any real keystroke/focus forces a genuine onChange, works - this
+  // reads as "had to enter it twice" even though nothing was actually
+  // wrong with what the user typed.
+  function emailFromForm(form: HTMLFormElement) {
+    return (new FormData(form).get("email") as string | null)?.trim() || email;
+  }
+
+  async function sendMagicLink(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const currentEmail = emailFromForm(e.currentTarget);
+    setEmail(currentEmail);
     setStatus({ type: "loading-magic-link" });
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOtp({
-      email,
+      email: currentEmail,
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     });
     if (error) {
@@ -73,11 +87,13 @@ export function LoginForm() {
     }
   }
 
-  async function signInWithPassword(e: React.FormEvent) {
+  async function signInWithPassword(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const currentEmail = emailFromForm(e.currentTarget);
+    setEmail(currentEmail);
     setStatus({ type: "loading-password" });
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email: currentEmail, password });
     if (error) {
       setStatus({ type: "error", message: error.message });
       return;
@@ -120,6 +136,7 @@ export function LoginForm() {
           <form className="flex flex-col gap-3" onSubmit={sendMagicLink}>
             <input
               type="email"
+              name="email"
               required
               placeholder="כתובת אימייל"
               value={email}
@@ -135,6 +152,7 @@ export function LoginForm() {
         <form className="flex flex-col gap-3" onSubmit={signInWithPassword}>
           <input
             type="email"
+            name="email"
             required
             placeholder="כתובת אימייל"
             value={email}
