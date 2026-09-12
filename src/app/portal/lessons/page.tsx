@@ -4,6 +4,7 @@ import { getSelectedChild } from "@/lib/portal/get-selected-child";
 import { RequestLessonModal } from "./request-lesson-modal";
 import { LessonsList } from "./lessons-list";
 import { MyWaitlistSection } from "./my-waitlist-section";
+import { Card } from "@/components/ui/card";
 
 export default async function PortalLessonsPage({
   searchParams,
@@ -52,6 +53,16 @@ export default async function PortalLessonsPage({
           <RequestLessonModal subjects={subjects ?? []} studentId={current.id} />
         )}
       </div>
+
+      {(profile?.role === "student" || profile?.role === "parent") && !current && (
+        <Card className="border-status-pending bg-status-pending-bg">
+          <p className="text-sm font-medium text-status-pending">
+            {profile.role === "student"
+              ? "החשבון שלך עדיין לא מקושר לרשומת תלמיד/ה. פנה/י למורה כדי לחבר את החשבון שלך מחדש."
+              : "עדיין אין תלמיד/ה מקושר/ת לחשבון שלך. פנה/י למורה כדי לקשר את הילד/ה שלך."}
+          </p>
+        </Card>
+      )}
 
       {profile?.role !== "tutor" && <MyWaitlistSection entries={waitlistEntries ?? []} />}
 

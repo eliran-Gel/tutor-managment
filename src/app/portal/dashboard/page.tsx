@@ -138,6 +138,14 @@ export default async function PortalDashboardPage({
         </HeroBanner>
       </Reveal>
 
+      {profile?.role === "student" && !current && (
+        <Card className="border-status-pending bg-status-pending-bg">
+          <p className="text-sm font-medium text-status-pending">
+            החשבון שלך עדיין לא מקושר לרשומת תלמיד/ה. פנה/י למורה כדי לחבר את החשבון שלך מחדש.
+          </p>
+        </Card>
+      )}
+
       {profile?.role === "parent" && !current && (
         <Card className="border-status-pending bg-status-pending-bg">
           <p className="text-sm font-medium text-status-pending">
