@@ -5,6 +5,7 @@ import { getCurrentProfile, ROLE_LABELS } from "@/lib/auth/get-profile";
 import { getRecentNotifications } from "@/lib/notifications";
 import { createClient } from "@/lib/supabase/server";
 import { NewLessonModal } from "@/app/tutor/calendar/new-lesson-modal";
+import { HomeScreenTipGate } from "@/components/home-screen-tip/home-screen-tip-gate";
 
 export default async function TutorLayout({ children }: { children: ReactNode }) {
   const profile = await getCurrentProfile();
@@ -17,22 +18,25 @@ export default async function TutorLayout({ children }: { children: ReactNode })
   ]);
 
   return (
-    <AppShell
-      items={tutorNav}
-      roleLabel={profile ? ROLE_LABELS[profile.role] : "מורה פרטי"}
-      userName={profile?.full_name ?? profile?.email}
-      profileHref="/tutor/profile"
-      userId={profile?.id}
-      notifications={notifications}
-      quickAction={
-        <NewLessonModal
-          students={students ?? []}
-          subjects={subjects ?? []}
-          triggerClassName="px-3 py-1.5 text-xs"
-        />
-      }
-    >
-      {children}
-    </AppShell>
+    <>
+      {profile && <HomeScreenTipGate alreadySeen={Boolean(profile.home_screen_tip_seen_at)} />}
+      <AppShell
+        items={tutorNav}
+        roleLabel={profile ? ROLE_LABELS[profile.role] : "מורה פרטי"}
+        userName={profile?.full_name ?? profile?.email}
+        profileHref="/tutor/profile"
+        userId={profile?.id}
+        notifications={notifications}
+        quickAction={
+          <NewLessonModal
+            students={students ?? []}
+            subjects={subjects ?? []}
+            triggerClassName="px-3 py-1.5 text-xs"
+          />
+        }
+      >
+        {children}
+      </AppShell>
+    </>
   );
 }

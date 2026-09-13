@@ -6,6 +6,7 @@ import { TutorSettingsForm } from "./tutor-settings-form";
 import { SubjectsCard } from "./subjects-card";
 import { CalendarFeedCard } from "./calendar-feed-card";
 import { WorkingHoursCard } from "./working-hours-card";
+import { HomeScreenTipSettingsButton } from "@/components/home-screen-tip/home-screen-tip-settings-button";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -58,6 +59,16 @@ export default async function SettingsPage() {
           >
             ניהול חסימות ←
           </Link>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>הוספה למסך הבית</CardTitle>
+          </CardHeader>
+          <p className="mb-4 text-xs text-text-muted">
+            מדריך קצר איך להוסיף את המערכת למסך הבית באייפון, לגישה בלחיצה אחת בפעם הבאה.
+          </p>
+          <HomeScreenTipSettingsButton />
         </Card>
       </div>
     </div>

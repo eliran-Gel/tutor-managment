@@ -6,6 +6,7 @@ import { ChangePasswordForm } from "@/components/change-password-form";
 import { EditNameForm } from "@/components/edit-name-form";
 import { EditGradeSchoolForm } from "@/components/edit-grade-school-form";
 import { NotificationSettingsCard } from "@/components/notification-settings-card";
+import { HomeScreenTipSettingsButton } from "@/components/home-screen-tip/home-screen-tip-settings-button";
 
 export async function ProfilePageContent({ requestedChildId }: { requestedChildId?: string } = {}) {
   const profile = await getCurrentProfile();
@@ -52,6 +53,16 @@ export async function ProfilePageContent({ requestedChildId }: { requestedChildI
       )}
 
       <NotificationSettingsCard />
+
+      <Card className="max-w-md">
+        <CardHeader>
+          <CardTitle>הוספה למסך הבית</CardTitle>
+        </CardHeader>
+        <p className="mb-4 text-xs text-text-muted">
+          מדריך קצר איך להוסיף את המערכת למסך הבית באייפון, לגישה בלחיצה אחת בפעם הבאה.
+        </p>
+        <HomeScreenTipSettingsButton />
+      </Card>
 
       <Card className="max-w-md">
         <CardHeader>

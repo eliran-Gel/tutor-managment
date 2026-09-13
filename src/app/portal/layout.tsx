@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSelectedChild } from "@/lib/portal/get-selected-child";
 import { ChildSwitcher } from "@/components/child-switcher";
 import { RequestLessonModal } from "@/app/portal/lessons/request-lesson-modal";
+import { HomeScreenTipGate } from "@/components/home-screen-tip/home-screen-tip-gate";
 
 export default async function PortalLayout({ children }: { children: ReactNode }) {
   const profile = await getCurrentProfile();
@@ -22,28 +23,31 @@ export default async function PortalLayout({ children }: { children: ReactNode }
   ]);
 
   return (
-    <AppShell
-      items={portalNav}
-      roleLabel={profile ? ROLE_LABELS[profile.role] : "תלמיד"}
-      userName={profile?.full_name ?? profile?.email}
-      profileHref="/portal/profile"
-      userId={profile?.id}
-      notifications={notifications}
-      quickAction={
-        isStudent ? (
-          <RequestLessonModal subjects={subjects ?? []} triggerClassName="px-3 py-1.5 text-xs" />
-        ) : needsSelector ? (
-          // Suspense boundary required around useSearchParams (inside
-          // ChildSwitcher) - Next.js opts the whole route into a build
-          // error otherwise, since reading the URL client-side normally
-          // forces client-only rendering for everything below it.
-          <Suspense fallback={null}>
-            <ChildSwitcher options={linkedChildren} />
-          </Suspense>
-        ) : undefined
-      }
-    >
-      {children}
-    </AppShell>
+    <>
+      {profile && <HomeScreenTipGate alreadySeen={Boolean(profile.home_screen_tip_seen_at)} />}
+      <AppShell
+        items={portalNav}
+        roleLabel={profile ? ROLE_LABELS[profile.role] : "תלמיד"}
+        userName={profile?.full_name ?? profile?.email}
+        profileHref="/portal/profile"
+        userId={profile?.id}
+        notifications={notifications}
+        quickAction={
+          isStudent ? (
+            <RequestLessonModal subjects={subjects ?? []} triggerClassName="px-3 py-1.5 text-xs" />
+          ) : needsSelector ? (
+            // Suspense boundary required around useSearchParams (inside
+            // ChildSwitcher) - Next.js opts the whole route into a build
+            // error otherwise, since reading the URL client-side normally
+            // forces client-only rendering for everything below it.
+            <Suspense fallback={null}>
+              <ChildSwitcher options={linkedChildren} />
+            </Suspense>
+          ) : undefined
+        }
+      >
+        {children}
+      </AppShell>
+    </>
   );
 }
