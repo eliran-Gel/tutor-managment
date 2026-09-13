@@ -31,6 +31,17 @@ export function Modal({
   // used to be an instant unmount with no animation at all.
   const [mounted, setMounted] = useState(open);
   const [visible, setVisible] = useState(false);
+  // A caller that starts `open` already true (e.g. a first-visit modal
+  // shown on mount, with no user click involved) makes `mounted` start
+  // true too - reaching createPortal(..., document.body) during the
+  // server render pass, where `document` doesn't exist yet. This flips
+  // true only after real client hydration, regardless of `open`'s
+  // initial value, so the portal never renders server-side.
+  const [isBrowser, setIsBrowser] = useState(false);
+  /* eslint-disable-next-line react-hooks/set-state-in-effect -- mirrors
+     whether we've reached the client (an external fact, not derived
+     state); can only be learned inside an effect. */
+  useEffect(() => setIsBrowser(true), []);
 
   // Mirrors the open/close lifecycle of an external system (the DOM
   // transition), not state derived from props/state - it can't be
@@ -57,7 +68,7 @@ export function Modal({
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [open, onClose]);
 
-  if (!mounted) return null;
+  if (!mounted || !isBrowser) return null;
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

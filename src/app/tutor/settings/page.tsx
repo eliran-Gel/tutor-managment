@@ -25,6 +25,16 @@ export default async function SettingsPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
+            <CardTitle>הוספה למסך הבית</CardTitle>
+          </CardHeader>
+          <p className="mb-4 text-xs text-text-muted">
+            מדריך קצר איך להוסיף את המערכת למסך הבית באייפון, לגישה בלחיצה אחת בפעם הבאה.
+          </p>
+          <HomeScreenTipSettingsButton />
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>קישורים חיצוניים</CardTitle>
           </CardHeader>
           <p className="mb-4 text-xs text-text-muted">
@@ -59,16 +69,6 @@ export default async function SettingsPage() {
           >
             ניהול חסימות ←
           </Link>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>הוספה למסך הבית</CardTitle>
-          </CardHeader>
-          <p className="mb-4 text-xs text-text-muted">
-            מדריך קצר איך להוסיף את המערכת למסך הבית באייפון, לגישה בלחיצה אחת בפעם הבאה.
-          </p>
-          <HomeScreenTipSettingsButton />
         </Card>
       </div>
     </div>

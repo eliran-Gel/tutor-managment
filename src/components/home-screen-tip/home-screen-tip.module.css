@@ -18,6 +18,13 @@
   direction: rtl;
 }
 
+.welcome {
+  margin: 0 0 .4rem;
+  color: var(--ink);
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
 .intro {
   margin: 0 0 1.4rem;
   color: var(--ink-muted);

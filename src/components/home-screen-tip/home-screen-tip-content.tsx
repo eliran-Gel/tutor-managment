@@ -108,6 +108,7 @@ export function HomeScreenTipContent() {
 
   return (
     <div className={styles.wrap}>
+      <h2 className={styles.welcome}>ברוכים הבאים! 👋</h2>
       <p className={styles.intro}>
         ארבע לחיצות באייפון, בלי להוריד שום דבר מה-App Store. אחרי זה יש אייקון שנפתח ישר לתוך המערכת.
       </p>

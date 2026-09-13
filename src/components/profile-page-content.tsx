@@ -19,6 +19,16 @@ export async function ProfilePageContent({ requestedChildId }: { requestedChildI
 
       <Card className="max-w-md">
         <CardHeader>
+          <CardTitle>הוספה למסך הבית</CardTitle>
+        </CardHeader>
+        <p className="mb-4 text-xs text-text-muted">
+          מדריך קצר איך להוסיף את המערכת למסך הבית באייפון, לגישה בלחיצה אחת בפעם הבאה.
+        </p>
+        <HomeScreenTipSettingsButton />
+      </Card>
+
+      <Card className="max-w-md">
+        <CardHeader>
           <CardTitle>פרטים אישיים</CardTitle>
         </CardHeader>
         <div className="flex flex-col gap-4">
@@ -53,16 +63,6 @@ export async function ProfilePageContent({ requestedChildId }: { requestedChildI
       )}
 
       <NotificationSettingsCard />
-
-      <Card className="max-w-md">
-        <CardHeader>
-          <CardTitle>הוספה למסך הבית</CardTitle>
-        </CardHeader>
-        <p className="mb-4 text-xs text-text-muted">
-          מדריך קצר איך להוסיף את המערכת למסך הבית באייפון, לגישה בלחיצה אחת בפעם הבאה.
-        </p>
-        <HomeScreenTipSettingsButton />
-      </Card>
 
       <Card className="max-w-md">
         <CardHeader>
