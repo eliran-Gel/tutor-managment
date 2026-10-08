@@ -89,8 +89,6 @@ export default async function PortalDashboardPage({
   const quickLinks = [
     { label: "🌐 האתר שלנו", href: links?.website_url },
     { label: "💬 קהילה", href: links?.community_url },
-    { label: "💸 Bit", href: links?.bit_link },
-    { label: "📦 PayBox", href: links?.paybox_link },
   ].filter((l): l is { label: string; href: string } => Boolean(l.href));
 
   return (

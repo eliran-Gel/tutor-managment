@@ -55,26 +55,6 @@ export function BusinessLinksForm({ links }: { links: Tables<"business_links"> }
           defaultValue={links.contact_info ?? ""}
         />
       </Field>
-      <Field label="קישור ל-Bit" htmlFor="bit_link">
-        <TextInput
-          id="bit_link"
-          name="bit_link"
-          type="url"
-          placeholder="https://..."
-          defaultValue={links.bit_link ?? ""}
-          dir="ltr"
-        />
-      </Field>
-      <Field label="קישור ל-PayBox" htmlFor="paybox_link">
-        <TextInput
-          id="paybox_link"
-          name="paybox_link"
-          type="url"
-          placeholder="https://..."
-          defaultValue={links.paybox_link ?? ""}
-          dir="ltr"
-        />
-      </Field>
 
       {error && <p className="text-sm text-status-destructive">{error}</p>}
       {saved && !error && <p className="text-sm text-status-confirmed">נשמר בהצלחה.</p>}

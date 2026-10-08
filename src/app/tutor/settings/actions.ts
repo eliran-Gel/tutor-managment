@@ -18,8 +18,6 @@ const businessLinksSchema = z.object({
   website_url: optionalUrl("קישור לאתר"),
   community_url: optionalUrl("קישור לקהילה"),
   contact_info: z.string().trim().nullable(),
-  bit_link: optionalUrl("קישור ל-Bit"),
-  paybox_link: optionalUrl("קישור ל-PayBox"),
 });
 
 export async function updateBusinessLinks(formData: FormData) {
@@ -29,8 +27,6 @@ export async function updateBusinessLinks(formData: FormData) {
     website_url: formData.get("website_url"),
     community_url: formData.get("community_url"),
     contact_info: (formData.get("contact_info") as string) || null,
-    bit_link: formData.get("bit_link"),
-    paybox_link: formData.get("paybox_link"),
   });
 
   const { error } = await supabase.from("business_links").update(input).eq("id", true);
