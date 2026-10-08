@@ -14,6 +14,12 @@ export async function GET(request: NextRequest) {
     return new Response("Not found", { status: 404 });
   }
 
+  // Only the last ~6 months onward - the whole history makes the file
+  // (and every refresh) bigger for no benefit on a phone calendar.
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 180);
+  const cutoffIso = cutoff.toISOString().slice(0, 10);
+
   const supabase = createAdminClient();
   const { data: lessons } = await supabase
     .from("lessons")
@@ -21,6 +27,7 @@ export async function GET(request: NextRequest) {
       "id, date, start_time, end_time, status, delivery_mode, topic, online_url, subjects(name), lesson_participants(payment_status, students(display_name))",
     )
     .in("status", ["confirmed", "completed"])
+    .gte("date", cutoffIso)
     .order("date");
 
   const events: IcsEvent[] = (lessons ?? []).map((lesson) => {

@@ -210,6 +210,7 @@ export function AvailabilityDateField({
                 const status = monthAvailability?.[iso];
                 const dayDisabled = isDisabled(day);
                 const isSelected = value === iso;
+                const isToday = iso === toIso(new Date());
                 return (
                   <button
                     key={iso}
@@ -221,10 +222,16 @@ export function AvailabilityDateField({
                       dayDisabled
                         ? "cursor-not-allowed text-text-muted/40"
                         : "text-text-primary hover:bg-surface-muted",
-                      isSelected && "bg-brand-accent text-white hover:bg-brand-accent",
+                      isSelected && "bg-brand-accent/15 ring-1 ring-brand-accent hover:bg-brand-accent/15",
                     )}
                   >
-                    <span>{day.getDate()}</span>
+                    <span
+                      className={cn(
+                        isToday && "flex h-5 w-5 items-center justify-center rounded-full bg-brand-accent text-white",
+                      )}
+                    >
+                      {day.getDate()}
+                    </span>
                     {!dayDisabled &&
                       (status ? (
                         <span

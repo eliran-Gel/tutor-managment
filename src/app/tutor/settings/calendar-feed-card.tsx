@@ -75,6 +75,16 @@ export function CalendarFeedCard({ token }: { token: string }) {
           </div>
         </div>
 
+        <div className="rounded-control border border-brand-accent/40 bg-surface-muted px-3 py-2">
+          <p className="mb-1 text-xs font-semibold text-text-primary">שיעורים חדשים מופיעים לאט?</p>
+          <p className="text-xs text-text-secondary">
+            האייפון קובע לבד כל כמה זמן לרענן יומן במנוי (ברירת המחדל איטית). כדי לזרז: הגדרות ← יומן ←
+            חשבונות ← יומנים במנוי ← &quot;שיעורים - אלירן גלברג&quot; ← רענון ← &quot;כל 5 דקות&quot;. וגם:
+            לא להיות במצב חיסכון בסוללה. כדי לראות שינוי מיד: לפתוח את אפליקציית היומן ולמשוך את המסך
+            למטה (רענון ידני).
+          </p>
+        </div>
+
         <p className="text-xs text-status-destructive">
           הקישור הזה אישי - אל תשתפו אותו, כל מי שמחזיק בו יכול לראות את לוח הזמנים שלכם.
         </p>

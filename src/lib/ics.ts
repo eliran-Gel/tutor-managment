@@ -48,8 +48,10 @@ export function buildIcsFeed(calendarName: string, events: IcsEvent[]) {
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     buildLine("X-WR-CALNAME", escapeText(calendarName)),
-    "REFRESH-INTERVAL;VALUE=DURATION:PT1H",
-    "X-PUBLISHED-TTL:PT1H",
+    // iOS ignores these (its own per-calendar "Refresh" setting wins) but
+    // Google/Outlook and some other clients honour them, so keep them short.
+    "REFRESH-INTERVAL;VALUE=DURATION:PT5M",
+    "X-PUBLISHED-TTL:PT5M",
   ];
 
   for (const event of events) {
