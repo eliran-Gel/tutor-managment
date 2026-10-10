@@ -37,7 +37,6 @@ export async function updateBusinessLinks(formData: FormData) {
 }
 
 const tutorSettingsSchema = z.object({
-  payment_reminder_days: z.coerce.number().int().positive(),
   default_lesson_duration: z.coerce.number().int().positive(),
 });
 
@@ -45,7 +44,6 @@ export async function updateTutorSettings(formData: FormData) {
   const { supabase } = await requireTutor();
 
   const input = tutorSettingsSchema.parse({
-    payment_reminder_days: formData.get("payment_reminder_days"),
     default_lesson_duration: formData.get("default_lesson_duration"),
   });
 

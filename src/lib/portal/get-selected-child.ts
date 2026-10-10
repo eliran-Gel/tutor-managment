@@ -1,4 +1,5 @@
 import type { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // A parent can have more than one linked child (parent_students is many-
 // to-many) - every portal page needs to agree on exactly one of them at a
@@ -25,6 +26,37 @@ export type SelectedChild = {
 
 const CHILD_COLUMNS = "id, display_name, grade, grade_year, school_name";
 
+/**
+ * A student login whose students row was deleted (the tutor removed the
+ * student but not the account) would otherwise be stuck forever on "your
+ * account isn't linked" and unable to book. Gives it a fresh row, the same
+ * one signup would have created. Safe if the layout and the page both run
+ * this in the same request: students.profile_id is unique and the second
+ * insert is ignored.
+ */
+async function recreateOwnStudent(profileId: string): Promise<PortalChild | null> {
+  const admin = createAdminClient();
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("full_name, email, role")
+    .eq("id", profileId)
+    .single();
+  if (!profile || profile.role !== "student") return null;
+
+  await admin.from("students").upsert(
+    {
+      profile_id: profileId,
+      is_guest: false,
+      claimed_at: new Date().toISOString(),
+      display_name: (profile.full_name ?? profile.email ?? "תלמיד/ה").slice(0, 40),
+    },
+    { onConflict: "profile_id", ignoreDuplicates: true },
+  );
+
+  const { data } = await admin.from("students").select(CHILD_COLUMNS).eq("profile_id", profileId).maybeSingle();
+  return data;
+}
+
 export async function getSelectedChild(
   supabase: Awaited<ReturnType<typeof createClient>>,
   profile: { id: string; role: "tutor" | "parent" | "student" } | null,
@@ -38,7 +70,8 @@ export async function getSelectedChild(
       .select(CHILD_COLUMNS)
       .eq("profile_id", profile.id)
       .maybeSingle();
-    return { current: data, children: data ? [data] : [], needsSelector: false };
+    const own = data ?? (await recreateOwnStudent(profile.id));
+    return { current: own, children: own ? [own] : [], needsSelector: false };
   }
 
   if (profile.role === "parent") {

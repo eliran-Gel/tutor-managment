@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SignupForm } from "./signup-form";
 
 export default function SignupPage() {
@@ -16,7 +17,15 @@ export default function SignupPage() {
         </div>
 
         {isConfigured ? (
-          <SignupForm />
+          <>
+            <SignupForm />
+            <p className="mt-4 text-center text-xs text-text-muted">
+              בהרשמה אני מאשר/ת את{" "}
+              <Link href="/privacy" className="font-medium text-text-secondary underline">
+                מדיניות הפרטיות
+              </Link>
+            </p>
+          </>
         ) : (
           <p className="rounded-control bg-status-pending-bg px-4 py-3 text-sm text-status-pending">
             החיבור ל-Supabase עדיין לא הוגדר. הוסיפו את משתני הסביבה בקובץ{" "}

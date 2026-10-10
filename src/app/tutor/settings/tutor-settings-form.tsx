@@ -27,20 +27,6 @@ export function TutorSettingsForm({ settings }: { settings: Tables<"tutor_settin
         });
       }}
     >
-      <Field label="תזכורת תשלום אחרי (ימים)" htmlFor="payment_reminder_days">
-        <TextInput
-          id="payment_reminder_days"
-          name="payment_reminder_days"
-          type="number"
-          min={1}
-          defaultValue={settings.payment_reminder_days}
-        />
-      </Field>
-      <p className="-mt-2 text-xs text-text-muted">
-        לאחר כמה ימים משיעור שלא שולם המערכת תציג אותו כ&quot;דורש תשומת לב&quot; בלוח הבקרה. אין
-        שליחת תזכורת אוטומטית — ההחלטה תמיד בידיך.
-      </p>
-
       <Field label="משך שיעור ברירת מחדל (דקות)" htmlFor="default_lesson_duration">
         <TextInput
           id="default_lesson_duration"
