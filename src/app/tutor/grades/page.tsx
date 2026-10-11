@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatIsoDate } from "@/lib/dates/format";
+import { UrlSearchBox } from "@/components/ui/search-box";
+import { containsPattern, parseSearchQuery } from "@/lib/search";
 
 function toneFor(score: number, maxScore: number): "confirmed" | "pending" | "destructive" {
   const pct = maxScore > 0 ? (score / maxScore) * 100 : 0;
@@ -11,13 +13,20 @@ function toneFor(score: number, maxScore: number): "confirmed" | "pending" | "de
   return "destructive";
 }
 
-export default async function TutorGradesPage() {
+export default async function TutorGradesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const search = parseSearchQuery((await searchParams).q);
   const supabase = await createClient();
-  const { data: grades } = await supabase
+  let query = supabase
     .from("grades")
-    .select("id, title, score, max_score, exam_date, note, students(id, display_name), subjects(name)")
+    .select("id, title, score, max_score, exam_date, note, students!inner(id, display_name), subjects(name)")
     .order("exam_date", { ascending: false })
     .limit(100);
+  if (search) query = query.ilike("students.display_name", containsPattern(search));
+  const { data: grades } = await query;
 
   return (
     <div className="flex flex-col gap-6">
@@ -26,9 +35,15 @@ export default async function TutorGradesPage() {
         <p className="text-sm text-text-secondary">כל הציונים שנרשמו, מהחדש לישן.</p>
       </div>
 
+      <UrlSearchBox initialValue={search} placeholder="חיפוש לפי שם תלמיד/ה" />
+
       {grades && grades.length === 0 && (
         <Card>
-          <p className="text-sm text-text-muted">עדיין לא נרשמו ציונים. אפשר להוסיף מתוך עמוד התלמיד/ה.</p>
+          <p className="text-sm text-text-muted">
+            {search
+              ? `לא נמצאו ציונים לתלמיד/ה בשם "${search}".`
+              : "עדיין לא נרשמו ציונים. אפשר להוסיף מתוך עמוד התלמיד/ה."}
+          </p>
         </Card>
       )}
 

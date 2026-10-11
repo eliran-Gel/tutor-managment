@@ -3,14 +3,26 @@ import { createClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatIsoDate, formatIsoDateWithWeekday } from "@/lib/dates/format";
+import { UrlSearchBox } from "@/components/ui/search-box";
+import { containsPattern, parseSearchQuery } from "@/lib/search";
 
-export default async function TutorHomeworkPage() {
+export default async function TutorHomeworkPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const search = parseSearchQuery((await searchParams).q);
   const supabase = await createClient();
-  const { data: homework } = await supabase
+  // !inner so the student-name filter below removes whole rows instead of
+  // just blanking the embedded student - and it's applied in the query (not
+  // on the fetched rows) so an older match isn't lost to the 100-row cap.
+  let query = supabase
     .from("homework")
-    .select("id, description, due_date, is_done, students(display_name), lessons(id, date, subjects(name))")
+    .select("id, description, due_date, is_done, students!inner(display_name), lessons(id, date, subjects(name))")
     .order("created_at", { ascending: false })
     .limit(100);
+  if (search) query = query.ilike("students.display_name", containsPattern(search));
+  const { data: homework } = await query;
 
   return (
     <div className="flex flex-col gap-6">
@@ -19,9 +31,13 @@ export default async function TutorHomeworkPage() {
         <p className="text-sm text-text-secondary">כל שיעורי הבית שהוקצו, מהחדש לישן.</p>
       </div>
 
+      <UrlSearchBox initialValue={search} placeholder="חיפוש לפי שם תלמיד/ה" />
+
       {homework && homework.length === 0 && (
         <Card>
-          <p className="text-sm text-text-muted">עדיין לא הוקצו שיעורי בית.</p>
+          <p className="text-sm text-text-muted">
+            {search ? `לא נמצאו שיעורי בית לתלמיד/ה בשם "${search}".` : "עדיין לא הוקצו שיעורי בית."}
+          </p>
         </Card>
       )}
 

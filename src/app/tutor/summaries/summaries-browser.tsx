@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { SearchField } from "@/components/ui/search-box";
 import { FileViewerModal, type ViewableFile } from "@/components/file-viewer-modal";
 import { formatIsoDateWithWeekday } from "@/lib/dates/format";
 
@@ -23,6 +24,7 @@ export type StudentSummaries = {
 
 export function SummariesBrowser({ students }: { students: StudentSummaries[] }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
   const [viewingFiles, setViewingFiles] = useState<SummaryFile[]>([]);
   const [viewingIndex, setViewingIndex] = useState<number | null>(null);
 
@@ -37,9 +39,19 @@ export function SummariesBrowser({ students }: { students: StudentSummaries[] })
       );
     }
 
+    const term = search.trim().toLowerCase();
+    const visible = term ? students.filter((s) => s.displayName.toLowerCase().includes(term)) : students;
+
     return (
+      <div className="flex flex-col gap-4">
+        <SearchField value={search} onChange={setSearch} placeholder="חיפוש תלמיד/ה לפי שם" />
+        {visible.length === 0 && (
+          <Card>
+            <p className="text-sm text-text-muted">{`לא נמצאו תלמידים בשם "${search.trim()}".`}</p>
+          </Card>
+        )}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {students.map((student) => (
+        {visible.map((student) => (
           <Card
             key={student.id}
             role="button"
@@ -56,6 +68,7 @@ export function SummariesBrowser({ students }: { students: StudentSummaries[] })
             </div>
           </Card>
         ))}
+      </div>
       </div>
     );
   }

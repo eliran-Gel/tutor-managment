@@ -3,15 +3,18 @@ import { createClient } from "@/lib/supabase/server";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatGrade } from "@/lib/grades";
+import { UrlSearchBox } from "@/components/ui/search-box";
+import { containsPattern, parseSearchQuery } from "@/lib/search";
 import { AddStudentModal } from "./add-student-modal";
 
 export default async function StudentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ archived?: string }>;
+  searchParams: Promise<{ archived?: string; q?: string }>;
 }) {
-  const { archived } = await searchParams;
+  const { archived, q } = await searchParams;
   const showArchived = archived === "1";
+  const search = parseSearchQuery(q);
 
   const supabase = await createClient();
   let query = supabase
@@ -20,6 +23,7 @@ export default async function StudentsPage({
     .order("display_name");
 
   query = showArchived ? query.not("archived_at", "is", null) : query.is("archived_at", null);
+  if (search) query = query.ilike("display_name", containsPattern(search));
 
   const { data: students, error } = await query;
 
@@ -43,6 +47,8 @@ export default async function StudentsPage({
         </div>
       </div>
 
+      <UrlSearchBox initialValue={search} placeholder="חיפוש תלמיד/ה לפי שם" />
+
       {error && (
         <p className="text-sm text-status-destructive">שגיאה בטעינת התלמידים: {error.message}</p>
       )}
@@ -50,7 +56,11 @@ export default async function StudentsPage({
       {students && students.length === 0 && (
         <Card>
           <p className="text-sm text-text-muted">
-            {showArchived ? "אין תלמידים בארכיון." : "עדיין אין תלמידים. הוסיפו את התלמיד/ה הראשון/ה."}
+            {search
+              ? `לא נמצאו תלמידים בשם "${search}".`
+              : showArchived
+                ? "אין תלמידים בארכיון."
+                : "עדיין אין תלמידים. הוסיפו את התלמיד/ה הראשון/ה."}
           </p>
         </Card>
       )}
