@@ -6,11 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LESSON_STATUS_LABELS, LESSON_STATUS_TONE, DELIVERY_MODE_LABELS, type LessonStatus } from "@/lib/lessons";
 import { formatIsoDate } from "@/lib/dates/format";
-import {
-  relativeMonthBucket,
-  RELATIVE_MONTH_BUCKET_LABELS,
-  type RelativeMonthBucket,
-} from "@/lib/relative-month-buckets";
 import { cn } from "@/lib/cn";
 import { RequestChangeModal } from "./request-change-modal";
 import { RequestLessonModal } from "./request-lesson-modal";
@@ -21,15 +16,22 @@ type LessonRow = Tables<"lessons"> & { subjects: { name: string } | null };
 
 const DELETABLE_STATUSES = new Set(["rejected", "cancelled"]);
 
-const BUCKET_ORDER: (RelativeMonthBucket | "all")[] = [
-  "all",
-  "future",
-  "this_month",
-  "last_month",
-  "2_months_ago",
-  "3_months_ago",
-  "older",
-];
+// How far back to look. Upcoming lessons are never hidden by these - a range
+// only trims the past.
+const PERIOD_OPTIONS = [
+  { key: "month", label: "חודש אחרון", days: 30 },
+  { key: "3months", label: "3 חודשים", days: 91 },
+  { key: "6months", label: "חצי שנה", days: 183 },
+  { key: "year", label: "שנה", days: 365 },
+  { key: "all", label: "מאז ומתמיד", days: null },
+] as const;
+type PeriodKey = (typeof PERIOD_OPTIONS)[number]["key"];
+
+function cutoffIso(days: number) {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 function CancelRequestButton({ lessonId }: { lessonId: string }) {
   const [confirming, setConfirming] = useState(false);
@@ -112,18 +114,17 @@ function DeleteHistoryButton({ lessonId }: { lessonId: string }) {
 }
 
 export function LessonsList({ lessons, subjects, isTutor }: { lessons: LessonRow[]; subjects: Tables<"subjects">[]; isTutor: boolean }) {
-  const [bucketFilter, setBucketFilter] = useState<RelativeMonthBucket | "all">("all");
+  const [period, setPeriod] = useState<PeriodKey>("all");
   const [statusFilter, setStatusFilter] = useState<LessonStatus | "all">("all");
 
-  const bucketsPresent = useMemo(() => new Set(lessons.map((l) => relativeMonthBucket(l.date))), [lessons]);
   const statusesPresent = useMemo(() => Array.from(new Set(lessons.map((l) => l.status))), [lessons]);
-  const filtered = useMemo(
-    () =>
-      lessons
-        .filter((l) => bucketFilter === "all" || relativeMonthBucket(l.date) === bucketFilter)
-        .filter((l) => statusFilter === "all" || l.status === statusFilter),
-    [lessons, bucketFilter, statusFilter],
-  );
+  const filtered = useMemo(() => {
+    const days = PERIOD_OPTIONS.find((p) => p.key === period)?.days ?? null;
+    const cutoff = days === null ? null : cutoffIso(days);
+    return lessons
+      .filter((l) => cutoff === null || l.date >= cutoff)
+      .filter((l) => statusFilter === "all" || l.status === statusFilter);
+  }, [lessons, period, statusFilter]);
 
   if (lessons.length === 0) {
     return (
@@ -136,19 +137,19 @@ export function LessonsList({ lessons, subjects, isTutor }: { lessons: LessonRow
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2">
-        {BUCKET_ORDER.filter((b) => b === "all" || bucketsPresent.has(b)).map((bucket) => (
+        {PERIOD_OPTIONS.map((option) => (
           <button
-            key={bucket}
+            key={option.key}
             type="button"
-            onClick={() => setBucketFilter(bucket)}
+            onClick={() => setPeriod(option.key)}
             className={cn(
               "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-              bucketFilter === bucket
+              period === option.key
                 ? "border-brand-highlight-strong bg-brand-highlight font-semibold text-text-primary"
                 : "border-border text-text-secondary hover:bg-surface-muted",
             )}
           >
-            {bucket === "all" ? "כל התקופות" : RELATIVE_MONTH_BUCKET_LABELS[bucket]}
+            {option.label}
           </button>
         ))}
       </div>
@@ -184,6 +185,11 @@ export function LessonsList({ lessons, subjects, isTutor }: { lessons: LessonRow
       </div>
 
       <div className="flex flex-col gap-2">
+        {filtered.length === 0 && (
+          <Card>
+            <p className="text-sm text-text-muted">אין שיעורים בתקופה או בסטטוס שנבחרו.</p>
+          </Card>
+        )}
         {filtered.map((lesson) => {
           const isPast = new Date(`${lesson.date}T${lesson.start_time}`) < new Date();
           return (
