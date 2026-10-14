@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { PasswordInput } from "@/components/ui/password-input";
+import { useVerificationWatcher } from "@/lib/auth/use-verification-watcher";
 
 type Status =
   | { type: "idle" }
@@ -40,6 +41,20 @@ export function LoginForm() {
     }
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
+
+  // After "a link was sent": once the link is used (this browser), the
+  // session it created is already in our cookies - continue into the app from
+  // this screen instead of the link opening the app by itself.
+  useVerificationWatcher(status.type === "sent", async () => {
+    const supabase = createClient();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session) return false;
+    const { data: profile } = await supabase.from("profiles").select("role").eq("id", session.user.id).single();
+    window.location.href = profile?.role === "tutor" ? "/tutor/dashboard" : "/portal/dashboard";
+    return true;
+  });
 
   async function signInWithGoogle() {
     setStatus({ type: "loading-google" });
@@ -129,9 +144,10 @@ export function LoginForm() {
 
       {mode === "magic-link" ? (
         status.type === "sent" ? (
-          <p className="rounded-control bg-status-confirmed-bg px-4 py-3 text-sm text-status-confirmed">
-            נשלח קישור התחברות לכתובת {email}. בדקו את תיבת הדואר.
-          </p>
+          <div className="flex flex-col gap-2 rounded-control bg-status-confirmed-bg px-4 py-3 text-sm text-status-confirmed">
+            <p>נשלח קישור התחברות לכתובת {email}. בדקו את תיבת הדואר.</p>
+            <p className="text-xs opacity-80">אפשר להישאר במסך הזה - אחרי הלחיצה על הקישור תיכנסו למערכת אוטומטית.</p>
+          </div>
         ) : (
           <form className="flex flex-col gap-3" onSubmit={sendMagicLink}>
             <input

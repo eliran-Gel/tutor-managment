@@ -7,6 +7,7 @@ import { Field, TextInput } from "@/components/ui/field";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Button } from "@/components/ui/button";
 import { GRADE_OPTIONS, currentSchoolYear } from "@/lib/grades";
+import { useVerificationWatcher } from "@/lib/auth/use-verification-watcher";
 
 type Status =
   | { type: "idle" }
@@ -58,11 +59,25 @@ export function SignupForm() {
     }
   }
 
+  // Once the confirmation link has been used (in any tab or on any device),
+  // the password that was just chosen finally works - sign in with it right
+  // here instead of making the person log in again by hand.
+  useVerificationWatcher(status.type === "sent", async () => {
+    const { error } = await createClient().auth.signInWithPassword({ email, password });
+    if (error) return false;
+    // Hard navigation: the session was just written client-side and the
+    // dashboard's server components need a fresh request to see it.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+    window.location.href = "/portal/dashboard";
+    return true;
+  });
+
   if (status.type === "sent") {
     return (
-      <p className="rounded-control bg-status-confirmed-bg px-4 py-3 text-sm text-status-confirmed">
-        נשלח קישור אישור לכתובת {email}. בדקו את תיבת הדואר ולחצו על הקישור כדי לסיים את ההרשמה.
-      </p>
+      <div className="flex flex-col gap-2 rounded-control bg-status-confirmed-bg px-4 py-3 text-sm text-status-confirmed">
+        <p>נשלח קישור אישור לכתובת {email}. בדקו את תיבת הדואר (וגם בספאם) ולחצו על הקישור.</p>
+        <p className="text-xs opacity-80">אפשר להישאר במסך הזה - ברגע שהמייל יאומת תיכנסו למערכת אוטומטית.</p>
+      </div>
     );
   }
 
