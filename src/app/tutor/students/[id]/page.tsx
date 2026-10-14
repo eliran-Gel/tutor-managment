@@ -10,6 +10,8 @@ import { ParentLinksCard } from "./parent-links-card";
 import { ClaimGuestCard } from "./claim-guest-card";
 import { LessonHistoryCard } from "./lesson-history-card";
 import { GradesCard } from "./grades-card";
+import { StudentFilesCard } from "./student-files-card";
+import { getSignedFileUrl } from "@/lib/lesson-files";
 
 export default async function StudentDetailPage({
   params,
@@ -32,6 +34,15 @@ export default async function StudentDetailPage({
     .from("parent_students")
     .select("id, parent_profile_id, profiles:parent_profile_id (full_name, email)")
     .eq("student_id", id);
+
+  const { data: studentFileRows } = await supabase
+    .from("student_files")
+    .select("id, file_name, storage_path, mime_type, visible_to_students")
+    .eq("student_id", id)
+    .order("created_at", { ascending: false });
+  const studentFiles = await Promise.all(
+    (studentFileRows ?? []).map(async (f) => ({ ...f, signedUrl: await getSignedFileUrl(f.storage_path) })),
+  );
 
   const [{ data: subjects }, { data: grades }] = await Promise.all([
     supabase.from("subjects").select("id, name").eq("active", true).order("name"),
@@ -71,6 +82,8 @@ export default async function StudentDetailPage({
       </div>
 
       <LessonHistoryCard studentId={student.id} />
+
+      <StudentFilesCard studentId={student.id} files={studentFiles} />
 
       <GradesCard studentId={student.id} subjects={subjects ?? []} grades={grades ?? []} />
 

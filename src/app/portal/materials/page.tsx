@@ -27,9 +27,36 @@ export default async function PortalMaterialsPage({
         .order("created_at", { ascending: false })
     : { data: [] };
 
-  const withUrls = await Promise.all(
-    (materials ?? []).map(async (m) => ({ ...m, signedUrl: await getSignedFileUrl(m.storage_path) })),
+  // Files the tutor shared with this student directly (not through a
+  // lesson) - RLS only returns the visible ones for this student/parent.
+  const { data: personal } = current
+    ? await supabase
+        .from("student_files")
+        .select("id, file_name, storage_path, mime_type, created_at")
+        .eq("student_id", current.id)
+    : { data: [] };
+
+  const lessonMaterials = await Promise.all(
+    (materials ?? []).map(async (m) => ({
+      id: m.id,
+      file_name: m.file_name,
+      mime_type: m.mime_type,
+      lessons: { date: m.lessons.date, subjects: m.lessons.subjects },
+      signedUrl: await getSignedFileUrl(m.storage_path),
+      sortKey: m.lessons.date,
+    })),
   );
+  const personalMaterials = await Promise.all(
+    (personal ?? []).map(async (f) => ({
+      id: f.id,
+      file_name: f.file_name,
+      mime_type: f.mime_type,
+      lessons: null,
+      signedUrl: await getSignedFileUrl(f.storage_path),
+      sortKey: f.created_at.slice(0, 10),
+    })),
+  );
+  const withUrls = [...personalMaterials, ...lessonMaterials].sort((a, b) => b.sortKey.localeCompare(a.sortKey));
 
   return (
     <div className="flex flex-col gap-6">

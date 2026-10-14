@@ -59,6 +59,27 @@ html {
   }
 }
 
+/* Native controls (the open <select> list, scrollbars, date pickers) draw
+   themselves with the browser's own colors unless told which theme they're
+   on - in dark mode that left the open dropdown with dark text on a dark
+   list, so the options looked blank. Mirrors the same light/dark switch
+   tokens.css uses. */
+:root {
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+  }
+}
+select option {
+  background-color: var(--surface);
+  color: var(--text-primary);
+}
+
 body {
   background-color: var(--background);
   /* Same diagonal-stripe texture in both themes (see --background-grid in

@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.15"
   }
   graphql_public: {
     Tables: {
@@ -835,6 +835,51 @@ export type Database = {
           },
         ]
       }
+      student_files: {
+        Row: {
+          created_at: string
+          file_name: string
+          id: string
+          mime_type: string
+          storage_path: string
+          student_id: string
+          visible_to_students: boolean
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          id?: string
+          mime_type?: string
+          storage_path: string
+          student_id: string
+          visible_to_students?: boolean
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          id?: string
+          mime_type?: string
+          storage_path?: string
+          student_id?: string
+          visible_to_students?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_files_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_files_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_activity"
+            referencedColumns: ["student_id"]
+          },
+        ]
+      }
       student_internal_notes: {
         Row: {
           id: string
@@ -1110,6 +1155,29 @@ export type Database = {
       }
     }
     Functions: {
+      add_student_file: {
+        Args: {
+          p_file_name: string
+          p_mime_type: string
+          p_storage_path: string
+          p_student_id: string
+        }
+        Returns: {
+          created_at: string
+          file_name: string
+          id: string
+          mime_type: string
+          storage_path: string
+          student_id: string
+          visible_to_students: boolean
+        }
+        SetofOptions: {
+          from: "*"
+          to: "student_files"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       approve_change_request: {
         Args: { p_request_id: string }
         Returns: {
