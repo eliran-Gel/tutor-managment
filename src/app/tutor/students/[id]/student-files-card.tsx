@@ -1,24 +1,18 @@
 "use client";
 
 import { useRef, useState, useTransition, type ChangeEvent } from "react";
+import Link from "next/link";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
 import { FileViewerModal } from "@/components/file-viewer-modal";
-import {
-  addStudentFile,
-  createStudentFileTicket,
-  deleteStudentFile,
-  toggleStudentFileVisibility,
-} from "./student-files-actions";
+import { uploadMaterialFile } from "@/app/tutor/materials/upload-material";
 
 type FileRow = {
   id: string;
   file_name: string;
-  storage_path: string;
   mime_type: string;
-  visible_to_students: boolean;
+  all_students: boolean;
   signedUrl: string | null;
 };
 
@@ -30,60 +24,33 @@ type UploadStatus =
 
 const ACCEPT = "image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt";
 
-/** Materials shared with this student (and their parents) permanently -
- * not tied to any lesson, unlike the lesson page's own file section. */
+/** The materials this student can see (shared with them specifically, or
+ * with everyone), plus a quick way to share a new file with just them.
+ * Changing who else has a file, or deleting it, happens on the materials
+ * page - the same file is shared with several students there. */
 export function StudentFilesCard({ studentId, files }: { studentId: string; files: FileRow[] }) {
   const [upload, setUpload] = useState<UploadStatus>({ phase: "idle" });
-  const [rowError, setRowError] = useState<string | null>(null);
   const [viewingIndex, setViewingIndex] = useState<number | null>(null);
   const [isPending, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  async function uploadFile(file: File) {
-    setUpload({ phase: "uploading", fileName: file.name });
-    try {
-      const ticket = await createStudentFileTicket(studentId, file.name, file.size);
-      const storagePath = "storagePath" in ticket ? ticket.storagePath : undefined;
-      const token = "token" in ticket ? ticket.token : undefined;
-      if (!storagePath || !token) {
-        setUpload({
-          phase: "error",
-          message: "error" in ticket && ticket.error ? ticket.error : "לא ניתן היה להתחיל את ההעלאה",
-        });
-        return;
-      }
-
-      const { error: uploadError } = await createClient().storage
-        .from("lesson-files")
-        .uploadToSignedUrl(storagePath, token, file);
-      if (uploadError) {
-        setUpload({ phase: "error", message: uploadError.message });
-        return;
-      }
-
-      const result = await addStudentFile(studentId, storagePath, file.name, file.type);
-      if ("error" in result && result.error) {
-        setUpload({ phase: "error", message: result.error });
-        return;
-      }
-
-      setUpload({ phase: "success", fileName: file.name });
-      setTimeout(() => {
-        setUpload((current) => (current.phase === "success" ? { phase: "idle" } : current));
-      }, 3000);
-    } catch {
-      setUpload({ phase: "error", message: "ההעלאה נכשלה - נסה/י שוב, ייתכן שהחיבור לאינטרנט לא יציב." });
-    }
-  }
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    startTransition(() => uploadFile(file));
+    startTransition(async () => {
+      setUpload({ phase: "uploading", fileName: file.name });
+      const error = await uploadMaterialFile(file, { all: false, studentIds: [studentId] });
+      if (error) {
+        setUpload({ phase: "error", message: error });
+        return;
+      }
+      setUpload({ phase: "success", fileName: file.name });
+      setTimeout(() => setUpload((cur) => (cur.phase === "success" ? { phase: "idle" } : cur)), 3000);
+    });
   }
 
-  const isBusy = isPending || upload.phase === "uploading";
+  const busy = isPending || upload.phase === "uploading";
 
   return (
     <Card>
@@ -91,11 +58,15 @@ export function StudentFilesCard({ studentId, files }: { studentId: string; file
         <CardTitle>חומרי עזר לתלמיד/ה</CardTitle>
       </CardHeader>
       <p className="mb-4 text-sm text-text-muted">
-        קבצים שיופיעו תמיד בעמוד &quot;חומרי עזר&quot; של התלמיד/ה (וההורים), בלי קשר לשיעור מסוים.
+        קבצים שמשותפים עם התלמיד/ה (וההורים), בלי קשר לשיעור. לשיתוף עם עוד תלמידים, להסרה או למחיקה -{" "}
+        <Link href="/tutor/materials" className="font-medium text-brand-accent hover:underline">
+          עמוד חומרי העזר
+        </Link>
+        .
       </p>
 
       {files.length === 0 ? (
-        <p className="text-sm text-text-muted">עדיין לא הועלו חומרי עזר לתלמיד/ה הזה.</p>
+        <p className="text-sm text-text-muted">עדיין אין חומרי עזר משותפים עם התלמיד/ה הזה.</p>
       ) : (
         <div className="flex flex-col gap-2">
           {files.map((f, i) => (
@@ -103,56 +74,20 @@ export function StudentFilesCard({ studentId, files }: { studentId: string; file
               key={f.id}
               className="flex flex-wrap items-center justify-between gap-2 rounded-control border border-border px-3 py-2"
             >
-              <div className="min-w-0">
-                {f.signedUrl ? (
-                  <button
-                    type="button"
-                    onClick={() => setViewingIndex(i)}
-                    className="truncate text-sm font-medium text-brand-accent hover:underline"
-                  >
-                    {f.file_name}
-                  </button>
-                ) : (
-                  <span className="truncate text-sm text-text-muted">{f.file_name}</span>
-                )}
-                <div className="mt-0.5">
-                  <Badge tone={f.visible_to_students ? "confirmed" : "neutral"}>
-                    {f.visible_to_students ? "גלוי לתלמיד/ה" : "מוסתר"}
-                  </Badge>
-                </div>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <Button
+              {f.signedUrl ? (
+                <button
                   type="button"
-                  variant="secondary"
-                  className="text-xs"
-                  disabled={isBusy}
-                  onClick={() =>
-                    startTransition(async () => {
-                      setRowError(null);
-                      const result = await toggleStudentFileVisibility(f.id, !f.visible_to_students, studentId);
-                      if ("error" in result && result.error) setRowError("הפעולה נכשלה - נסה/י שוב.");
-                    })
-                  }
+                  onClick={() => setViewingIndex(i)}
+                  className="min-w-0 truncate text-sm font-medium text-brand-accent hover:underline"
                 >
-                  {f.visible_to_students ? "הסתרה" : "הצגה"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  className="text-xs"
-                  disabled={isBusy}
-                  onClick={() =>
-                    startTransition(async () => {
-                      setRowError(null);
-                      const result = await deleteStudentFile(f.id, f.storage_path, studentId);
-                      if ("error" in result && result.error) setRowError("הפעולה נכשלה - נסה/י שוב.");
-                    })
-                  }
-                >
-                  מחיקה
-                </Button>
-              </div>
+                  {f.file_name}
+                </button>
+              ) : (
+                <span className="min-w-0 truncate text-sm text-text-muted">{f.file_name}</span>
+              )}
+              <Badge tone={f.all_students ? "confirmed" : "neutral"}>
+                {f.all_students ? "משותף עם כולם" : "משותף עם התלמיד/ה"}
+              </Badge>
             </div>
           ))}
         </div>
@@ -160,10 +95,9 @@ export function StudentFilesCard({ studentId, files }: { studentId: string; file
 
       <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
         <input ref={fileInputRef} type="file" accept={ACCEPT} onChange={handleFileChange} className="hidden" />
-        <Button type="button" disabled={isBusy} onClick={() => fileInputRef.current?.click()}>
-          {isBusy ? "מעלה..." : "העלאת חומר עזר"}
+        <Button type="button" disabled={busy} onClick={() => fileInputRef.current?.click()}>
+          {busy ? "מעלה..." : "העלאת חומר עזר לתלמיד/ה"}
         </Button>
-
         <div className="w-full" aria-live="polite">
           {upload.phase === "uploading" && (
             <p className="flex items-center gap-2 text-sm text-text-secondary">
@@ -172,12 +106,9 @@ export function StudentFilesCard({ studentId, files }: { studentId: string; file
             </p>
           )}
           {upload.phase === "success" && (
-            <p className="flex items-center gap-2 text-sm font-medium text-status-confirmed">
-              <span aria-hidden>✓</span> הועלה בהצלחה: &quot;{upload.fileName}&quot;
-            </p>
+            <p className="text-sm font-medium text-status-confirmed">✓ הועלה ושותף: &quot;{upload.fileName}&quot;</p>
           )}
           {upload.phase === "error" && <p className="text-sm text-status-destructive">{upload.message}</p>}
-          {rowError && <p className="text-sm text-status-destructive">{rowError}</p>}
         </div>
       </div>
 

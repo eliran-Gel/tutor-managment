@@ -27,14 +27,24 @@ export default async function PortalMaterialsPage({
         .order("created_at", { ascending: false })
     : { data: [] };
 
-  // Files the tutor shared with this student directly (not through a
-  // lesson) - RLS only returns the visible ones for this student/parent.
-  const { data: personal } = current
-    ? await supabase
-        .from("student_files")
-        .select("id, file_name, storage_path, mime_type, created_at")
-        .eq("student_id", current.id)
-    : { data: [] };
+  // Files the tutor shared outside of a lesson: with everyone, or with this
+  // child specifically. Filtered by the selected child explicitly - a parent
+  // with two children can see both children's recipient rows through RLS,
+  // and must not see one child's private file on the other's page.
+  const [{ data: everyoneRows }, { data: ownRows }] = current
+    ? await Promise.all([
+        supabase.from("materials").select("id, file_name, storage_path, mime_type, created_at").eq("all_students", true),
+        supabase
+          .from("material_recipients")
+          .select("materials(id, file_name, storage_path, mime_type, created_at)")
+          .eq("student_id", current.id),
+      ])
+    : [{ data: [] }, { data: [] }];
+  const personalById = new Map<string, { id: string; file_name: string; storage_path: string; mime_type: string; created_at: string }>();
+  for (const m of [...(everyoneRows ?? []), ...(ownRows ?? []).map((r) => r.materials)]) {
+    if (m) personalById.set(m.id, m);
+  }
+  const personal = Array.from(personalById.values());
 
   // One signing request for every file on the page, not one per file.
   const allUrls = await getSignedFileUrls([

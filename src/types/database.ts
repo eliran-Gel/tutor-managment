@@ -677,6 +677,70 @@ export type Database = {
         }
         Relationships: []
       }
+      material_recipients: {
+        Row: {
+          material_id: string
+          student_id: string
+        }
+        Insert: {
+          material_id: string
+          student_id: string
+        }
+        Update: {
+          material_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_recipients_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_recipients_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_recipients_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "v_student_activity"
+            referencedColumns: ["student_id"]
+          },
+        ]
+      }
+      materials: {
+        Row: {
+          all_students: boolean
+          created_at: string
+          file_name: string
+          id: string
+          mime_type: string
+          storage_path: string
+        }
+        Insert: {
+          all_students?: boolean
+          created_at?: string
+          file_name: string
+          id?: string
+          mime_type?: string
+          storage_path: string
+        }
+        Update: {
+          all_students?: boolean
+          created_at?: string
+          file_name?: string
+          id?: string
+          mime_type?: string
+          storage_path?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null
@@ -832,51 +896,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-        ]
-      }
-      student_files: {
-        Row: {
-          created_at: string
-          file_name: string
-          id: string
-          mime_type: string
-          storage_path: string
-          student_id: string
-          visible_to_students: boolean
-        }
-        Insert: {
-          created_at?: string
-          file_name: string
-          id?: string
-          mime_type?: string
-          storage_path: string
-          student_id: string
-          visible_to_students?: boolean
-        }
-        Update: {
-          created_at?: string
-          file_name?: string
-          id?: string
-          mime_type?: string
-          storage_path?: string
-          student_id?: string
-          visible_to_students?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "student_files_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "students"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "student_files_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "v_student_activity"
-            referencedColumns: ["student_id"]
           },
         ]
       }
@@ -1155,29 +1174,6 @@ export type Database = {
       }
     }
     Functions: {
-      add_student_file: {
-        Args: {
-          p_file_name: string
-          p_mime_type: string
-          p_storage_path: string
-          p_student_id: string
-        }
-        Returns: {
-          created_at: string
-          file_name: string
-          id: string
-          mime_type: string
-          storage_path: string
-          student_id: string
-          visible_to_students: boolean
-        }
-        SetofOptions: {
-          from: "*"
-          to: "student_files"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
       approve_change_request: {
         Args: { p_request_id: string }
         Returns: {
@@ -1431,6 +1427,16 @@ export type Database = {
               isSetofReturn: false
             }
           }
+      create_material: {
+        Args: {
+          p_all: boolean
+          p_file_name: string
+          p_mime_type: string
+          p_storage_path: string
+          p_student_ids: string[]
+        }
+        Returns: string
+      }
       create_notification: {
         Args: {
           p_body: string
@@ -1511,6 +1517,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      notify_material_audience: {
+        Args: { p_file_name: string; p_student_ids: string[] }
+        Returns: undefined
       }
       notify_waitlist_of_opening: {
         Args: { p_lesson_date: string; p_subject_id: string }
@@ -1647,6 +1657,10 @@ export type Database = {
         }
       }
       send_lesson_reminders: { Args: never; Returns: undefined }
+      set_material_recipients: {
+        Args: { p_all: boolean; p_material_id: string; p_student_ids: string[] }
+        Returns: undefined
+      }
       set_push_trigger_secret: { Args: { p_value: string }; Returns: undefined }
     }
     Enums: {

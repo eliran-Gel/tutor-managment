@@ -35,13 +35,34 @@ export default async function StudentDetailPage({
     .select("id, parent_profile_id, profiles:parent_profile_id (full_name, email)")
     .eq("student_id", id);
 
-  const { data: studentFileRows } = await supabase
-    .from("student_files")
-    .select("id, file_name, storage_path, mime_type, visible_to_students")
-    .eq("student_id", id)
-    .order("created_at", { ascending: false });
-  const studentFileUrls = await getSignedFileUrls((studentFileRows ?? []).map((f) => f.storage_path));
-  const studentFiles = (studentFileRows ?? []).map((f, i) => ({ ...f, signedUrl: studentFileUrls[i] }));
+  // Materials this student can see: shared with everyone, or with them
+  // specifically. (The tutor's RLS sees every material, so the filter has to
+  // be explicit.)
+  const [{ data: everyoneRows }, { data: ownRows }] = await Promise.all([
+    supabase
+      .from("materials")
+      .select("id, file_name, storage_path, mime_type, all_students, created_at")
+      .eq("all_students", true),
+    supabase
+      .from("material_recipients")
+      .select("materials(id, file_name, storage_path, mime_type, all_students, created_at)")
+      .eq("student_id", id),
+  ]);
+  const materialsById = new Map<string, NonNullable<typeof everyoneRows>[number]>();
+  for (const m of [...(everyoneRows ?? []), ...(ownRows ?? []).map((r) => r.materials)]) {
+    if (m) materialsById.set(m.id, m);
+  }
+  const studentMaterialRows = Array.from(materialsById.values()).sort((a, b) =>
+    b.created_at.localeCompare(a.created_at),
+  );
+  const studentFileUrls = await getSignedFileUrls(studentMaterialRows.map((m) => m.storage_path));
+  const studentFiles = studentMaterialRows.map((m, i) => ({
+    id: m.id,
+    file_name: m.file_name,
+    mime_type: m.mime_type,
+    all_students: m.all_students,
+    signedUrl: studentFileUrls[i],
+  }));
 
   const [{ data: subjects }, { data: grades }] = await Promise.all([
     supabase.from("subjects").select("id, name").eq("active", true).order("name"),

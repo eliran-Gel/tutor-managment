@@ -12,6 +12,7 @@ export const tutorNav: NavItem[] = [
   { label: "תלמידים", href: "/tutor/students" },
   { label: "סיכומי שיעורים", href: "/tutor/summaries" },
   { label: "שיעורי בית", href: "/tutor/homework" },
+  { label: "חומרי עזר", href: "/tutor/materials" },
   { label: "ציונים והתקדמות", href: "/tutor/grades" },
   { label: "תשלומים", href: "/tutor/payments" },
   { label: "הכנסות וסטטיסטיקות", href: "/tutor/analytics" },
