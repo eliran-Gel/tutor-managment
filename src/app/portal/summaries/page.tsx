@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { getSelectedChild } from "@/lib/portal/get-selected-child";
-import { getSignedFileUrl } from "@/lib/lesson-files";
+import { getSignedFileUrls } from "@/lib/lesson-files";
 import { Card } from "@/components/ui/card";
 import { SummariesGallery } from "./summaries-gallery";
 
@@ -24,9 +24,8 @@ export default async function PortalSummariesPage({
         .order("created_at", { ascending: false })
     : { data: [] };
 
-  const withUrls = await Promise.all(
-    (summaries ?? []).map(async (s) => ({ ...s, signedUrl: await getSignedFileUrl(s.storage_path) })),
-  );
+  const summaryUrls = await getSignedFileUrls((summaries ?? []).map((s) => s.storage_path));
+  const withUrls = (summaries ?? []).map((s, i) => ({ ...s, signedUrl: summaryUrls[i] }));
 
   return (
     <div className="flex flex-col gap-6">

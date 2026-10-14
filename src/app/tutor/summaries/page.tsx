@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getSignedFileUrl } from "@/lib/lesson-files";
+import { getSignedFileUrls } from "@/lib/lesson-files";
 import { SummariesBrowser, type StudentSummaries } from "./summaries-browser";
 
 export default async function TutorSummariesPage() {
@@ -16,16 +16,18 @@ export default async function TutorSummariesPage() {
       .order("date", { ascending: false }),
   ]);
 
-  const lessonsWithUrls = await Promise.all(
-    (lessons ?? []).map(async (lesson) => {
-      const summaryFiles = await Promise.all(
-        lesson.lesson_files
-          .filter((f) => f.mime_type.startsWith("image/"))
-          .map(async (f) => ({ ...f, signedUrl: await getSignedFileUrl(f.storage_path) })),
-      );
-      return { ...lesson, summaryFiles };
-    }),
+  // Every summary image of every lesson, signed in a single request - this
+  // page lists all students' lessons at once, so one request per image
+  // would grow with the whole business, not with one student.
+  const imageFilesByLesson = (lessons ?? []).map((lesson) =>
+    lesson.lesson_files.filter((f) => f.mime_type.startsWith("image/")),
   );
+  const imageUrls = await getSignedFileUrls(imageFilesByLesson.flat().map((f) => f.storage_path));
+  let urlCursor = 0;
+  const lessonsWithUrls = (lessons ?? []).map((lesson, lessonIndex) => {
+    const summaryFiles = imageFilesByLesson[lessonIndex].map((f) => ({ ...f, signedUrl: imageUrls[urlCursor++] }));
+    return { ...lesson, summaryFiles };
+  });
 
   const studentSummaries: StudentSummaries[] = (students ?? []).map((student) => ({
     id: student.id,

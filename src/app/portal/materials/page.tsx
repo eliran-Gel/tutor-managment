@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth/get-profile";
 import { getSelectedChild } from "@/lib/portal/get-selected-child";
-import { getSignedFileUrl } from "@/lib/lesson-files";
+import { getSignedFileUrls } from "@/lib/lesson-files";
 import { Card } from "@/components/ui/card";
 import { MaterialsList } from "./materials-list";
 
@@ -36,26 +36,28 @@ export default async function PortalMaterialsPage({
         .eq("student_id", current.id)
     : { data: [] };
 
-  const lessonMaterials = await Promise.all(
-    (materials ?? []).map(async (m) => ({
-      id: m.id,
-      file_name: m.file_name,
-      mime_type: m.mime_type,
-      lessons: { date: m.lessons.date, subjects: m.lessons.subjects },
-      signedUrl: await getSignedFileUrl(m.storage_path),
-      sortKey: m.lessons.date,
-    })),
-  );
-  const personalMaterials = await Promise.all(
-    (personal ?? []).map(async (f) => ({
-      id: f.id,
-      file_name: f.file_name,
-      mime_type: f.mime_type,
-      lessons: null,
-      signedUrl: await getSignedFileUrl(f.storage_path),
-      sortKey: f.created_at.slice(0, 10),
-    })),
-  );
+  // One signing request for every file on the page, not one per file.
+  const allUrls = await getSignedFileUrls([
+    ...(materials ?? []).map((m) => m.storage_path),
+    ...(personal ?? []).map((f) => f.storage_path),
+  ]);
+  const lessonMaterials = (materials ?? []).map((m, i) => ({
+    id: m.id,
+    file_name: m.file_name,
+    mime_type: m.mime_type,
+    lessons: { date: m.lessons.date, subjects: m.lessons.subjects },
+    signedUrl: allUrls[i],
+    sortKey: m.lessons.date,
+  }));
+  const personalOffset = (materials ?? []).length;
+  const personalMaterials = (personal ?? []).map((f, i) => ({
+    id: f.id,
+    file_name: f.file_name,
+    mime_type: f.mime_type,
+    lessons: null,
+    signedUrl: allUrls[personalOffset + i],
+    sortKey: f.created_at.slice(0, 10),
+  }));
   const withUrls = [...personalMaterials, ...lessonMaterials].sort((a, b) => b.sortKey.localeCompare(a.sortKey));
 
   return (

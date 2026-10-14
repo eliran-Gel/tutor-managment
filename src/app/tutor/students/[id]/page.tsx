@@ -11,7 +11,7 @@ import { ClaimGuestCard } from "./claim-guest-card";
 import { LessonHistoryCard } from "./lesson-history-card";
 import { GradesCard } from "./grades-card";
 import { StudentFilesCard } from "./student-files-card";
-import { getSignedFileUrl } from "@/lib/lesson-files";
+import { getSignedFileUrls } from "@/lib/lesson-files";
 
 export default async function StudentDetailPage({
   params,
@@ -40,9 +40,8 @@ export default async function StudentDetailPage({
     .select("id, file_name, storage_path, mime_type, visible_to_students")
     .eq("student_id", id)
     .order("created_at", { ascending: false });
-  const studentFiles = await Promise.all(
-    (studentFileRows ?? []).map(async (f) => ({ ...f, signedUrl: await getSignedFileUrl(f.storage_path) })),
-  );
+  const studentFileUrls = await getSignedFileUrls((studentFileRows ?? []).map((f) => f.storage_path));
+  const studentFiles = (studentFileRows ?? []).map((f, i) => ({ ...f, signedUrl: studentFileUrls[i] }));
 
   const [{ data: subjects }, { data: grades }] = await Promise.all([
     supabase.from("subjects").select("id, name").eq("active", true).order("name"),
