@@ -16,7 +16,9 @@ export default async function RequestsPage() {
       supabase.from("marketing_leads").select("*").eq("status", "new").order("created_at"),
       supabase
         .from("lessons")
-        .select("*, subjects(name), requester:profiles!lessons_created_by_fkey(full_name, email)")
+        .select(
+          "*, subjects(name), requester:profiles!lessons_created_by_fkey(full_name, email), requested_student:students!lessons_requested_student_id_fkey(display_name)",
+        )
         .eq("status", "requested")
         .order("created_at"),
       supabase
@@ -115,12 +117,19 @@ export default async function RequestsPage() {
       )}
 
       <div className="flex flex-col gap-2">
-        {requests?.map((req) => (
+        {requests?.map((req) => {
+          const requesterName = req.requester?.full_name ?? req.requester?.email ?? "משתמש לא ידוע";
+          // The lesson is for the child (requested_student); the account
+          // that booked it may be their parent - show the child as the
+          // name, and the parent as who asked.
+          const studentName = req.requested_student?.display_name ?? requesterName;
+          return (
           <Card key={req.id} className="min-w-0 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="truncate font-medium text-text-primary">
-                {req.requester?.full_name ?? req.requester?.email ?? "משתמש לא ידוע"}
-              </p>
+              <p className="truncate font-medium text-text-primary">{studentName}</p>
+              {studentName !== requesterName && (
+                <p className="truncate text-xs text-text-muted">הבקשה הוגשה על ידי {requesterName}</p>
+              )}
               <p className="mt-1 break-words text-sm text-text-secondary">
                 {req.subjects?.name ?? "ללא מקצוע"} · {formatIsoDateWithWeekday(req.date)} ·{" "}
                 {req.start_time.slice(0, 5)}–{req.end_time.slice(0, 5)} ·{" "}
@@ -132,7 +141,8 @@ export default async function RequestsPage() {
               <RequestRowActions lessonId={req.id} />
             </div>
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       <div>

@@ -29,7 +29,7 @@ export default async function CalendarDayPage({ params }: { params: Promise<{ da
     supabase
       .from("lessons")
       .select(
-        "id, start_time, end_time, status, delivery_mode, topic, subjects(name), lesson_participants(students(display_name)), requester:profiles!lessons_created_by_fkey(full_name, email)",
+        "id, start_time, end_time, status, delivery_mode, topic, subjects(name), lesson_participants(students(display_name)), requester:profiles!lessons_created_by_fkey(full_name, email), requested_student:students!lessons_requested_student_id_fkey(display_name)",
       )
       .eq("date", date)
       .in("status", ["confirmed", "completed", "requested"])
@@ -92,11 +92,13 @@ export default async function CalendarDayPage({ params }: { params: Promise<{ da
             .map((lp) => lp.students?.display_name)
             .filter((name): name is string => Boolean(name));
           // A still-pending request has no lesson_participants row yet
-          // (that's only created on approval) - fall back to who asked.
+          // (that's only created on approval) - fall back to the student the
+          // request is for (a parent books on behalf of their child), and
+          // only then to whoever asked.
           const displayNames =
             studentNames.length > 0
               ? studentNames
-              : [lesson.requester?.full_name ?? lesson.requester?.email].filter(
+              : [lesson.requested_student?.display_name ?? lesson.requester?.full_name ?? lesson.requester?.email].filter(
                   (name): name is string => Boolean(name),
                 );
 
