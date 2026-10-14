@@ -14,7 +14,7 @@ export default async function PortalLayout({ children }: { children: ReactNode }
   const isStudent = profile?.role === "student";
   const supabase = await createClient();
 
-  const [notifications, subjects, { children: linkedChildren, needsSelector }] = await Promise.all([
+  const [notifications, subjects, { current, children: linkedChildren, needsSelector }] = await Promise.all([
     profile ? getRecentNotifications(profile.id) : Promise.resolve([]),
     isStudent
       ? supabase.from("subjects").select("*").eq("active", true).order("name").then((r) => r.data)
@@ -34,7 +34,15 @@ export default async function PortalLayout({ children }: { children: ReactNode }
         notifications={notifications}
         quickAction={
           isStudent ? (
-            <RequestLessonModal subjects={subjects ?? []} triggerClassName="px-3 py-1.5 text-xs" />
+            // Without the student id the request has no one to be for and
+            // is rejected on submit - the page-level buttons already pass it.
+            current ? (
+              <RequestLessonModal
+                subjects={subjects ?? []}
+                studentId={current.id}
+                triggerClassName="px-3 py-1.5 text-xs"
+              />
+            ) : undefined
           ) : needsSelector ? (
             // Suspense boundary required around useSearchParams (inside
             // ChildSwitcher) - Next.js opts the whole route into a build
