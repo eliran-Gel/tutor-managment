@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import { BackButton } from "./back-button";
 
 export const metadata: Metadata = {
   title: "מדיניות פרטיות",
@@ -55,9 +55,7 @@ const sections: { title: string; body: string[] }[] = [
 export default function PrivacyPage() {
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-12">
-      <Link href="/login" className="text-sm font-medium text-brand-accent hover:underline">
-        ← חזרה
-      </Link>
+      <BackButton />
       <h1 className="mt-4 text-2xl font-bold font-display text-text-primary">מדיניות פרטיות</h1>
       <p className="mt-1 text-sm text-text-muted">עודכן לאחרונה: אוקטובר 2026</p>
 
