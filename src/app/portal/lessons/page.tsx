@@ -17,7 +17,7 @@ export default async function PortalLessonsPage({
   const { current } = await getSelectedChild(supabase, profile, requestedChild);
   const childId = current?.id ?? null;
 
-  const [{ data: lessonRows }, { data: subjects }, { data: waitlistEntries }] = await Promise.all([
+  const [{ data: lessonRows }, { data: requestedRows }, { data: subjects }, { data: waitlistEntries }] = await Promise.all([
     // Queried from lesson_participants (not lessons directly) so a parent
     // with more than one child sees only the selected child's lessons, not
     // every lesson RLS happens to let them see across all their kids.
@@ -28,6 +28,13 @@ export default async function PortalLessonsPage({
           .eq("student_id", childId)
           .order("date", { referencedTable: "lessons", ascending: false })
           .order("start_time", { referencedTable: "lessons", ascending: false })
+      : Promise.resolve({ data: [] }),
+    // A lesson only gets a lesson_participants row once the tutor approves
+    // it, so a request that's still pending (or was rejected) would never
+    // show up in the query above - these are looked up by who they were
+    // requested for instead.
+    childId
+      ? supabase.from("lessons").select("*, subjects(name)").eq("requested_student_id", childId)
       : Promise.resolve({ data: [] }),
     supabase.from("subjects").select("*").eq("active", true).order("name"),
     // Not per-child - a waitlist entry belongs to the parent's own account,
@@ -40,7 +47,11 @@ export default async function PortalLessonsPage({
       .order("created_at"),
   ]);
 
-  const lessons = (lessonRows ?? []).map((r) => r.lessons);
+  const byId = new Map<string, NonNullable<typeof requestedRows>[number]>();
+  for (const l of [...(lessonRows ?? []).map((r) => r.lessons), ...(requestedRows ?? [])]) byId.set(l.id, l);
+  const lessons = Array.from(byId.values()).sort((a, b) =>
+    `${b.date}T${b.start_time}`.localeCompare(`${a.date}T${a.start_time}`),
+  );
 
   return (
     <div className="flex flex-col gap-6">

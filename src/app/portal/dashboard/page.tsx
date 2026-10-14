@@ -48,15 +48,17 @@ export default async function PortalDashboardPage({
     // Only shown when there's no confirmed lesson yet - a request still
     // awaiting the tutor's decision, so the student isn't just staring
     // at "no lesson scheduled" while something is actually in progress.
+    // Looked up by who the request is for: a still-pending lesson has no
+    // lesson_participants row yet (that's only created on approval).
     childId
       ? supabase
-          .from("lesson_participants")
-          .select("lessons!inner(*, subjects(name))")
-          .eq("student_id", childId)
-          .eq("lessons.status", "requested")
-          .gte("lessons.date", today)
-          .order("date", { referencedTable: "lessons" })
-          .order("start_time", { referencedTable: "lessons" })
+          .from("lessons")
+          .select("*, subjects(name)")
+          .eq("requested_student_id", childId)
+          .eq("status", "requested")
+          .gte("date", today)
+          .order("date")
+          .order("start_time")
           .limit(1)
           .maybeSingle()
       : Promise.resolve({ data: null }),
@@ -81,7 +83,7 @@ export default async function PortalDashboardPage({
   ]);
 
   const nextLesson = nextLessonRow?.lessons ?? null;
-  const nextPendingLesson = nextPendingLessonRow?.lessons ?? null;
+  const nextPendingLesson = nextPendingLessonRow ?? null;
   const needsGradeSchool =
     profile?.role === "student" && current && (current.grade == null || !current.school_name);
   const latestSummaryUrl = latestSummaryRow ? await getSignedFileUrl(latestSummaryRow.storage_path) : null;
