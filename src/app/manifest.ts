@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "אלירן גלברג - מורה פרטי",
-    short_name: "אלירן גלברג",
+    name: "ניהול תורים",
+    short_name: "ניהול תורים",
     description: "מערכת ניהול לעסק ההוראה הפרטית",
     start_url: "/",
     display: "standalone",

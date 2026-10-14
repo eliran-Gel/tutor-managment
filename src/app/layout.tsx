@@ -26,8 +26,8 @@ const notoSansHebrew = Noto_Sans_Hebrew({
 export const metadata: Metadata = {
   metadataBase: new URL("https://app.elirangelberg.com"),
   title: {
-    default: "אלירן גלברג - מורה פרטי | ניהול",
-    template: "%s | אלירן גלברג - מורה פרטי",
+    default: "ניהול תורים",
+    template: "%s | ניהול תורים",
   },
   description:
     "אלירן גלברג, מורה פרטי למתמטיקה, פיזיקה ומחשבים. קביעת שיעורים, מעקב התקדמות וסיכומי שיעור לתלמידים ולהורים.",
@@ -36,22 +36,22 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "אלירן גלברג - מורה פרטי",
+    title: "ניהול תורים",
     description: "מורה פרטי למתמטיקה, פיזיקה ומחשבים. קביעת שיעורים וניהול התקדמות לתלמידים ולהורים.",
     url: "https://app.elirangelberg.com",
-    siteName: "אלירן גלברג - מורה פרטי",
+    siteName: "ניהול תורים",
     locale: "he_IL",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "אלירן גלברג - מורה פרטי",
+    title: "ניהול תורים",
     description: "מורה פרטי למתמטיקה, פיזיקה ומחשבים.",
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "אלירן גלברג",
+    title: "ניהול תורים",
   },
 };
 
